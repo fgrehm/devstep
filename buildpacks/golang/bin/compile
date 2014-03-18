@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# usage: bin/compile <build-dir> <cache-dir> <env-dir>
+
+# This is a modified version of https://github.com/kr/heroku-buildpack-go/blob/master/bin/compile
+
+set -eo pipefail
+
+mkdir -p "$1" "$2"
+build=$1
+cache=$2
+arch=$(uname -m|tr A-Z a-z)
+if test $arch = x86_64
+then arch=amd64
+fi
+plat=$(uname|tr A-Z a-z)-$arch
+
+heroku_buildpack_bin='https://github.com/kr/heroku-buildpack-go/raw/master/linux-amd64/bin'
+target='/.devstep/bin'
+if [ -f $build/Godeps ] || [ -d $build/Godeps ]; then
+  if ! [ -f ${target}/godep ]; then
+    echo -n "-----> Installing godep to ${target}..."
+    if ! [ -f ${cache}/godep ]; then
+      curl -L -s ${heroku_buildpack_bin}/godep > ${cache}/godep
+    fi
+    cp ${cache}/godep ${target}/godep
+    chmod +x ${target}/godep
+    echo ' done'
+  else
+    echo -n "-----> Using ${target}/godep"
+  fi
+fi
+PATH=$target:$PATH
+
+if test -f $build/Godeps; then
+  name=$(<$build/Godeps jq -r .ImportPath)
+  ver=$(<$build/Godeps jq -r .GoVersion)
+elif test -d $build/Godeps; then
+  name=$(<$build/Godeps/Godeps.json jq -r .ImportPath)
+  ver=$(<$build/Godeps/Godeps.json jq -r .GoVersion)
+elif test -f $build/.godir; then
+  name=$(cat $build/.godir)
+fi
+ver=${ver:-go${GOVERSION:-1.2.1}}
+
+file=${GOFILE:-$ver.$(uname|tr A-Z a-z)-amd64.tar.gz}
+url=${GOURL:-http://go.googlecode.com/files/$file}
+
+mkdir -p $cache/$ver
+cd $cache/$ver
+if test -f $cache/$ver/$file; then
+  echo "-----> Using $ver"
+else
+  echo "-----> Downloading ${ver}..."
+  curl -sO $url
+  echo "done"
+fi
+tar zxf $file -C /.devstep
+
+GOROOT=/.devstep/go export GOROOT
+PATH=$GOROOT/bin:$PATH export PATH
+
+GOPATH=/.devstep/gocode export GOPATH
+GOBIN=$GOPATH/bin export GOBIN
+PATH=$GOBIN:$PATH export PATH
+
+mkdir -p $GOBIN
+mkdir -p $GOPATH
+
+echo "-----> Configuring ${ver}..."
+echo "export GOPATH=$GOPATH" > /.devstep/.profile.d/go.sh
+echo "export GOROOT=$GOROOT" >> /.devstep/.profile.d/go.sh
+echo "export GOBIN=$GOBIN" >> /.devstep/.profile.d/go.sh
+echo 'export PATH=$PATH:$GOROOT/bin' >> /.devstep/.profile.d/go.sh
+echo 'export PATH=$PATH:$GOBIN' >> /.devstep/.profile.d/go.sh
+echo 'done'
+
+if [ -z "${name}" ] && [ -n "${GO_PROJECT_NAME}" ]; then
+  name=$GO_PROJECT_NAME
+fi
+
+if [ -z "${name}" ]; then
+  echo -e "-----> Unable to identify project name\nPlease add the full import path to \`.godir\` or set the GO_PROJECT_NAME environmental variable"
+  p=$build
+else
+  p=$GOPATH/src/$name
+  mkdir -p $(dirname $p)
+  if ! [ -L $p ]; then
+    ln -s $build $p
+  fi
+fi
+
+unset GIT_DIR # unset git dir or it will mess with goinstall
+cd $p
+if test -e $build/Godeps
+then
+  echo "-----> Running: godep go build -o $(basename $name)"
+  godep go build -o $(basename $name)
+else
+  echo "-----> Running: go get -d -v"
+  go get -d -v
+fi

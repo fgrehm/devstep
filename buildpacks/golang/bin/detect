@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# usage: bin/detect <build-dir>
+
+# From https://github.com/kr/heroku-buildpack-go/blob/master/bin/detect
+
+set -eo pipefail
+
+if test -n "$(find "$1" -type f -name '*.go' | sed 1q)"; then
+  echo Go
+else
+  echo no
+  exit 1
+fi

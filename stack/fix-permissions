@@ -1,0 +1,36 @@
+#!/bin/bash
+
+info=( $(stat -Lc"%U %g %u" `pwd`) )
+user=${info[0]}
+gid=${info[1]}
+uid=${info[2]}
+
+if [ $user = 'developer' ]; then
+  echo "-----> Project permissions are ok"
+# If project is owned by root, it means it was built with a Dockerfile, so we
+# chown it to the developer user
+elif [ "${uid}" = '0' ]; then
+  if [ `pwd` != '/' ]; then
+    echo "-----> Setting '`pwd`' owner to 'developer'"
+    sudo chown -R developer: `pwd`
+  fi
+else
+  # Fixes the user uid / gid to be the same as the bind mount
+  echo "-----> Changing 'developer' user uid to '${uid}' and gid to '${gid}'"
+  sudo sed -i.bkp "s/^developer:x:1000:1000:\\(.\\+\\)$/developer:x:${uid}:${gid}:\\1/" /etc/passwd
+  sudo sed -i.bkp "s/^developer:x:1000:$/developer:x:${gid}:/" /etc/group
+  echo "-----> Please restart the container!"
+fi
+
+
+info=( $(stat -Lc"%U %g %u" /.devstep/cache) )
+user=${info[0]}
+gid=${info[1]}
+uid=${info[2]}
+
+if [ $user = 'developer' ]; then
+  echo "-----> Cache permissions are ok"
+else
+  echo "-----> Change cache dir owner to 'developer'"
+  sudo chown developer: /.devstep/cache
+fi

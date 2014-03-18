@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+
+set -e
+
+GEMFILE_PATH=$1/Gemfile
+
+# From https://github.com/aripollak/rbenv-bundler-ruby-version/blob/32bd1a63ed57c6fcfbd4f3766fed64fad21b61b0/bin/rbenv-bundler-ruby-version#L24-L33
+version_from_gemfile() {
+  # handles simple ruby statements, as well as engine and engine_version,
+  # with single or double quotes and in either order
+  grep '^\s*ruby' "$GEMFILE_PATH" | sed -e 's/\s*#.*//' -e 's/engine:/:engine =>/' \
+        -e 's/engine_version:/:engine_version =>/' \
+        -e "s/.*:engine\s*=>\s*['\"]\([^'\"]*\).*:engine_version\s*=>\s*['\"]\([^'\"]*\).*/\1-\2/" \
+        -e "s/.*:engine_version\s*=>\s*['\"]\([^'\"]*\).*:engine\s*=>\s*['\"]\([^'\"]*\).*/\2-\1/" \
+        -e "s/^\s*ruby\s*['\"]\([^'\"]*\).*/\1/" | head -1
+}
+
+install_ruby() {
+  mkdir -p $1/rvm-cache
+  mkdir -p /.devstep/.rvm
+  ln -s $1/rvm-cache /.devstep/.rvm/archives
+
+  echo 'Installing rvm...'
+  OLD_HOME=$HOME
+  HOME=/.devstep
+  \curl -sSL https://get.rvm.io | bash -s -- --ignore-dotfiles &>>/tmp/build.log
+  HOME=$OLD_HOME
+
+  _rvm=/.devstep/.rvm/bin/rvm
+
+  # TODO: Figure out if this is really needed
+  echo 'export rvm_ignore_gemset_flag=1' | sudo tee -a /.rvmrc &>>/tmp/build.log
+  export rvm_ignore_gemset_flag=1
+  $_rvm rvmrc warning ignore allGemfiles &>> /tmp/build.log
+
+  RVM_RUBY_VERSION="ruby-${RVM_RUBY_VERSION}"
+  echo "Installing ${RVM_RUBY_VERSION}..."
+  $_rvm install ${RVM_RUBY_VERSION} --binary --default &>>/tmp/build.log
+  # TODO: rm /tmp/rvm.log
+
+  mkdir -p /.devstep/.profile.d
+  $_rvm env > /.devstep/.profile.d/rvm.sh
+}
+
+requires_nodejs() {
+  return $(grep -q 'execjs' $1/Gemfile*) || \
+          $(grep -q 'coffee-script' $1/Gemfile*) || \
+          $(grep -q 'uglifier' $1/Gemfile*)
+}
+
+install_nodejs() {
+  version='0.10.26'
+  file="node-v${version}-linux-x64.tar.gz"
+  if ! [ -f $1/$file ]; then
+    wget -P $1 http://nodejs.org/dist/v${version}/$file &>>/tmp/build.log
+  fi
+  mkdir -p /.devstep/nodejs
+  tar xvfz $1/$file -C /.devstep/nodejs --strip-components=1 &>>/tmp/build.log
+  echo "export PATH=/.devstep/nodejs/bin:$PATH" > /.devstep/.profile.d/nodejs.sh
+}
+
+# TODO: Look into travis.yml as well
+RVM_RUBY_VERSION=${RVM_RUBY_VERSION:-$(version_from_gemfile)}
+if [ -z "$RVM_RUBY_VERSION" ]; then
+  echo 'Unable to identify the project ruby version, setting to 2.1.1'
+  RVM_RUBY_VERSION='2.1.1'
+fi
+
+if requires_nodejs $1; then
+  if [ -f /.devstep/nodejs ]; then
+    echo 'Nodejs already installed, skipping'
+  else
+    echo 'Installing nodejs...'
+    install_nodejs $2
+    source /.devstep/.profile.d/nodejs.sh
+  fi
+fi
+
+# TODO: Check if the ruby version has actually been installed instead of just rvm
+if [ -d /.devstep/.rvm ]; then
+  echo 'Ruby already installed, skipping'
+else
+  install_ruby $2
+fi
+source /.devstep/.profile.d/rvm.sh
+
+if $(bundle -v | grep -q '1.5.0'); then
+  echo "Bundler 1.5.0 was detected, upgrading to latest"
+  gem install bundler --no-ri --no-rdoc
+fi
+
+echo "Installing gems using bundler '$(bundle -v | cut -d' ' -f 3)'..."
+(cd $1 && bundle install)

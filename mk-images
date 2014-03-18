@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+
+echo '===> Building fgrehm/devstep:base'
+docker build -t fgrehm/devstep:base .
+
+echo '===> Building fgrehm/devstep:standalone'
+(cd standalone && docker build -t fgrehm/devstep:standalone .)

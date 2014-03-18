@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+
+require 'pathname'
+
+if Pathname.new(ARGV.first).join("Gemfile").exist?
+  puts "Ruby"
+  exit 0
+else
+  puts "no"
+  exit 1
+end

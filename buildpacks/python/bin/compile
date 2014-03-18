@@ -1,0 +1,295 @@
+#!/usr/bin/env bash
+
+# Usage:
+#
+#     $ bin/compile <build-dir> <cache-dir> <env-path>
+
+# Fail fast and fail hard.
+set -eo pipefail
+
+# XXX: Is this needed?
+# Prepend proper path for virtualenv hackery. This will be deprecated soon.
+# export PATH=:/usr/local/bin:$PATH
+
+# Paths.
+BUILD_DIR=$1
+CACHE_DIR=$2
+ENV_DIR=$3
+
+basedir="${CACHE_DIR}/heroku-buildpack-python"
+if ! [ -d $basedir ]; then
+  git clone https://github.com/heroku/heroku-buildpack-python.git $basedir
+else
+  echo 'Using cached version of https://github.com/heroku/heroku-buildpack-python.git'
+fi
+
+BIN_DIR=$basedir/bin
+ROOT_DIR=$basedir
+
+basedir="${basedir}/bin"
+basedir=$(readlink -f $basedir)
+export HEROKU_PHP_BUILDPACK=$basedir
+
+# CACHED_DIRS=".heroku"
+
+# Static configurations for virtualenv caches.
+# VIRTUALENV_LOC=".heroku/venv"
+# LEGACY_TRIGGER="lib/python2.7"
+PROFILE_PATH="/.devstep/.profile.d/python.sh"
+
+DEFAULT_PYTHON_VERSION="python-2.7.6"
+PYTHON_EXE="/.devstep/python/bin/python"
+PIP_VERSION="1.5.4"
+SETUPTOOLS_VERSION="2.1"
+
+# Setup bpwatch
+# export PATH=$PATH:$ROOT_DIR/vendor/bpwatch
+# LOGPLEX_KEY="t.b396af7f-ad75-4643-8b9e-ebb288acc624"
+# export BPWATCH_STORE_PATH=$CACHE_DIR/bpwatch.json
+BUILDPACK_VERSION=v28
+
+# Support Anvil Build_IDs
+# [ ! "$REQUEST_ID" ] && REQUEST_ID=$SLUG_ID
+
+# Sanitizing environment variables.
+unset GIT_DIR PYTHONHOME PYTHONPATH LD_LIBRARY_PATH LIBRARY_PATH
+
+# bpwatch init $LOGPLEX_KEY
+# bpwatch build python $BUILDPACK_VERSION $REQUEST_ID
+# TMP_APP_DIR=$CACHE_DIR/tmp_app_dir
+
+# bpwatch start compile
+
+
+# We'll need to send these statics to other scripts we `source`.
+export BUILD_DIR CACHE_DIR BIN_DIR PROFILE_PATH
+
+# Syntax sugar.
+source $BIN_DIR/utils
+
+# Directory Hacks for path consistiency.
+# APP_DIR='/app'
+# TMP_APP_DIR=$CACHE_DIR/tmp_app_dir
+
+# Copy Anvil app dir to temporary storage...
+# bpwatch start anvil_appdir_stage
+#   if [ "$SLUG_ID" ]; then
+#     mkdir -p $TMP_APP_DIR
+#     deep-mv $APP_DIR $TMP_APP_DIR
+#   else
+#     deep-rm $APP_DIR
+#   fi
+# bpwatch stop anvil_appdir_stage
+
+# Copy Application code in.
+# bpwatch start appdir_stage
+#   deep-mv $BUILD_DIR $APP_DIR
+# bpwatch stop appdir_stage
+
+# Set new context.
+# ORIG_BUILD_DIR=$BUILD_DIR
+# BUILD_DIR=$APP_DIR
+
+# Prepend proper path buildpack use.
+export PATH=/.devstep/python/bin:/.devstep/vendor/bin:$PATH
+export PYTHONUNBUFFERED=1
+export LANG=en_US.UTF-8
+export C_INCLUDE_PATH=/.devstep/vendor/include
+export CPLUS_INCLUDE_PATH=/.devstep/vendor/include
+export LIBRARY_PATH=/.devstep/vendor/lib
+export LD_LIBRARY_PATH=/.devstep/vendor/lib
+export PKG_CONFIG_PATH=/.devstep/vendor/lib/pkg-config
+
+# Switch to the repo's context.
+cd $BUILD_DIR
+
+# Experimental pre_compile hook.
+# bpwatch start pre_compile
+  source $BIN_DIR/steps/hooks/pre_compile
+# bpwatch stop pre_compile
+
+# If no requirements given, assume `setup.py develop`.
+if [ ! -f requirements.txt ] && [ -f setup.py ]; then
+  puts-step "No requirements.txt provided; assuming dist package."
+  echo "-e ." > requirements.txt
+fi
+
+# XXX: Is this needed?
+# Sticky runtimes.
+# if [ -f $CACHE_DIR/.heroku/python-version ]; then
+#   DEFAULT_PYTHON_VERSION=$(cat $CACHE_DIR/.heroku/python-version)
+# fi
+
+# If no runtime given, assume default version.
+if [ ! -f runtime.txt ]; then
+  puts-step "No runtime.txt provided; assuming $DEFAULT_PYTHON_VERSION."
+  PYTHON_VERSION=$DEFAULT_PYTHON_VERSION
+fi
+
+# ### The Cache
+mkdir -p $CACHE_DIR
+
+# XXX: Is this needed?
+# Purge "old-style" virtualenvs.
+# bpwatch start clear_old_venvs
+#   [ -d $CACHE_DIR/$LEGACY_TRIGGER ] && rm -fr $CACHE_DIR/.heroku/bin $CACHE_DIR/.heroku/lib $CACHE_DIR/.heroku/include
+#   [ -d $CACHE_DIR/$VIRTUALENV_LOC ] && rm -fr $CACHE_DIR/.heroku/venv $CACHE_DIR/.heroku/src
+# bpwatch stop clear_old_venvs
+
+# XXX: Is this needed?
+# Restore old artifacts from the cache.
+# bpwatch start restore_cache
+#   for dir in $CACHED_DIRS; do
+#     cp -R $CACHE_DIR/$dir . &> /dev/null || true
+#   done
+# bpwatch stop restore_cache
+
+# set +e
+# Create set-aside `.heroku` folder.
+# mkdir .heroku &> /dev/null
+# set -e
+
+mkdir -p $(dirname $PROFILE_PATH)
+
+set +e
+PYTHON_VERSION=${PYTHON_VERSION:-$(cat runtime.txt)}
+
+# XXX: Is this needed?
+# Install Python.
+# if [ -f .heroku/python-version ]; then
+#   if [ ! $(cat .heroku/python-version) = $PYTHON_VERSION ]; then
+#     # bpwatch start uninstall_python
+#       puts-step "Found $(cat .heroku/python-version), removing."
+#       rm -fr .heroku/python
+#     # bpwatch stop uninstall_python
+#   else
+#     SKIP_INSTALL=1
+#   fi
+# fi
+
+
+if [ ! "$SKIP_INSTALL" ]; then
+  # bpwatch start install_python
+    puts-step "Preparing Python runtime ($PYTHON_VERSION)"
+    if ! [ -f $CACHE_DIR/${PYTHON_VERSION}.tar.bz2 ]; then
+      curl http://envy-versions.s3.amazonaws.com/${PYTHON_VERSION}.tar.bz2 > ${CACHE_DIR}/${PYTHON_VERSION}.tar.bz2
+      if [[ $? != 0 ]] ; then
+        puts-warn "Requested runtime ($PYTHON_VERSION) was not found."
+        puts-warn "Aborting.  More info: https://devcenter.heroku.com/articles/python-support"
+        exit 1
+      fi
+    fi
+    rm -rf /.devstep/python
+    tar jxf ${CACHE_DIR}/${PYTHON_VERSION}.tar.bz2 -C /.devstep #&> /dev/null
+  # bpwatch stop install_python
+
+  # Record for future reference.
+  # echo $PYTHON_VERSION > .heroku/python-version
+  FRESH_PYTHON=true
+
+  hash -r
+else
+  puts-step "Using Python runtime ($PYTHON_VERSION)"
+fi
+
+# If Pip isn't up to date:
+if [ "$FRESH_PYTHON" ] || [[ ! $(pip --version) == *$PIP_VERSION* ]]; then
+  WORKING_DIR=$(pwd)
+
+  # bpwatch start prepare_environment
+
+  # bpwatch start install_setuptools
+    # Prepare it for the real world
+    puts-step "Installing Setuptools ($SETUPTOOLS_VERSION)"
+    cd $ROOT_DIR/vendor/setuptools-$SETUPTOOLS_VERSION/
+    python setup.py install &> /dev/null
+    cd $WORKING_DIR
+  # bpwatch stop install_setuptoools
+
+  # bpwatch start install_pip
+    puts-step "Installing Pip ($PIP_VERSION)"
+    cd $ROOT_DIR/vendor/pip-$PIP_VERSION/
+    python setup.py install &> /dev/null
+    cd $WORKING_DIR
+
+  # bpwatch stop install_pip
+  # bpwatch stop prepare_environment
+fi
+
+set -e
+hash -r
+
+# Pylibmc support.
+# See [`bin/steps/pylibmc`](pylibmc.html).
+# bpwatch start pylibmc_install
+  [ -f requirements.txt ] && source $BIN_DIR/steps/pylibmc
+# bpwatch stop pylibmc_install
+
+# Install Mercurial if it appears to be required.
+if [ -f requirements.txt ] && (grep -Fiq "hg+" requirements.txt) then
+  # bpwatch start mercurial_install
+    /.devstep/python/bin/pip install  mercurial | cleanup | indent
+  # bpwatch stop mercurial_install
+fi
+
+# Install dependencies with Pip.
+if [ -f requirements.txt ]; then
+  puts-step "Installing dependencies using Pip ($PIP_VERSION)"
+  # [ ! "$FRESH_PYTHON" ] && bpwatch start pip_install
+  # [ "$FRESH_PYTHON" ] && bpwatch start pip_install_first
+
+  /.devstep/python/bin/pip install -r requirements.txt --exists-action=w --src=./.heroku/src --allow-all-external  | cleanup | indent
+
+  # [ ! "$FRESH_PYTHON" ] && bpwatch stop pip_install
+  # [ "$FRESH_PYTHON" ] && bpwatch stop pip_install_first
+else
+  puts-step 'No requirements.txt file found, skipping `pip install`'
+fi
+
+
+
+# Django collectstatic support.
+# bpwatch start collectstatic
+  sub-env $BIN_DIR/steps/collectstatic
+# bpwatch stop collectstatic
+
+# ### Finalize
+#
+
+# Set context environment variables.
+echo 'export PATH=/.devstep/python/bin:$PATH' > /.devstep/.profile.d/python.sh
+echo 'export PYTHONUNBUFFERED=true' >> /.devstep/.profile.d/python.sh
+echo 'export PYTHONHOME=/.devstep/python' >> /.devstep/.profile.d/python.sh
+echo 'export LIBRARY_PATH=/.devstep/vendor/lib' >> /.devstep/.profile.d/python.sh
+echo 'export LD_LIBRARY_PATH=/.devstep/vendor/lib' >> /.devstep/.profile.d/python.sh
+echo 'export LANG=en_US.UTF-8' >> /.devstep/.profile.d/python.sh
+echo 'export PYTHONHASHSEED=random' >> /.devstep/.profile.d/python.sh
+echo "export PYTHONPATH=$BUILD_DIR" >> /.devstep/.profile.d/python.sh
+source /.devstep/.profile.d/python.sh
+
+# Experimental post_compile hook.
+# bpwatch start post_compile
+   source $BIN_DIR/steps/hooks/post_compile
+# bpwatch stop post_compile
+
+# XXX: Is this needed?
+# Store new artifacts in cache.
+# bpwatch start dump_cache
+#   for dir in $CACHED_DIRS; do
+#     rm -rf $CACHE_DIR/$dir
+#     cp -R $dir $CACHE_DIR/
+#   done
+# bpwatch stop dump_cache
+
+# ### Fin.
+# bpwatch start appdir_commit
+#  deep-mv $BUILD_DIR $ORIG_BUILD_DIR
+# bpwatch stop appdir_commit
+
+# bpwatch start anvil_appdir_commit
+#   if [ "$SLUG_ID" ]; then
+#     deep-mv $TMP_APP_DIR $APP_DIR
+#   fi
+
+# bpwatch stop anvil_appdir_commit
+# bpwatch stop compile

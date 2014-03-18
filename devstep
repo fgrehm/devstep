@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+
+set -eu
+
+DEVSTEP_DEBUG=${DEVSTEP_DEBUG:-}
+if [ "$DEVSTEP_DEBUG" = '1' ]; then
+  export PS4='+ [${BASH_SOURCE##*/}:${LINENO}] '
+  set -x
+fi
+
+usage() {
+    cat <<EOF
+Usage:
+  devstep build [-r=<parameters for docker run to use for the build>]
+  devstep bootstrap [-r=<parameters for docker run>]
+  devstep hack [-r=<parameters for docker run>]
+EOF
+    return 0
+}
+
+DEVSTEP_RUN_OPTS=
+DEVSTEP_WORKSPACE_PATH=`pwd`
+
+[ -f $HOME/.devsteprc ] && \
+  source $HOME/.devsteprc && \
+  DEVSTEP_RUN_OPTS="${RUN_OPTS}" && \
+  unset RUN_OPTS
+
+[ -f $DEVSTEP_WORKSPACE_PATH/.devstep ] && \
+  source $DEVSTEP_WORKSPACE_PATH/.devstep && \
+  DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} ${RUN_OPTS}" && \
+  unset RUN_OPTS
+
+DEVSTEP_IMAGE=${IMAGE:-'fgrehm/devstep:standalone'}
+unset IMAGE
+
+options=$(getopt -o h,r: -l help,run-opts: "$@")
+
+if [ $? -ne 0 ]; then
+    usage
+    exit 1
+fi
+eval set -- "$options"
+
+while :; do
+    case "$1" in
+        -h|--help)          usage && exit 1;;
+        -r|--run-opts)      DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} ${2}"; shift 2;;
+        *)                  break;;
+    esac
+done
+
+DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -v ${DEVSTEP_WORKSPACE_PATH}:/workspace -w /workspace"
+
+if [ "$#" != '2' ]; then
+  usage && exit 1
+fi
+
+PROJECT_NAME=$(basename ${DEVSTEP_WORKSPACE_PATH})
+ACTION="${2}"
+
+ID=
+if [ $ACTION = 'build' ]; then
+  echo -e "
+############
+# Building with:
+# docker run -d ${DEVSTEP_RUN_OPTS} ${DEVSTEP_IMAGE} /.devstep/bin/build-project /workspace\n"
+  ID=$(docker run -d ${DEVSTEP_RUN_OPTS} ${DEVSTEP_IMAGE} /.devstep/bin/build-project /workspace)
+  docker attach $ID
+elif [ $ACTION = 'bootstrap' ]; then
+  echo -e "
+############
+# Building with:
+# docker run -ti --name devstep-bootstrap ${DEVSTEP_RUN_OPTS} ${DEVSTEP_IMAGE} bash\n"
+  docker run -ti --name devstep-bootstrap ${DEVSTEP_RUN_OPTS} ${DEVSTEP_IMAGE} bash
+  ID=devstep-bootstrap
+elif [ $ACTION = 'hack' ]; then
+  cmd='/.devstep/bin/build-project /workspace && bash'
+  echo -e "
+############
+# Starting container with:
+# docker run -ti --rm ${DEVSTEP_RUN_OPTS} ${DEVSTEP_IMAGE} /.devstep/bin/hack\n"
+  docker run -ti --rm ${DEVSTEP_RUN_OPTS} ${DEVSTEP_IMAGE} /.devstep/bin/hack
+  exit $?
+else
+  usage && exit 1
+fi
+
+test $(docker wait $ID) -eq 0
+
+if [ $ACTION = 'build' ]; then
+  echo "-----> Commiting temporary image devstep/${PROJECT_NAME}:tmp"
+  docker rmi "devstep/${PROJECT_NAME}:tmp" &> /dev/null || true
+  docker commit $ID "devstep/${PROJECT_NAME}:tmp"
+  docker rm $ID
+
+  echo "-----> Running a 'docker run -d ${DEVSTEP_RUN_OPTS} devstep/${PROJECT_NAME}:tmp bash' to change image's CMD"
+  ID=$(docker run -d ${DEVSTEP_RUN_OPTS} devstep/${PROJECT_NAME}:tmp bash)
+  docker attach $ID
+  test $(docker wait $ID) -eq 0
+fi
+
+echo "-----> Commiting image devstep/${PROJECT_NAME}:latest"
+docker rmi "devstep/${PROJECT_NAME}:latest" &> /dev/null || true
+docker commit $ID "devstep/${PROJECT_NAME}:latest"
+
+echo '-----> Removing temporary artifacts used for build'
+docker rm $ID
+docker rmi "devstep/${PROJECT_NAME}:tmp" &> /dev/null || true

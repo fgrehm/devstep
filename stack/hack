@@ -1,0 +1,5 @@
+#!/bin/bash
+set -eo pipefail
+
+/.devstep/bin/build-project $PWD
+exec /bin/bash --rcfile $HOME/.bashrc

@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Stolen from http://docs.docker.io/en/latest/use/ambassador_pattern_linking/#the-svendowideit-ambassador-dockerfile
+
+env | grep _TCP= | sed 's/.*_PORT_\([0-9]*\)_TCP=tcp:\/\/\(.*\):\(.*\)/socat TCP4-LISTEN:\1,fork,reuseaddr TCP4:\2:\3 \&/' | sh
