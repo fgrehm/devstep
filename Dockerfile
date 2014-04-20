@@ -47,12 +47,19 @@ RUN mkdir -p /.devstep/bin && \
     chmod +x /.devstep/bin/jq
 
 #####################################################################
-# Fix permissions
-RUN chown -R developer:developer /.devstep && \
-    chown -R developer:developer /workspace && \
-    chown -R developer:developer /etc/service && \
-    chown -R developer:developer /etc/my_init.d && \
-    chown -R developer:developer /etc/container_environment
+# Download and install forego so that apps that have Procfiles can be
+# easily started
+RUN mkdir -p /.devstep/bin && \
+    curl -L -s https://godist.herokuapp.com/projects/ddollar/forego/releases/current/linux-amd64/forego > /.devstep/bin/forego && \
+    chmod +x /.devstep/bin/forego
+
+#####################################################################
+# Because editing files with `vi` sucks and tmux allow us to run lots
+# of shells within the same bash session (without the need of running
+# through SSH)
+RUN DEBIAN_FRONTEND=noninteractive && \
+    apt-get update && \
+    apt-get install -y --force-yes vim tmux
 
 #####################################################################
 # Devstep goodies (ADDed at the end to increase image "cacheability")
@@ -65,9 +72,15 @@ ADD stack/load-devstep-env /.devstep/load-env.sh
 ADD stack/hack /.devstep/bin/hack
 ADD builder/build.sh /.devstep/bin/build-project
 ADD buildpacks /.devstep/buildpacks
-ADD https://godist.herokuapp.com/projects/ddollar/forego/releases/current/linux-amd64/forego /.devstep/bin/forego
 
-RUN chmod +x /usr/bin/fix-permissions && \
+#####################################################################
+# Fix permissions
+RUN chown -R developer:developer /.devstep && \
+    chown -R developer:developer /workspace && \
+    chown -R developer:developer /etc/service && \
+    chown -R developer:developer /etc/my_init.d && \
+    chown -R developer:developer /etc/container_environment && \
+    chmod +x /usr/bin/fix-permissions && \
     chmod +x /usr/bin/my-init && \
     chmod +x /usr/bin/forward-ports && \
     chmod +x /.devstep/bin/forego && \
