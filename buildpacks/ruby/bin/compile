@@ -83,11 +83,12 @@ else
 gem: --no-ri --no-rdoc
 GEMRC
 fi
-source /.devstep/.profile.d/rvm.sh
 
+source /.devstep/.profile.d/rvm.sh
 if $(bundle -v | grep -q '1.5.0'); then
   echo "Bundler 1.5.0 was detected, upgrading to 1.5.2"
-  gem install bundler --no-ri --no-rdoc -v 1.5.2
+  gem uninstall bundler --force -aIxi /.devstep/.rvm/gems/ruby-2.1.0@global bundler
+  gem install bundler -v 1.5.2
 fi
 
 echo "Installing gems using bundler '$(bundle -v | cut -d' ' -f 3)'..."
