@@ -18,7 +18,7 @@ heroku_buildpack_bin='https://github.com/kr/heroku-buildpack-go/raw/master/linux
 target='/.devstep/bin'
 if [ -f $build/Godeps ] || [ -d $build/Godeps ]; then
   if ! [ -f ${target}/godep ]; then
-    echo -n "-----> Installing godep to ${target}..."
+    echo "-----> Installing godep to ${target}..."
     if ! [ -f ${cache}/godep ]; then
       curl -L -s ${heroku_buildpack_bin}/godep > ${cache}/godep
     fi
@@ -26,7 +26,7 @@ if [ -f $build/Godeps ] || [ -d $build/Godeps ]; then
     chmod +x ${target}/godep
     echo ' done'
   else
-    echo -n "-----> Using ${target}/godep"
+    echo "-----> Using ${target}/godep"
   fi
 fi
 PATH=$target:$PATH
