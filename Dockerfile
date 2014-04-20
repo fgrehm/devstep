@@ -19,11 +19,12 @@ RUN mkdir -p /.devstep/cache && \
     chmod 0440 /etc/sudoers.d/developer
 
 #####################################################################
-# Init script based on phusion/baseimage-docker's
+# Dependencies for init script based on phusion/baseimage-docker
 
 RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
     apt-get install -y runit python && \
+    apt-get clean && \
     mkdir -p /etc/service && \
     mkdir -p /etc/my_init.d && \
     mkdir -p /etc/container_environment
@@ -32,7 +33,8 @@ RUN DEBIAN_FRONTEND=noninteractive && \
 # Install and configure PostgreSQL and MySQL clients
 RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y postgresql-client mysql-client
+    apt-get install -y postgresql-client mysql-client && \
+    apt-get clean
 
 RUN echo "[client]\nprotocol=tcp\nuser=root" >> /.devstep/.my.cnf && \
     echo "export PGHOST=localhost" >> /.devstep/.profile.d/postgresql.sh && \
@@ -59,7 +61,8 @@ RUN mkdir -p /.devstep/bin && \
 # through SSH)
 RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y --force-yes vim tmux
+    apt-get install -y --force-yes vim tmux && \
+    apt-get clean
 
 #####################################################################
 # Devstep goodies (ADDed at the end to increase image "cacheability")
