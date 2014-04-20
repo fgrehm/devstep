@@ -110,9 +110,8 @@ echo_title "Build finished successfully!"
 if [ "${CLEANUP}" = '1' ]; then
   echo_title 'Cleaning up...'
 
-  # TODO: We can't do this yet because the golang buildpack stores things on this dir
-  # echo_normal "Running 'rm -rf $cache_root/*'"
-  # rm -rf $cache_root/*
+  echo_normal "Running 'rm -rf $cache_root/*'"
+  rm -rf $cache_root/*
 
   echo_normal "Running 'sudo rm -rf tmp/*'"
   sudo rm -rf /tmp/*
