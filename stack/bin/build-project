@@ -66,7 +66,7 @@ export APP_DIR="$project_root"
 
 ## Fix directory permissions
 
-(cd $project_root && /usr/bin/fix-permissions)
+(cd $project_root && /.devstep/bin/fix-permissions)
 
 ## Buildpack detection
 

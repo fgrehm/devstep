@@ -1,7 +1,7 @@
 FROM fgrehm/devstep:base
 
 # Use init from phusion/baseimage-docker
-ENTRYPOINT ["/usr/bin/my-init"]
+ENTRYPOINT ["/.devstep/bin/my-init"]
 
 # Start a bash session by default
 CMD ["/bin/bash"]

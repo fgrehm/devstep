@@ -153,8 +153,8 @@ def run_command_killable(*argv):
 
 def run_command_killable_and_import_envvars(*argv):
 	run_command_killable(*argv)
-	#import_envvars()
-	#export_envvars(False)
+	import_envvars()
+	export_envvars(False)
 
 def kill_all_processes(time_limit):
 	info("Killing all processes...")
@@ -227,8 +227,8 @@ def install_insecure_key():
 	run_command_killable("/usr/sbin/enable_insecure_key")
 
 def main(args):
-	#import_envvars(False)
-	#export_envvars()
+	import_envvars(False)
+	export_envvars()
 
 	if args.enable_insecure_key:
 		install_insecure_key()

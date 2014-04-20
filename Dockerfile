@@ -54,15 +54,13 @@ RUN echo "[client]\nprotocol=tcp\nuser=root" >> /.devstep/.my.cnf && \
 # Download and install jq as it is being used by a few buildpacks
 # See http://stedolan.github.io/jq for more info
 RUN mkdir -p /.devstep/bin && \
-    curl -L -s http://stedolan.github.io/jq/download/linux64/jq > /.devstep/bin/jq && \
-    chmod +x /.devstep/bin/jq
+    curl -L -s http://stedolan.github.io/jq/download/linux64/jq > /.devstep/bin/jq
 
 #####################################################################
 # Download and install forego so that apps that have Procfiles can be
 # easily started
 RUN mkdir -p /.devstep/bin && \
-    curl -L -s https://godist.herokuapp.com/projects/ddollar/forego/releases/current/linux-amd64/forego > /.devstep/bin/forego && \
-    chmod +x /.devstep/bin/forego
+    curl -L -s https://godist.herokuapp.com/projects/ddollar/forego/releases/current/linux-amd64/forego > /.devstep/bin/forego
 
 #####################################################################
 # Because editing files with `vi` sucks and tmux allow us to run lots
@@ -76,13 +74,9 @@ RUN DEBIAN_FRONTEND=noninteractive && \
 #####################################################################
 # Devstep goodies (ADDed at the end to increase image "cacheability")
 
+ADD stack/bin /.devstep/bin
 ADD stack/bashrc /.devstep/.bashrc
-ADD stack/fix-permissions /usr/bin/fix-permissions
-ADD stack/my-init /usr/bin/my-init
-ADD stack/forward-ports /usr/bin/forward-ports
 ADD stack/load-env.sh /.devstep/load-env.sh
-ADD stack/hack /.devstep/bin/hack
-ADD stack/build-project /.devstep/bin/build-project
 ADD buildpacks /.devstep/buildpacks
 
 #####################################################################
@@ -92,16 +86,11 @@ RUN chown -R developer:developer /.devstep && \
     chown -R developer:developer /etc/service && \
     chown -R developer:developer /etc/my_init.d && \
     chown -R developer:developer /etc/container_environment && \
-    chmod +x /usr/bin/fix-permissions && \
-    chmod +x /usr/bin/my-init && \
-    chmod +x /usr/bin/forward-ports && \
-    chmod +x /.devstep/bin/forego && \
-    chmod +x /.devstep/bin/build-project && \
-    chmod +x /.devstep/bin/hack && \
+    chmod +x /.devstep/bin/* && \
     chmod u+s /usr/bin/sudo && \
     echo 'source /.devstep/load-env.sh' > /etc/my_init.d/load-devstep-env.sh && \
-    ln -s /usr/bin/fix-permissions /etc/my_init.d/fix-permissions.sh && \
-    ln -s /usr/bin/forward-ports /etc/my_init.d/forward-ports.sh
+    ln -s /.devstep/bin/fix-permissions /etc/my_init.d/fix-permissions.sh && \
+    ln -s /.devstep/bin/forward-linked-ports /etc/my_init.d/forward-linked-ports.sh
 
 USER developer
 ENV HOME /.devstep
