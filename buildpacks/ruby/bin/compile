@@ -73,8 +73,7 @@ if requires_nodejs $1; then
   fi
 fi
 
-# TODO: Check if the ruby version has actually been installed instead of just rvm
-if [ -d /.devstep/.rvm ]; then
+if [ -d /.devstep/.rvm/rubies/default ]; then
   echo 'Ruby already installed, skipping'
 else
   install_ruby $2
