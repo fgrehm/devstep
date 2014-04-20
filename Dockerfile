@@ -30,6 +30,15 @@ RUN DEBIAN_FRONTEND=noninteractive && \
     mkdir -p /etc/container_environment
 
 #####################################################################
+# Dependencies for rubies (and possibly other programming language
+# envs as well)
+
+RUN DEBIAN_FRONTEND=noninteractive && \
+    apt-get update && \
+    apt-get install -y gawk libreadline6-dev libyaml-dev libgdbm-dev libncurses5-dev libffi-dev && \
+    apt-get clean
+
+#####################################################################
 # Install and configure PostgreSQL and MySQL clients
 RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
