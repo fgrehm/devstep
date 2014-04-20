@@ -21,10 +21,7 @@ install_ruby() {
   ln -s $1/rvm-cache /.devstep/.rvm/archives
 
   echo 'Installing rvm...'
-  OLD_HOME=$HOME
-  HOME=/.devstep
   \curl -sSL https://get.rvm.io | bash -s -- --ignore-dotfiles &>>/tmp/build.log
-  HOME=$OLD_HOME
 
   _rvm=/.devstep/.rvm/bin/rvm
 
