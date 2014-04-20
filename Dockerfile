@@ -80,7 +80,7 @@ ADD stack/bashrc /.devstep/.bashrc
 ADD stack/fix-permissions /usr/bin/fix-permissions
 ADD stack/my-init /usr/bin/my-init
 ADD stack/forward-ports /usr/bin/forward-ports
-ADD stack/load-devstep-env /.devstep/load-env.sh
+ADD stack/load-env.sh /.devstep/load-env.sh
 ADD stack/hack /.devstep/bin/hack
 ADD stack/build-project /.devstep/bin/build-project
 ADD buildpacks /.devstep/buildpacks
