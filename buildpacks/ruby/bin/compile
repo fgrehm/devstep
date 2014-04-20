@@ -26,7 +26,7 @@ install_ruby() {
   _rvm=/.devstep/.rvm/bin/rvm
 
   # TODO: Figure out if this is really needed
-  echo 'export rvm_ignore_gemset_flag=1' | sudo tee -a /.rvmrc &>>/tmp/build.log
+  echo 'export rvm_ignore_gemset_flag=1' | sudo tee -a /.rvmrc &>>/tmp/build.log &>> /tmp/build.log
   export rvm_ignore_gemset_flag=1
   $_rvm rvmrc warning ignore allGemfiles &>> /tmp/build.log
 
@@ -78,6 +78,10 @@ if [ -d /.devstep/.rvm ]; then
   echo 'Ruby already installed, skipping'
 else
   install_ruby $2
+  cat <<-GEMRC > $HOME/.gemrc
+---
+gem: --no-ri --no-rdoc
+GEMRC
 fi
 source /.devstep/.profile.d/rvm.sh
 
