@@ -8,13 +8,50 @@ if [ "$DEVSTEP_DEBUG" = '1' ]; then
   set -x
 fi
 
+################################################################################
+## Set default variables
+
+## Host path for keeping devstep cached packages
+DEVSTEP_CACHE_PATH="/tmp/devstep/cache"
+
+## Root path to the project being built
+DEVSTEP_WORKSPACE_PATH=`pwd`
+
+## Name of Docker repository to use for the project
+DEVSTEP_WORKSPACE_REPO="devstep/$(basename ${DEVSTEP_WORKSPACE_PATH})"
+
+## Starting point for project images
+DEVSTEP_SOURCE_IMAGE='fgrehm/devstep:standalone'
+
+## Global options for `docker run`
+DEVSTEP_RUN_OPTS=
+
+## `devstep CMD` specific options for `docker run`
+DEVSTEP_BUILD_RUN_OPTS=
+DEVSTEP_BOOTSTRAP_RUN_OPTS=
+DEVSTEP_HACK_RUN_OPTS=
+DEVSTEP_REBUILD_RUN_OPTS=
+
+################################################################################
+## Load project and user specific configs
+
+## Start with user configs ...
+[ -f $HOME/.devsteprc ] && \
+  source $HOME/.devsteprc
+
+## ... and override with project configs
+[ -f $DEVSTEP_WORKSPACE_PATH/.devstep ] && \
+  source $DEVSTEP_WORKSPACE_PATH/.devstep
+
+################################################################################
+## Parse arguments
+
 usage() {
     cat <<EOF
 Usage: devstep [OPTIONS] COMMAND
 
 Commands:
   build     - Build a Docker image for current directory sources
-  rebuild   - Rebuild current project associated Docker image
   bootstrap - Interactively build a base Docker image for the project
   hack      - Start a hacking session for the current project and discard the container on exit
 
@@ -24,22 +61,6 @@ Available options:
 EOF
     return 0
 }
-
-DEVSTEP_RUN_OPTS=
-DEVSTEP_WORKSPACE_PATH=`pwd`
-
-[ -f $HOME/.devsteprc ] && \
-  source $HOME/.devsteprc && \
-  DEVSTEP_RUN_OPTS="${RUN_OPTS}" && \
-  unset RUN_OPTS
-
-[ -f $DEVSTEP_WORKSPACE_PATH/.devstep ] && \
-  source $DEVSTEP_WORKSPACE_PATH/.devstep && \
-  DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} ${RUN_OPTS}" && \
-  unset RUN_OPTS
-
-DEVSTEP_IMAGE=${IMAGE:-'fgrehm/devstep:standalone'}
-unset IMAGE
 
 options=$(getopt -o h,r: -l help,run-opts: -- "$@")
 
@@ -57,31 +78,77 @@ while :; do
     esac
 done
 
-DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -v ${DEVSTEP_WORKSPACE_PATH}:/workspace -w /workspace"
+# Remove '--' from args
+shift 1
 
-if [ "$#" != '2' ]; then
+# We need a command to run
+if [ "$#" != '1' ]; then
   usage && exit 1
 fi
 
-PROJECT_NAME=$(basename ${DEVSTEP_WORKSPACE_PATH})
-ACTION="${2}"
+################################################################################
+## Build options to use on `docker run`
 
-ID=
-if [ $ACTION = 'build' ]; then
+COMMAND="${1}"
+
+# If cache path is still set at this point
+if ! [ -z "${DEVSTEP_CACHE_PATH}" ]; then
+  DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -v ${DEVSTEP_CACHE_PATH}:/.devstep/cache"
+fi
+
+# If by whatever reason this is blank
+if [ -z "${DEVSTEP_WORKSPACE_PATH}" ]; then
+  echo 'Unknown workspace path!'
+  exit 1
+fi
+
+DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -v ${DEVSTEP_WORKSPACE_PATH}:/workspace -w /workspace"
+
+# if Docker repo exists, we use the latest version as the source image
+if $(docker images | grep -q "^${DEVSTEP_WORKSPACE_REPO}"); then
+  SOURCE_IMAGE="${DEVSTEP_WORKSPACE_REPO}:latest"
+else # otherwise we start from scratch
+  SOURCE_IMAGE=${DEVSTEP_SOURCE_IMAGE}
+fi
+
+if [ "${COMMAND}" = 'build' ]; then
+  DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} ${DEVSTEP_BUILD_RUN_OPTS} -d"
+  TARGET_IMAGE="${DEVSTEP_WORKSPACE_REPO}:latest"
+  RUN_CMD="/.devstep/bin/build-project /workspace"
+
+elif [ "${COMMAND}" = 'bootstrap' ]; then
+  DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} ${DEVSTEP_BOOTSTRAP_RUN_OPTS} -d -ti --name devstep-bootstrap"
+  CID='devstep-bootstrap'
+  TARGET_IMAGE="${DEVSTEP_WORKSPACE_REPO}:latest"
+  RUN_CMD="bash"
+
+elif [ "${COMMAND}" = 'hack' ]; then
+  DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} ${DEVSTEP_HACK_RUN_OPTS} -ti --rm"
+  RUN_CMD="/.devstep/bin/hack"
+
+else
+  echo "Error: Command not found: ${COMMAND}"
+  usage && exit 1
+fi
+
+################################################################################
+## Build / hack on image
+
+function docker_run() {
   echo -e "
 ############
-# Building with:
-# docker run -d ${DEVSTEP_RUN_OPTS} ${DEVSTEP_IMAGE} /.devstep/bin/build-project /workspace\n"
-  ID=$(docker run -d ${DEVSTEP_RUN_OPTS} ${DEVSTEP_IMAGE} /.devstep/bin/build-project /workspace)
-  docker attach $ID
+# Running container with:
+#   docker run ${DEVSTEP_RUN_OPTS} ${SOURCE_IMAGE} ${RUN_CMD}" 1>&2
+  docker run ${DEVSTEP_RUN_OPTS} ${SOURCE_IMAGE} ${RUN_CMD}
+  return $?
+}
 
-  test $(docker wait $ID) -eq 0
-elif [ $ACTION = 'bootstrap' ]; then
-  echo -e "
-############
-# Building with:
-# docker run -ti --name devstep-bootstrap ${DEVSTEP_RUN_OPTS} ${DEVSTEP_IMAGE} bash\n"
-  docker run -ti --name devstep-bootstrap ${DEVSTEP_RUN_OPTS} ${DEVSTEP_IMAGE} bash || {
+if [ $COMMAND = 'hack' ]; then
+  docker_run
+  exit $?
+elif [ $COMMAND = 'bootstrap' ]; then
+  docker_run
+  docker attach $CID || {
     echo -e -n "
 ############
 # The bootstrap process has finished and the container returned
@@ -90,40 +157,31 @@ elif [ $ACTION = 'bootstrap' ]; then
     read answer
     if ! $(echo "${answer}" | grep -qi '^y'); then
       echo 'Aborting'
-      docker rm devstep-bootstrap > /dev/null
+      docker rm $CID > /dev/null
       exit 1
     fi
   }
-  ID=devstep-bootstrap
-elif [ $ACTION = 'hack' ]; then
-  cmd='/.devstep/bin/build-project /workspace && bash'
-  echo -e "
-############
-# Starting container with:
-# docker run -ti --rm ${DEVSTEP_RUN_OPTS} ${DEVSTEP_IMAGE} /.devstep/bin/hack\n"
-  docker run -ti --rm ${DEVSTEP_RUN_OPTS} ${DEVSTEP_IMAGE} /.devstep/bin/hack
-  exit $?
-else
-  echo "Error: Command not found: ${ACTION}"
-  usage && exit 1
+elif [ $COMMAND = 'build' ]; then
+  CID=$(docker_run)
+  docker attach $CID
+  test $(docker wait $CID) -eq 0
+
+  echo "-----> Commiting temporary image ${DEVSTEP_WORKSPACE_REPO}:tmp"
+  docker rmi "${DEVSTEP_WORKSPACE_REPO}:tmp" &> /dev/null || true
+  docker commit $CID "${DEVSTEP_WORKSPACE_REPO}:tmp"
+  docker rm $CID
+
+  echo "-----> Running a 'docker run -d ${DEVSTEP_WORKSPACE_REPO}:tmp bash' to change image's CMD"
+  CID=$(docker run -d -w / ${DEVSTEP_WORKSPACE_REPO}:tmp bash)
+  docker stop -t=1 $CID
 fi
 
-if [ $ACTION = 'build' ]; then
-  echo "-----> Commiting temporary image devstep/${PROJECT_NAME}:tmp"
-  docker rmi "devstep/${PROJECT_NAME}:tmp" &> /dev/null || true
-  docker commit $ID "devstep/${PROJECT_NAME}:tmp"
-  docker rm $ID
+echo "-----> Commiting image ${TARGET_IMAGE}"
+docker commit $CID "${DEVSTEP_WORKSPACE_REPO}:latest"
 
-  echo "-----> Running a 'docker run -d ${DEVSTEP_RUN_OPTS} devstep/${PROJECT_NAME}:tmp bash' to change image's CMD"
-  ID=$(docker run -d ${DEVSTEP_RUN_OPTS} devstep/${PROJECT_NAME}:tmp bash)
-  docker attach $ID
-  test $(docker wait $ID) -eq 0
-fi
-
-echo "-----> Commiting image devstep/${PROJECT_NAME}:latest"
-docker rmi "devstep/${PROJECT_NAME}:latest" &> /dev/null || true
-docker commit $ID "devstep/${PROJECT_NAME}:latest"
+# TODO: echo "-----> Commiting image ${DEVSTEP_WORKSPACE_REPO}:${TIMESTAMP}"
+# TODO: docker commit $CID "${DEVSTEP_WORKSPACE_REPO}:${TIMESTAMP}"
 
 echo '-----> Removing temporary artifacts used for build'
-docker rm $ID
-docker rmi "devstep/${PROJECT_NAME}:tmp" &> /dev/null || true
+docker rm $CID
+docker rmi "${DEVSTEP_WORKSPACE_REPO}:tmp" &> /dev/null || true
