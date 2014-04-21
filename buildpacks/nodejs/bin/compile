@@ -71,9 +71,6 @@ status "Building runtime environment"
 echo "export PATH=\"/.devstep/nodejs/bin:$build_dir/node_modules/.bin:\$PATH\";" > /.devstep/.profile.d/nodejs.sh
 echo "export NODE_PATH=\"/.devstep/nodejs/lib/node_modules:\";" >> /.devstep/.profile.d/nodejs.sh
 
-export PATH="/.devstep/nodejs/bin:$build_dir/node_modules/.bin:$PATH"
-export NODE_PATH="/.devstep/nodejs/lib/node_modules:"
-
 # Cache npm packages on host machine
 npm config set cache /.devstep/cache/npm
 
