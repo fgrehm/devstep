@@ -179,8 +179,9 @@ fi
 echo "-----> Commiting image ${TARGET_IMAGE}"
 docker commit $CID "${DEVSTEP_WORKSPACE_REPO}:latest"
 
-# TODO: echo "-----> Commiting image ${DEVSTEP_WORKSPACE_REPO}:${TIMESTAMP}"
-# TODO: docker commit $CID "${DEVSTEP_WORKSPACE_REPO}:${TIMESTAMP}"
+TIMESTAMP=$(date -u +"%Y-%m-%d-%H-%M-%S")
+echo "-----> Tagging ${DEVSTEP_WORKSPACE_REPO}:${TIMESTAMP}"
+docker tag "${DEVSTEP_WORKSPACE_REPO}:latest" "${DEVSTEP_WORKSPACE_REPO}:${TIMESTAMP}"
 
 echo '-----> Removing temporary artifacts used for build'
 docker rm $CID
