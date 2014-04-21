@@ -67,12 +67,25 @@ if [ $ACTION = 'build' ]; then
 # docker run -d ${DEVSTEP_RUN_OPTS} ${DEVSTEP_IMAGE} /.devstep/bin/build-project /workspace\n"
   ID=$(docker run -d ${DEVSTEP_RUN_OPTS} ${DEVSTEP_IMAGE} /.devstep/bin/build-project /workspace)
   docker attach $ID
+
+  test $(docker wait $ID) -eq 0
 elif [ $ACTION = 'bootstrap' ]; then
   echo -e "
 ############
 # Building with:
 # docker run -ti --name devstep-bootstrap ${DEVSTEP_RUN_OPTS} ${DEVSTEP_IMAGE} bash\n"
-  docker run -ti --name devstep-bootstrap ${DEVSTEP_RUN_OPTS} ${DEVSTEP_IMAGE} bash
+  docker run -ti --name devstep-bootstrap ${DEVSTEP_RUN_OPTS} ${DEVSTEP_IMAGE} bash || {
+    echo -e -n "
+############
+# The bootstrap process has finished and the container returned
+# an exit status != 0
+# Do you want to go ahead and commit this image? [y/N] "
+    read answer
+    if ! $(echo "${answer}" | grep -qi '^y'); then
+      echo 'Aborting'
+      exit 1
+    fi
+  }
   ID=devstep-bootstrap
 elif [ $ACTION = 'hack' ]; then
   cmd='/.devstep/bin/build-project /workspace && bash'
@@ -85,8 +98,6 @@ elif [ $ACTION = 'hack' ]; then
 else
   usage && exit 1
 fi
-
-test $(docker wait $ID) -eq 0
 
 if [ $ACTION = 'build' ]; then
   echo "-----> Commiting temporary image devstep/${PROJECT_NAME}:tmp"
