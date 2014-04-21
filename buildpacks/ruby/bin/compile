@@ -37,6 +37,8 @@ install_ruby() {
 
   mkdir -p /.devstep/.profile.d
   $_rvm env > /.devstep/.profile.d/rvm.sh
+
+  return 0
 }
 
 requires_nodejs() {
@@ -76,7 +78,11 @@ fi
 if [ -d /.devstep/.rvm/rubies/default ]; then
   echo 'Ruby already installed, skipping'
 else
-  install_ruby $2
+  install_ruby $2 || {
+    echo 'Error installing ruby!'
+    tail /tmp/build.log
+    exit 1
+  }
   cat <<-GEMRC > $HOME/.gemrc
 ---
 gem: --no-ri --no-rdoc
