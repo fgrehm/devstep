@@ -131,6 +131,9 @@ done
 
 echo_title "Build finished successfully!"
 
+## Reload env vars
+source $HOME/.bashrc
+
 ## Save on disk space if wanted
 
 if [ "${CLEANUP}" = '1' ]; then
