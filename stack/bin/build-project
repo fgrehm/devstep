@@ -1,5 +1,32 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# usage: build-project <build-dir> <cache-dir> -b <buildpack> -b <buildpack>
 set -eo pipefail
+
+usage() {
+  cat <<EOF
+Usage:
+build-project <build-dir> <cache-dir> -b <buildpack> -b <buildpack>
+EOF
+  return 0
+}
+
+options=$(getopt -o h,b: -- "$@")
+
+if [ $? -ne 0 ]; then
+    usage
+    exit 1
+fi
+
+eval set -- "$options"
+
+declare -a buildpacks
+while :; do
+    case "$1" in
+        -h|--help)  usage && exit 1;;
+        -b)         buildpacks+=("${2}"); shift 2;;
+        *)          shift 1 && break;;
+    esac
+done
 
 project_root=${1:-/workspace}
 cache_root=${2:-/.devstep/cache}
@@ -70,24 +97,23 @@ export APP_DIR="$project_root"
 
 ## Buildpack detection
 
-if [[ -z "$BUILDPACKS" ]]; then
+declare -a selected_buildpacks
+if [[ -z "${buildpacks[@]}" ]]; then
   buildpacks=($buildpack_root/*)
-  declare -a selected_buildpacks
   for buildpack in "${buildpacks[@]}"; do
     if $($buildpack/bin/detect "${project_root}" &>/dev/null); then
-      selected_buildpacks=("${selected_buildpacks[@]}" $buildpack)
+      selected_buildpacks+=($buildpack)
     fi
   done
 else
-  declare -a selected_buildpacks
-  for buildpack in "${BUILDPACKS[@]}"; do
-    selected_buildpacks=("${selected_buildpacks[@]}" ${buildpack_root}/${buildpack})
+  for buildpack in "${buildpacks[@]}"; do
+    selected_buildpacks+=(${buildpack_root}/${buildpack})
   done
 fi
 
 ## Compile!
 
-if [[ -n "$selected_buildpacks" ]]; then
+if [[ -n "$selected_buildpacks[@]" ]]; then
   # TODO: This output is not needed if a single buildpack was detected
   echo_title "Building project at '${project_root}' with the folllowing buildpacks:"
   for bp in "${selected_buildpacks[@]}"; do
