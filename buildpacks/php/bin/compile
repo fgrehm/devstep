@@ -118,6 +118,9 @@ function install_composer_deps() {
         done
     fi
 
+    mkdir -p $HOME/.composer/cache
+    mkdir -p $CACHE_DIR/composer
+    ln -s $CACHE_DIR/composer $HOME/.composer/cache
     php "vendor/composer/bin/composer.phar" self-update
 
     status "Installing application dependencies with Composer"
