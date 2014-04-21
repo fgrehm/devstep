@@ -10,10 +10,17 @@ fi
 
 usage() {
     cat <<EOF
-Usage:
-  devstep build [-r=<parameters for docker run to use for the build>]
-  devstep bootstrap [-r=<parameters for docker run>]
-  devstep hack [-r=<parameters for docker run>]
+Usage: devstep [OPTIONS] COMMAND
+
+Commands:
+  build     - Build a Docker image for current directory sources
+  rebuild   - Rebuild current project associated Docker image
+  bootstrap - Interactively build a base Docker image for the project
+  hack      - Start a hacking session for the current project and discard the container on exit
+
+Available options:
+[ -h | --help ]:     This help message
+[ -r | --run-opts ]: Arguments to provide to the 'docker run' command during the build
 EOF
     return 0
 }
@@ -34,7 +41,7 @@ DEVSTEP_WORKSPACE_PATH=`pwd`
 DEVSTEP_IMAGE=${IMAGE:-'fgrehm/devstep:standalone'}
 unset IMAGE
 
-options=$(getopt -o h,r: -l help,run-opts: "$@")
+options=$(getopt -o h,r: -l help,run-opts: -- "$@")
 
 if [ $? -ne 0 ]; then
     usage
@@ -97,6 +104,7 @@ elif [ $ACTION = 'hack' ]; then
   docker run -ti --rm ${DEVSTEP_RUN_OPTS} ${DEVSTEP_IMAGE} /.devstep/bin/hack
   exit $?
 else
+  echo "Error: Command not found: ${ACTION}"
   usage && exit 1
 fi
 
