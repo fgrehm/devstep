@@ -83,6 +83,7 @@ elif [ $ACTION = 'bootstrap' ]; then
     read answer
     if ! $(echo "${answer}" | grep -qi '^y'); then
       echo 'Aborting'
+      docker rm devstep-bootstrap > /dev/null
       exit 1
     fi
   }
