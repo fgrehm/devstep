@@ -51,9 +51,10 @@ usage() {
 Usage: devstep [OPTIONS] COMMAND
 
 Commands:
-  build     - Build a Docker image for current directory sources
-  bootstrap - Interactively build a base Docker image for the project
-  hack      - Start a hacking session for the current project and discard the container on exit
+  build     - Build a Docker image for current directory sources based on latest successfull build
+  pristine  - Rebuild current project associated Docker image from scratch
+  bootstrap - Interactively build a base Docker image for the project based on latest successfull build
+  hack      - Start a hacking session for the current project using latest version of image and discard the container on exit
 
 Available options:
 [ -h | --help ]:     This help message
@@ -103,6 +104,19 @@ if [ -z "${DEVSTEP_WORKSPACE_PATH}" ]; then
 fi
 
 DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -v ${DEVSTEP_WORKSPACE_PATH}:/workspace -w /workspace"
+
+if [ "${COMMAND}" = 'pristine' ]; then
+  images=$(docker images | grep "^${DEVSTEP_WORKSPACE_REPO}" | awk '{ print $3 }') || true
+  if ! [ -z "${images}" ]; then
+    containers=$(docker ps -a | grep " ${DEVSTEP_WORKSPACE_REPO}" | awk '{ print $1 }') || true
+    echo '==> Removing previously tagged images' 1>&2
+    docker rm -f $containers 2>/dev/null || true
+    docker rmi -f $images 2>/dev/null || true
+    echo
+  fi
+  # From this point on, the command behaves as the build command
+  COMMAND='build'
+fi
 
 # if Docker repo exists, we use the latest version as the source image
 if $(docker images | grep -q "^${DEVSTEP_WORKSPACE_REPO}"); then
