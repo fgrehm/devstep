@@ -17,8 +17,11 @@ DEVSTEP_CACHE_PATH="/tmp/devstep/cache"
 ## Root path to the project being built
 DEVSTEP_WORKSPACE_PATH=`pwd`
 
+## Name of the project being worked on
+DEVSTEP_WORKSPACE_NAME=$(basename ${DEVSTEP_WORKSPACE_PATH})
+
 ## Name of Docker repository to use for the project
-DEVSTEP_WORKSPACE_REPO="devstep/$(basename ${DEVSTEP_WORKSPACE_PATH})"
+DEVSTEP_WORKSPACE_REPO="devstep/${DEVSTEP_WORKSPACE_NAME}"
 
 ## Starting point for project images
 DEVSTEP_SOURCE_IMAGE='fgrehm/devstep:standalone'
@@ -169,7 +172,8 @@ elif [ "${COMMAND}" = 'bootstrap' ]; then
   RUN_CMD="bash"
 
 elif [ "${COMMAND}" = 'hack' ]; then
-  DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -ti --rm ${DEVSTEP_HACK_RUN_OPTS}"
+  CID="devhack-${DEVSTEP_WORKSPACE_NAME}"
+  DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -ti --rm ${DEVSTEP_HACK_RUN_OPTS} --name ${CID}"
   RUN_CMD="/.devstep/bin/hack"
 
 else
@@ -192,7 +196,20 @@ function docker_run() {
 }
 
 if [ $COMMAND = 'hack' ]; then
-  docker_run
+  # If container already exists and is running, attach
+  if $(docker ps | grep -q $CID); then
+    echo "==> Attaching to existing ${CID} container"
+    docker attach $CID
+
+  # If container exists and is not running, start
+  elif $(docker ps -a | grep -q $CID); then
+    echo "==> Restarting existing ${CID} container"
+    docker start -ai $CID
+
+  # Otherwise just create it
+  else
+    docker_run
+  fi
   exit $?
 elif [ $COMMAND = 'bootstrap' ]; then
   docker_run
