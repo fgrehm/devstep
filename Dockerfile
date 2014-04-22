@@ -91,12 +91,13 @@ RUN chown -R developer:developer /.devstep && \
     chown -R developer:developer /etc/service && \
     chown -R developer:developer /etc/my_init.d && \
     chown -R developer:developer /etc/container_environment && \
-    chmod +x /.devstep/bin/* && \
     chmod u+s /usr/bin/sudo && \
-    echo 'source /.devstep/load-env.sh' > /etc/my_init.d/000-load-devstep-env.sh && \
+    echo "#!/bin/bash\nsource /.devstep/load-env.sh" > /etc/my_init.d/000-load-devstep-env.sh && \
     chmod +x /etc/my_init.d/000-load-devstep-env.sh && \
     ln -s /.devstep/bin/fix-permissions /etc/my_init.d/001-fix-permissions.sh && \
-    ln -s /.devstep/bin/forward-linked-ports /etc/my_init.d/002-forward-linked-ports.sh
+    ln -s /.devstep/bin/forward-linked-ports /etc/my_init.d/002-forward-linked-ports.sh && \
+    chmod +x /.devstep/bin/* && \
+    chmod +x /etc/my_init.d/*
 
 USER developer
 ENV HOME /.devstep
