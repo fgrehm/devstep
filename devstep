@@ -158,18 +158,18 @@ else # otherwise we start from scratch
 fi
 
 if [ "${COMMAND}" = 'build' ]; then
-  DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} ${DEVSTEP_BUILD_RUN_OPTS} -d"
+  DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -d ${DEVSTEP_BUILD_RUN_OPTS}"
   TARGET_IMAGE="${DEVSTEP_WORKSPACE_REPO}:latest"
   RUN_CMD="/.devstep/bin/build-project /workspace"
 
 elif [ "${COMMAND}" = 'bootstrap' ]; then
-  DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} ${DEVSTEP_BOOTSTRAP_RUN_OPTS} -d -ti --name devstep-bootstrap"
   CID='devstep-bootstrap'
+  DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -d -ti ${DEVSTEP_BOOTSTRAP_RUN_OPTS} --name ${CID}"
   TARGET_IMAGE="${DEVSTEP_WORKSPACE_REPO}:latest"
   RUN_CMD="bash"
 
 elif [ "${COMMAND}" = 'hack' ]; then
-  DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} ${DEVSTEP_HACK_RUN_OPTS} -ti --rm"
+  DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -ti --rm ${DEVSTEP_HACK_RUN_OPTS}"
   RUN_CMD="/.devstep/bin/hack"
 
 else
