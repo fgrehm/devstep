@@ -40,8 +40,8 @@ DEVSTEP_REBUILD_RUN_OPTS=
   source $HOME/.devsteprc
 
 ## ... and override with project configs
-[ -f $DEVSTEP_WORKSPACE_PATH/.devstep ] && \
-  source $DEVSTEP_WORKSPACE_PATH/.devstep
+[ -f $DEVSTEP_WORKSPACE_PATH/.devsteprc ] && \
+  source $DEVSTEP_WORKSPACE_PATH/.devsteprc
 
 ################################################################################
 ## Parse arguments
