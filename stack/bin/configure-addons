@@ -37,6 +37,28 @@ while :; do
     esac
 done
 
+function output_redirect() {
+  if [[ "$slug_file" == "-" ]]; then
+    cat - 1>&2
+  else
+    cat -
+  fi
+}
+
+function echo_title() {
+  echo $'\e[1G----->' $* | output_redirect
+}
+
+function ensure_indent() {
+  while read line; do
+    if [[ "$line" == --* ]]; then
+      echo $'\e[1G'$line | output_redirect
+    else
+      echo $'\e[1G      ' "$line" | output_redirect
+    fi
+  done
+}
+
 if [ "${AUTO}" = '1' ]; then
   [ "$#" != '0' ] &&
     echo "Auto detect mode does not accept parameters!" &&
@@ -57,6 +79,6 @@ for addon in $*; do
 done
 
 for addon in $*; do
-  echo "-----> Configuring ${addon}..."
-  /.devstep/addons/${addon}/bin/configure
+  echo_title "Configuring ${addon}..."
+  /.devstep/addons/${addon}/bin/configure | ensure_indent
 done
