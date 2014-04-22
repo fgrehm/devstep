@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -e            # fail fast
+set -o pipefail   # dont ignore exit codes when piping output
+# set -x          # enable debugging
+
+CACHE_DIR=$2
+VAGRANT_VERSION=1.5.4
+FILENAME=vagrant_${VAGRANT_VERSION}_x86_64.deb
+URL=https://dl.bintray.com/mitchellh/vagrant/${FILENAME}
+
+if ! [ -d /opt/vagrant ]; then
+  if ! [ -f "${CACHE_DIR}/${FILENAME}" ]; then
+    echo "-----> [vagrant] Downloading '${VAGRANT_VERSION}'"
+    curl -l -s $URL > ${CACHE_DIR}/${FILENAME}
+  fi
+
+  echo "-----> [vagrant] Installing '${CACHE_DIR}/${FILENAME}'"
+  sudo dpkg -i ${CACHE_DIR}/${FILENAME}
+fi
+
+echo "-----> [vagrant] Finished configuration!"
