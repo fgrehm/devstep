@@ -218,7 +218,7 @@ elif [ $COMMAND = 'build' ]; then
   docker stop -t=1 $CID
 fi
 
-TIMESTAMP=$(date -u +"%Y-%m-%d-%H-%M-%S")
+TIMESTAMP=$(date -u +"%Y%m%d%H%M%S")
 echo -e "\n==> Commiting '${TARGET_IMAGE}' and '${DEVSTEP_WORKSPACE_REPO}:${TIMESTAMP}'"
 docker commit $CID "${DEVSTEP_WORKSPACE_REPO}:latest"
 docker tag "${DEVSTEP_WORKSPACE_REPO}:latest" "${DEVSTEP_WORKSPACE_REPO}:${TIMESTAMP}"
