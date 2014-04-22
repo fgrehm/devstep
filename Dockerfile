@@ -71,6 +71,11 @@ RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get install -y --force-yes vim tmux htop
 
 #####################################################################
+# Bring back apt .deb caching as they'll be either removed on the
+# build process or cached on host machine
+RUN rm /etc/apt/apt.conf.d/no-cache
+
+#####################################################################
 # Devstep goodies (ADDed at the end to increase image "cacheability")
 
 ADD stack/bin /.devstep/bin
