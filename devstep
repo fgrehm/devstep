@@ -99,7 +99,7 @@ COMMAND="${1}"
 ## Handle `pristine` and `clean` commands
 
 function confirm_clean_repo() {
-  echo    "==> You are about to remove ${1} image(s) / tag(s) for the '${DEVSTEP_WORKSPACE_REPO}' repository" 1>&2
+  echo    "==> You are about to remove ${1} image(s) / tag(s) and ${2} container(s) for the '${DEVSTEP_WORKSPACE_REPO}' repository" 1>&2
   echo -n '    Are you sure about that? [y/N] ' 1>&2
   read answer
   if ! $(echo "${answer}" | grep -qi '^y'); then
@@ -111,8 +111,9 @@ function confirm_clean_repo() {
 
 function clean_repo() {
   images=$(docker images | grep "^${DEVSTEP_WORKSPACE_REPO}" | awk '{ print $3 }') || true
+  containers=$(docker ps -a | grep " ${SOURCE_IMAGE}\|${DEVSTEP_WORKSPACE_REPO}\|devhack-${DEVSTEP_WORKSPACE_NAME}") || true
   if ! [ -z "${images}" ]; then
-    confirm_clean_repo $(echo $images | wc -w)
+    confirm_clean_repo $(echo $images | wc -w) $(echo $containers | wc -l)
 
     containers=$(docker ps -a | grep " ${DEVSTEP_WORKSPACE_REPO}" | awk '{ print $1 }') || true
     echo '==> Removing previously tagged images and corresponding containers' 1>&2
