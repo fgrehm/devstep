@@ -72,10 +72,11 @@ if [ $? -ne 0 ]; then
 fi
 eval set -- "$options"
 
+USER_RUN_OPTS=
 while :; do
     case "$1" in
         -h|--help)          usage && exit 1;;
-        -r|--run-opts)      DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} ${2}"; shift 2;;
+        -r|--run-opts)      USER_RUN_OPTS="${USER_RUN_OPTS} ${2}"; shift 2;;
         *)                  break;;
     esac
 done
@@ -176,11 +177,14 @@ else
   usage && exit 1
 fi
 
+# Append user provided docker run options at the end so that it has a higher precedence
+DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} ${USER_RUN_OPTS}"
+
 ################################################################################
 ## Build / hack on image
 
 function docker_run() {
-  echo '==> Starting container with' 1>&2
+  echo '==> Creating container with' 1>&2
   echo "    \`- docker run ${DEVSTEP_RUN_OPTS} ${SOURCE_IMAGE} ${RUN_CMD}" 1>&2
   echo 1>&2
   docker run ${DEVSTEP_RUN_OPTS} ${SOURCE_IMAGE} ${RUN_CMD}
