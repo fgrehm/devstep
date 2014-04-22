@@ -1,10 +1,10 @@
 #!/bin/bash
 set -e
-# set -x
+set -x
 
-POSTGRESQL_USER=${POSTGRESQL_USER:-"developer"}
-POSTGRESQL_PASS=${POSTGRESQL_PASS:-"developer"}
-POSTGRESQL_DB=${POSTGRESQL_DB:-"developer"}
+POSTGRESQL_USER=${POSTGRESQL_USER:-"postgres"}
+POSTGRESQL_PASS=${POSTGRESQL_PASS:-"postgres"}
+POSTGRESQL_DB=${POSTGRESQL_DB:-"postgres"}
 POSTGRESQL_TEMPLATE=${POSTGRESQL_TEMPLATE:-"DEFAULT"}
 
 POSTGRESQL_BIN=/usr/lib/postgresql/9.1/bin/postgres
@@ -19,13 +19,12 @@ fi
 
 sudo chown -R developer:developer /var/run/postgresql
 sudo chown developer:developer /etc/postgresql/9.1/main/*.conf
-sudo chown -R developer:developer /var/lib/postgresql/9.1/main
 
 mkdir -p /.devstep/log
 
 POSTGRESQL_SINGLE="$POSTGRESQL_BIN --single --config-file=$POSTGRESQL_CONFIG_FILE postgres"
-$POSTGRESQL_SINGLE <<< "CREATE USER $POSTGRESQL_USER WITH SUPERUSER;" &> /.devstep/log/postgresql.log
-$POSTGRESQL_SINGLE <<< "CREATE DATABASE $POSTGRESQL_DB OWNER $POSTGRESQL_USER TEMPLATE $POSTGRESQL_TEMPLATE;" &> /.devstep/log/postgresql.log
-$POSTGRESQL_SINGLE <<< "ALTER USER $POSTGRESQL_USER WITH PASSWORD '$POSTGRESQL_PASS';" &> /.devstep/log/postgresql.log
+$POSTGRESQL_SINGLE <<< "CREATE USER $POSTGRESQL_USER WITH SUPERUSER;" &> /.devstep/log/postgresql.log || true
+$POSTGRESQL_SINGLE <<< "CREATE DATABASE $POSTGRESQL_DB OWNER $POSTGRESQL_USER TEMPLATE $POSTGRESQL_TEMPLATE;" &> /.devstep/log/postgresql.log || true
+$POSTGRESQL_SINGLE <<< "ALTER USER $POSTGRESQL_USER WITH PASSWORD '$POSTGRESQL_PASS';" &> /.devstep/log/postgresql.log || true
 
 exec $POSTGRESQL_BIN --config-file=$POSTGRESQL_CONFIG_FILE &>> /.devstep/log/postgresql.log
