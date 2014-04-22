@@ -68,7 +68,7 @@ RUN mkdir -p /.devstep/bin && \
 # through SSH) and `htop` has a nicer UI than plain old `top`
 RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y --force-yes vim tmux htop
+    apt-get install -y --force-yes vim tmux htop bsdtar
 
 #####################################################################
 # Bring back apt .deb caching as they'll be either removed on the
@@ -93,9 +93,10 @@ RUN chown -R developer:developer /.devstep && \
     chown -R developer:developer /etc/container_environment && \
     chmod +x /.devstep/bin/* && \
     chmod u+s /usr/bin/sudo && \
-    echo 'source /.devstep/load-env.sh' > /etc/my_init.d/load-devstep-env.sh && \
-    ln -s /.devstep/bin/fix-permissions /etc/my_init.d/fix-permissions.sh && \
-    ln -s /.devstep/bin/forward-linked-ports /etc/my_init.d/forward-linked-ports.sh
+    echo 'source /.devstep/load-env.sh' > /etc/my_init.d/000-load-devstep-env.sh && \
+    chmod +x /etc/my_init.d/000-load-devstep-env.sh && \
+    ln -s /.devstep/bin/fix-permissions /etc/my_init.d/001-fix-permissions.sh && \
+    ln -s /.devstep/bin/forward-linked-ports /etc/my_init.d/002-forward-linked-ports.sh
 
 USER developer
 ENV HOME /.devstep
