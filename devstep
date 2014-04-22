@@ -149,10 +149,9 @@ fi
 ## Build / hack on image
 
 function docker_run() {
-  echo -e "
-############
-# Running container with:
-#   docker run ${DEVSTEP_RUN_OPTS} ${SOURCE_IMAGE} ${RUN_CMD}" 1>&2
+  echo '==> Starting container with' 1>&2
+  echo "    \`- docker run ${DEVSTEP_RUN_OPTS} ${SOURCE_IMAGE} ${RUN_CMD}" 1>&2
+  echo 1>&2
   docker run ${DEVSTEP_RUN_OPTS} ${SOURCE_IMAGE} ${RUN_CMD}
   return $?
 }
@@ -163,11 +162,9 @@ if [ $COMMAND = 'hack' ]; then
 elif [ $COMMAND = 'bootstrap' ]; then
   docker_run
   docker attach $CID || {
-    echo -e -n "
-############
-# The bootstrap process has finished and the container returned
-# an exit status != 0
-# Do you want to go ahead and commit this image? [y/N] "
+    echo    '==> The bootstrap process has finished and the container returned'
+    echo    '    an exit status != 0'
+    echo -n '    Do you want to go ahead and commit this image? [y/N] '
     read answer
     if ! $(echo "${answer}" | grep -qi '^y'); then
       echo 'Aborting'
@@ -180,23 +177,21 @@ elif [ $COMMAND = 'build' ]; then
   docker attach $CID
   test $(docker wait $CID) -eq 0
 
-  echo "-----> Commiting temporary image ${DEVSTEP_WORKSPACE_REPO}:tmp"
+  echo -e "\n==> Commiting temporary image '${DEVSTEP_WORKSPACE_REPO}:tmp'"
   docker rmi "${DEVSTEP_WORKSPACE_REPO}:tmp" &> /dev/null || true
   docker commit $CID "${DEVSTEP_WORKSPACE_REPO}:tmp"
   docker rm $CID
 
-  echo "-----> Running a 'docker run -d ${DEVSTEP_WORKSPACE_REPO}:tmp bash' to change image's CMD"
+  echo -e "\n==> Running a 'docker run -d ${DEVSTEP_WORKSPACE_REPO}:tmp bash' to change image's CMD"
   CID=$(docker run -d -w / ${DEVSTEP_WORKSPACE_REPO}:tmp bash)
   docker stop -t=1 $CID
 fi
 
-echo "-----> Commiting image ${TARGET_IMAGE}"
-docker commit $CID "${DEVSTEP_WORKSPACE_REPO}:latest"
-
 TIMESTAMP=$(date -u +"%Y-%m-%d-%H-%M-%S")
-echo "-----> Tagging ${DEVSTEP_WORKSPACE_REPO}:${TIMESTAMP}"
+echo -e "\n==> Commiting '${TARGET_IMAGE}' and '${DEVSTEP_WORKSPACE_REPO}:${TIMESTAMP}'"
+docker commit $CID "${DEVSTEP_WORKSPACE_REPO}:latest"
 docker tag "${DEVSTEP_WORKSPACE_REPO}:latest" "${DEVSTEP_WORKSPACE_REPO}:${TIMESTAMP}"
 
-echo '-----> Removing temporary artifacts used for build'
+echo -e "\n==> Removing temporary artifacts used for build"
 docker rm $CID
 docker rmi "${DEVSTEP_WORKSPACE_REPO}:tmp" &> /dev/null || true
