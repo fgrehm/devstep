@@ -2,7 +2,7 @@
 set -eo pipefail
 
 available_addons() {
-  for addon in /.devstep/addons/*; do
+  for addon in ${addons_root}/*; do
     echo "  - $(basename $addon)"
   done
 }
@@ -59,6 +59,10 @@ function ensure_indent() {
   done
 }
 
+project_root=${1:-/workspace}
+cache_root=${2:-/.devstep/cache}
+addons_root=/.devstep/addons
+
 if [ "${AUTO}" = '1' ]; then
   [ "$#" != '0' ] &&
     echo "Auto detect mode does not accept parameters!" &&
@@ -77,7 +81,7 @@ fi
 AVAILABLE_ADDONS=$(available_addons)
 # Validate provided addons
 for addon in $*; do
-  if ! [ -d /.devstep/addons/${addon} ]; then
+  if ! [ -d ${addons_root}/${addon} ]; then
     echo "Invalid addon '${addon}'"
     usage
     exit 1
@@ -86,5 +90,5 @@ done
 
 for addon in $*; do
   echo_title "Configuring ${addon}..."
-  /.devstep/addons/${addon}/bin/configure | ensure_indent
+  ${addons_root}/${addon}/bin/configure $project_root $cache_root | ensure_indent
 done
