@@ -69,11 +69,17 @@ if [ "${AUTO}" = '1' ]; then
   exit 1
 fi
 
+if [ "$#" = '0' ]; then
+  echo 'No addons provided, aborting'
+  exit 1
+fi
+
 AVAILABLE_ADDONS=$(available_addons)
 # Validate provided addons
 for addon in $*; do
-  if ! $(echo $AVAILABLE_ADDONS | grep -q $addon); then
+  if ! [ -d /.devstep/addons/${addon} ]; then
     echo "Invalid addon '${addon}'"
+    usage
     exit 1
   fi
 done
