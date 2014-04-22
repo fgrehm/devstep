@@ -52,6 +52,7 @@ Usage: devstep [OPTIONS] COMMAND
 
 Commands:
   build     - Build a Docker image for current directory sources based on latest successfull build
+  clean     - Remove all images built for the current project
   pristine  - Rebuild current project associated Docker image from scratch
   bootstrap - Interactively build a base Docker image for the project based on latest successfull build
   hack      - Start a hacking session for the current project using latest version of image and discard the container on exit
@@ -87,10 +88,53 @@ if [ "$#" != '1' ]; then
   usage && exit 1
 fi
 
+COMMAND="${1}"
+
+################################################################################
+## Handle `pristine` and `clean` commands
+
+function confirm_clean_repo() {
+  echo    "==> You are about to remove ${1} image(s) / tag(s) for the '${DEVSTEP_WORKSPACE_REPO}' repository" 1>&2
+  echo -n '    Are you sure about that? [y/N] ' 1>&2
+  read answer
+  if ! $(echo "${answer}" | grep -qi '^y'); then
+    echo 'Aborting' 1>&2
+    exit 1
+  fi
+  return 0
+}
+
+function clean_repo() {
+  images=$(docker images | grep "^${DEVSTEP_WORKSPACE_REPO}" | awk '{ print $3 }') || true
+  if ! [ -z "${images}" ]; then
+    confirm_clean_repo $(echo $images | wc -w)
+
+    containers=$(docker ps -a | grep " ${DEVSTEP_WORKSPACE_REPO}" | awk '{ print $1 }') || true
+    echo '==> Removing previously tagged images and corresponding containers' 1>&2
+    docker rm -f $containers 2>/dev/null || true
+    docker rmi -f $images 2>/dev/null || true
+    echo
+  else
+    echo "==> No tagged images found for the '${DEVSTEP_WORKSPACE_REPO}' repository" 1>&2
+  fi
+}
+
+if [ "${COMMAND}" = 'pristine' ] || [ "${COMMAND}" = 'clean' ]; then
+  clean_repo
+fi
+
+if [ "${COMMAND}" = 'clean' ]; then
+  # If we got to this point, there's nothing else we need to do
+  exit 0
+fi
+
+if [ "${COMMAND}" = 'pristine' ]; then
+  # From this point on, the command behaves as the build command
+  COMMAND='build'
+fi
+
 ################################################################################
 ## Build options to use on `docker run`
-
-COMMAND="${1}"
 
 # If cache path is still set at this point
 if ! [ -z "${DEVSTEP_CACHE_PATH}" ]; then
@@ -104,19 +148,6 @@ if [ -z "${DEVSTEP_WORKSPACE_PATH}" ]; then
 fi
 
 DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -v ${DEVSTEP_WORKSPACE_PATH}:/workspace -w /workspace"
-
-if [ "${COMMAND}" = 'pristine' ]; then
-  images=$(docker images | grep "^${DEVSTEP_WORKSPACE_REPO}" | awk '{ print $3 }') || true
-  if ! [ -z "${images}" ]; then
-    containers=$(docker ps -a | grep " ${DEVSTEP_WORKSPACE_REPO}" | awk '{ print $1 }') || true
-    echo '==> Removing previously tagged images' 1>&2
-    docker rm -f $containers 2>/dev/null || true
-    docker rmi -f $images 2>/dev/null || true
-    echo
-  fi
-  # From this point on, the command behaves as the build command
-  COMMAND='build'
-fi
 
 # if Docker repo exists, we use the latest version as the source image
 if $(docker images | grep -q "^${DEVSTEP_WORKSPACE_REPO}"); then
