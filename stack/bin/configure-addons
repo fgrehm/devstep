@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+available_addons() {
+  for addon in /.devstep/addons/*; do
+    echo "  - $(basename $addon)"
+  done
+}
+
+usage() {
+  cat <<EOF
+Usage:
+configure-addons --auto
+configure-addons <addon-1> <addon-...>
+
+Available addons:
+$(available_addons)
+EOF
+  return 0
+}
+
+options=$(getopt -o h -l help,auto -- "$@")
+
+if [ $? -ne 0 ]; then
+    usage
+    exit 1
+fi
+
+eval set -- "$options"
+
+AUTO='0'
+while :; do
+    case "$1" in
+        -h|--help)  usage && exit 1;;
+        --auto)     AUTO='1' && shift 1;;
+        *)          shift 1 && break;;
+    esac
+done
+
+if [ "${AUTO}" = '1' ]; then
+  [ "$#" != '0' ] &&
+    echo "Auto detect mode does not accept parameters!" &&
+    usage &&
+    exit 1
+
+  echo 'Cannot auto detect yet!'
+  exit 1
+fi
+
+AVAILABLE_ADDONS=$(available_addons)
+# Validate provided addons
+for addon in $*; do
+  if ! $(echo $AVAILABLE_ADDONS | grep -q $addon); then
+    echo "Invalid addon '${addon}'"
+    exit 1
+  fi
+done
+
+for addon in $*; do
+  echo "-----> Configuring ${addon}..."
+  /.devstep/addons/${addon}/bin/configure
+done
