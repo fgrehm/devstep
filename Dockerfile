@@ -63,9 +63,9 @@ RUN mkdir -p /.devstep/bin && \
     curl -L -s https://godist.herokuapp.com/projects/ddollar/forego/releases/current/linux-amd64/forego > /.devstep/bin/forego
 
 #####################################################################
-# Because editing files with `vi` sucks and tmux allow us to run lots
+# Because editing files with `vi` sucks, tmux allow us to run lots
 # of shells within the same bash session (without the need of running
-# through SSH)
+# through SSH) and `htop` has a nicer UI than plain old `top`
 RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
     apt-get install -y --force-yes vim tmux && \
@@ -78,6 +78,7 @@ ADD stack/bin /.devstep/bin
 ADD stack/bashrc /.devstep/.bashrc
 ADD stack/load-env.sh /.devstep/load-env.sh
 ADD buildpacks /.devstep/buildpacks
+ADD addons /.devstep/addons
 
 #####################################################################
 # Fix permissions
