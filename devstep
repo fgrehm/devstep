@@ -111,7 +111,7 @@ function confirm_clean_repo() {
 
 function clean_repo() {
   images=$(docker images | grep "^${DEVSTEP_WORKSPACE_REPO}" | awk '{ print $3 }') || true
-  containers=$(docker ps -a | grep " ${SOURCE_IMAGE}\|${DEVSTEP_WORKSPACE_REPO}\|devhack-${DEVSTEP_WORKSPACE_NAME}") || true
+  containers=$(docker ps -a | grep " ${DEVSTEP_SOURCE_IMAGE}\|${DEVSTEP_WORKSPACE_REPO}\|devhack-${DEVSTEP_WORKSPACE_NAME}") || true
   if ! [ -z "${images}" ]; then
     confirm_clean_repo $(echo $images | wc -w) $(echo $containers | wc -l)
 
@@ -157,9 +157,9 @@ DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -v ${DEVSTEP_WORKSPACE_PATH}:/workspace -w
 
 # if Docker repo exists, we use the latest version as the source image
 if $(docker images | grep -q "^${DEVSTEP_WORKSPACE_REPO}"); then
-  SOURCE_IMAGE="${DEVSTEP_WORKSPACE_REPO}:latest"
+  DEVSTEP_SOURCE_IMAGE="${DEVSTEP_WORKSPACE_REPO}:latest"
 else # otherwise we start from scratch
-  SOURCE_IMAGE=${DEVSTEP_SOURCE_IMAGE}
+  DEVSTEP_SOURCE_IMAGE=${DEVSTEP_SOURCE_IMAGE}
 fi
 
 if [ "${COMMAND}" = 'build' ]; then
@@ -194,7 +194,7 @@ elif [ "${COMMAND}" = 'info' ]; then
     echo -e "==> No images found for this workspace!\n"
   fi
 
-  containers=$(docker ps -a | grep " ${SOURCE_IMAGE}\|${DEVSTEP_WORKSPACE_REPO}\|devhack-${DEVSTEP_WORKSPACE_NAME}" || echo -n)
+  containers=$(docker ps -a | grep " ${DEVSTEP_SOURCE_IMAGE}\|${DEVSTEP_WORKSPACE_REPO}\|devhack-${DEVSTEP_WORKSPACE_NAME}" || echo -n)
   if ! [ -z "${containers}" ]; then
     echo -e '==> Containers'
     docker ps -a | head -n 1 | ensure_indent
@@ -226,9 +226,9 @@ DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} ${USER_RUN_OPTS}"
 
 function docker_run() {
   echo '==> Creating container with' 1>&2
-  echo "    \`- docker run ${DEVSTEP_RUN_OPTS} ${SOURCE_IMAGE} ${RUN_CMD}" 1>&2
+  echo "    \`- docker run ${DEVSTEP_RUN_OPTS} ${DEVSTEP_SOURCE_IMAGE} ${RUN_CMD}" 1>&2
   echo 1>&2
-  docker run ${DEVSTEP_RUN_OPTS} ${SOURCE_IMAGE} ${RUN_CMD}
+  docker run ${DEVSTEP_RUN_OPTS} ${DEVSTEP_SOURCE_IMAGE} ${RUN_CMD}
   return $?
 }
 
