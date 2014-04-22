@@ -68,8 +68,7 @@ RUN mkdir -p /.devstep/bin && \
 # through SSH) and `htop` has a nicer UI than plain old `top`
 RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y --force-yes vim tmux && \
-    apt-get clean
+    apt-get install -y --force-yes vim tmux htop
 
 #####################################################################
 # Devstep goodies (ADDed at the end to increase image "cacheability")
