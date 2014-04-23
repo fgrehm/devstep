@@ -237,7 +237,7 @@ if [ -f requirements.txt ]; then
   # [ ! "$FRESH_PYTHON" ] && bpwatch start pip_install
   # [ "$FRESH_PYTHON" ] && bpwatch start pip_install_first
 
-  /.devstep/python/bin/pip install -r requirements.txt --exists-action=w --src=./.heroku/src --allow-all-external  | cleanup | indent
+  /.devstep/python/bin/pip install -r requirements.txt --exists-action=w --allow-all-external  | cleanup | indent
 
   # [ ! "$FRESH_PYTHON" ] && bpwatch stop pip_install
   # [ "$FRESH_PYTHON" ] && bpwatch stop pip_install_first
