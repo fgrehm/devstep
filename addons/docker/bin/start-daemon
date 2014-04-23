@@ -4,6 +4,11 @@ set -e            # fail fast
 set -o pipefail   # dont ignore exit codes when piping output
 # set -x          # enable debugging
 
+sudo mountpoint -q /var/lib/docker ||  {
+  echo "/var/lib/docker is not a mount point. Did you use '-v /var/lib/docker'?"
+  exit 1
+}
+
 # If a pidfile is still around (for example after a container restart),
 # delete it so that docker can start.
 mkdir -p /.devstep/run
