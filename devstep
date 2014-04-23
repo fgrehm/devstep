@@ -111,9 +111,9 @@ function confirm_clean_repo() {
 
 function clean_repo() {
   images=$(docker images | grep "^${DEVSTEP_WORKSPACE_REPO}" | awk '{ print $3 }') || true
-  containers=$(docker ps -a | grep " ${DEVSTEP_SOURCE_IMAGE}\|${DEVSTEP_WORKSPACE_REPO}\|devhack-${DEVSTEP_WORKSPACE_NAME}") || true
+  containers=$(docker ps -a | grep " ${DEVSTEP_SOURCE_IMAGE}\|${DEVSTEP_WORKSPACE_REPO}\|devhack-${DEVSTEP_WORKSPACE_NAME}" | wc -l || echo '0' 1>&2)
   if ! [ -z "${images}" ]; then
-    confirm_clean_repo $(echo $images | wc -w) $(echo $containers | wc -l)
+    confirm_clean_repo $(echo $images | wc -w) $containers
 
     containers=$(docker ps -a | grep " ${DEVSTEP_WORKSPACE_REPO}" | awk '{ print $1 }') || true
     echo '==> Removing previously tagged images and corresponding containers' 1>&2
