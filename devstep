@@ -268,7 +268,7 @@ elif [ $COMMAND = 'build' ]; then
   docker commit $CID "${DEVSTEP_WORKSPACE_REPO}:tmp"
   docker rm $CID
 
-  echo -e "\n==> Running a 'docker run -d ${DEVSTEP_WORKSPACE_REPO}:tmp bash' to change image's CMD"
+  echo -e "\n==> Running 'docker run -d -w / ${DEVSTEP_WORKSPACE_REPO}:tmp bash' to change image's CMD and WORKDIR"
   CID=$(docker run -d -w / ${DEVSTEP_WORKSPACE_REPO}:tmp bash)
   docker stop -t=1 $CID
 fi
