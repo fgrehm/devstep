@@ -117,7 +117,7 @@ function clean_repo() {
 
     containers=$(docker ps -a | grep " ${DEVSTEP_WORKSPACE_REPO}" | awk '{ print $1 }') || true
     echo '==> Removing previously tagged images and corresponding containers' 1>&2
-    docker rm -f $containers 2>/dev/null || true
+    docker rm -v -f $containers 2>/dev/null || true
     docker rmi -f $images 2>/dev/null || true
     echo
   else
@@ -254,7 +254,7 @@ elif [ $COMMAND = 'bootstrap' ]; then
     read answer
     if ! $(echo "${answer}" | grep -qi '^y'); then
       echo 'Aborting'
-      docker rm $CID > /dev/null
+      docker rm -v $CID > /dev/null
       exit 1
     fi
   }
@@ -266,8 +266,10 @@ elif [ $COMMAND = 'build' ]; then
   echo -e "\n==> Commiting temporary image '${DEVSTEP_WORKSPACE_REPO}:tmp'"
   docker rmi "${DEVSTEP_WORKSPACE_REPO}:tmp" &> /dev/null || true
   docker commit $CID "${DEVSTEP_WORKSPACE_REPO}:tmp"
-  docker rm $CID
+  docker rm -v $CID
 
+  # Changes container's CMD to run a simple bash session and the WORKDIR back to
+  # / since the project sources won't be mounted by default
   echo -e "\n==> Running 'docker run -d -w / ${DEVSTEP_WORKSPACE_REPO}:tmp bash' to change image's CMD and WORKDIR"
   CID=$(docker run -d -w / ${DEVSTEP_WORKSPACE_REPO}:tmp bash)
   docker stop -t=1 $CID
@@ -279,5 +281,5 @@ docker commit $CID "${DEVSTEP_WORKSPACE_REPO}:latest"
 docker tag "${DEVSTEP_WORKSPACE_REPO}:latest" "${DEVSTEP_WORKSPACE_REPO}:${TIMESTAMP}"
 
 echo -e "\n==> Removing temporary artifacts used for build"
-docker rm $CID
+docker rm -v $CID
 docker rmi "${DEVSTEP_WORKSPACE_REPO}:tmp" &> /dev/null || true
