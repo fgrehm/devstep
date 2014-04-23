@@ -208,9 +208,6 @@ elif [ "${COMMAND}" = 'info' ]; then
   for var in $(compgen -v | grep '^DEVSTEP_'); do
     echo "-> $var='${!var}'" | ensure_indent
   done
-
-  echo -e '\n==> `docker info`'
-  docker info 2>&1 | ensure_indent
   exit 0
 
 else
