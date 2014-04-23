@@ -154,18 +154,17 @@ mkdir -p $(dirname $PROFILE_PATH)
 set +e
 PYTHON_VERSION=${PYTHON_VERSION:-$(cat runtime.txt)}
 
-# XXX: Is this needed?
 # Install Python.
-# if [ -f .heroku/python-version ]; then
-#   if [ ! $(cat .heroku/python-version) = $PYTHON_VERSION ]; then
-#     # bpwatch start uninstall_python
-#       puts-step "Found $(cat .heroku/python-version), removing."
-#       rm -fr .heroku/python
-#     # bpwatch stop uninstall_python
-#   else
-#     SKIP_INSTALL=1
-#   fi
-# fi
+if [ -f /.devstep/python/python-version ]; then
+  if [ ! $(cat /.devstep/python/python-version) = $PYTHON_VERSION ]; then
+    # bpwatch start uninstall_python
+      puts-step "Found $(cat /.devstep/python/python-version), removing."
+      rm -fr /.devstep/python
+    # bpwatch stop uninstall_python
+  else
+    SKIP_INSTALL=1
+  fi
+fi
 
 
 if [ ! "$SKIP_INSTALL" ]; then
@@ -184,7 +183,7 @@ if [ ! "$SKIP_INSTALL" ]; then
   # bpwatch stop install_python
 
   # Record for future reference.
-  # echo $PYTHON_VERSION > .heroku/python-version
+  echo $PYTHON_VERSION > /.devstep/python/python-version
   FRESH_PYTHON=true
 
   hash -r
