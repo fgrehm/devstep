@@ -171,7 +171,7 @@ if [ ! "$SKIP_INSTALL" ]; then
   # bpwatch start install_python
     puts-step "Preparing Python runtime ($PYTHON_VERSION)"
     if ! [ -f $CACHE_DIR/${PYTHON_VERSION}.tar.bz2 ]; then
-      curl http://envy-versions.s3.amazonaws.com/${PYTHON_VERSION}.tar.bz2 > ${CACHE_DIR}/${PYTHON_VERSION}.tar.bz2
+      curl -s -L http://envy-versions.s3.amazonaws.com/${PYTHON_VERSION}.tar.bz2 > ${CACHE_DIR}/${PYTHON_VERSION}.tar.bz2
       if [[ $? != 0 ]] ; then
         puts-warn "Requested runtime ($PYTHON_VERSION) was not found."
         puts-warn "Aborting.  More info: https://devcenter.heroku.com/articles/python-support"
