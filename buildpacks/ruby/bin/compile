@@ -78,11 +78,14 @@ fi
 if [ -d /.devstep/.rvm/rubies/default ]; then
   echo 'Ruby already installed, skipping'
 else
+  # Step away from project sources to avoid loading .ruby-version and .ruby-gemset files
+  pushd / &>/dev/null
   install_ruby $2 || {
     echo 'Error installing ruby!'
     tail /tmp/build.log
     exit 1
   }
+  popd / &>/dev/null
   cat <<-GEMRC > $HOME/.gemrc
 ---
 gem: --no-ri --no-rdoc
