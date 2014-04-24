@@ -85,7 +85,7 @@ else
     tail /tmp/build.log
     exit 1
   }
-  popd / &>/dev/null
+  popd &>/dev/null
   cat <<-GEMRC > $HOME/.gemrc
 ---
 gem: --no-ri --no-rdoc
@@ -100,4 +100,4 @@ if $(bundle -v | grep -q '1.5.0'); then
 fi
 
 echo "Installing gems using bundler '$(bundle -v | cut -d' ' -f 3)'..."
-(cd $1 && bundle install)
+(cd $1 && bundle install -j 4)
