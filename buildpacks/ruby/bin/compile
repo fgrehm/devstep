@@ -26,17 +26,17 @@ install_ruby() {
   _rvm=/.devstep/.rvm/bin/rvm
 
   # TODO: Figure out if this is really needed
-  echo 'export rvm_ignore_gemset_flag=1' | sudo tee -a /.rvmrc &>>/tmp/build.log &>> /tmp/build.log
+  echo 'export rvm_ignore_gemset_flag=1' >> $HOME/.rvmrc &>>/tmp/build.log &>> /tmp/build.log
   export rvm_ignore_gemset_flag=1
   $_rvm rvmrc warning ignore allGemfiles &>> /tmp/build.log
 
   RVM_RUBY_VERSION="ruby-${RVM_RUBY_VERSION}"
   echo "Installing ${RVM_RUBY_VERSION}..."
-  $_rvm install ${RVM_RUBY_VERSION} --binary --default &>>/tmp/build.log
+  $_rvm install ${RVM_RUBY_VERSION} --binary --ignore-gemsets --default &>>/tmp/build.log
   # TODO: rm /tmp/rvm.log
 
   mkdir -p /.devstep/.profile.d
-  $_rvm env > /.devstep/.profile.d/rvm.sh
+  $_rvm env --ignore-gemsets > /.devstep/.profile.d/rvm.sh 2>/dev/null
 
   return 0
 }
