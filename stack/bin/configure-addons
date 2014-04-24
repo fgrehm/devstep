@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
+project_root=${1:-/workspace}
+cache_root=${2:-/.devstep/cache}
+addons_root="/.devstep/addons"
+
 available_addons() {
-  for addon in ${addons_root}/*; do
+  for addon in "${addons_root}"/*; do
     echo "  - $(basename $addon)"
   done
 }
@@ -58,10 +62,6 @@ function ensure_indent() {
     fi
   done
 }
-
-project_root=${1:-/workspace}
-cache_root=${2:-/.devstep/cache}
-addons_root=/.devstep/addons
 
 if [ "${AUTO}" = '1' ]; then
   [ "$#" != '0' ] &&
