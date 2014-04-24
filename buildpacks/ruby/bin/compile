@@ -54,7 +54,7 @@ install_nodejs() {
     wget -P $1 http://nodejs.org/dist/v${version}/$file &>>/tmp/build.log
   fi
   mkdir -p /.devstep/nodejs
-  tar xvfz $1/$file -C /.devstep/nodejs --strip-components=1 &>>/tmp/build.log
+  tar xfz $1/$file -C /.devstep/nodejs --strip-components=1 &>>/tmp/build.log
   echo "export PATH=/.devstep/nodejs/bin:$PATH" > /.devstep/.profile.d/nodejs.sh
 }
 
