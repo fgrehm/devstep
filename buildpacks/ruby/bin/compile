@@ -55,7 +55,7 @@ install_nodejs() {
   fi
   mkdir -p /.devstep/nodejs
   tar xfz $1/$file -C /.devstep/nodejs --strip-components=1 &>>/tmp/build.log
-  echo "export PATH=/.devstep/nodejs/bin:$PATH" > /.devstep/.profile.d/nodejs.sh
+  echo "export PATH=/.devstep/nodejs/bin:\$PATH" > /.devstep/.profile.d/nodejs.sh
 }
 
 # TODO: Look into travis.yml as well
