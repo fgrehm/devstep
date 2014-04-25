@@ -68,14 +68,16 @@ function ensure_indent() {
 
 if ! [ -L /var/cache/apt/archives ]; then
   mkdir -p $cache_root/apt
-  # TODO: Use a cache warm up approach similar to vagrant-cachier's
+  # Warm up cache with packages available on the container
+  sudo bash -c "shopt -s dotglob && mv /var/cache/apt/archives/* $cache_root/apt"
   sudo rm -rf /var/cache/apt/archives
   sudo ln -s $cache_root/apt /var/cache/apt/archives
 fi
 
 if ! [ -L /var/lib/apt/lists ]; then
   mkdir -p $cache_root/apt-lists
-  # TODO: Use a cache warm up approach similar to vagrant-cachier's
+  # Warm up cache with packages available on the container
+  sudo bash -c "shopt -s dotglob && mv /var/lib/apt/lists/* $cache_root/apt-lists"
   sudo rm -rf /var/lib/apt/lists
   sudo ln -s $cache_root/apt-lists /var/lib/apt/lists
 fi
