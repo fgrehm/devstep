@@ -75,7 +75,7 @@ if ! [ -L /var/cache/apt/archives ]; then
 fi
 
 if ! [ -L /var/lib/apt/lists ]; then
-  mkdir -p $cache_root/apt-lists
+  mkdir -p $cache_root/apt-lists/partial
   # Warm up cache with packages available on the container
   sudo bash -c "shopt -s dotglob && mv /var/lib/apt/lists/* $cache_root/apt-lists"
   sudo rm -rf /var/lib/apt/lists
