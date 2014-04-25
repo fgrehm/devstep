@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-set -x
+# set -x
 
 POSTGRESQL_USER=${POSTGRESQL_USER:-"postgres"}
 POSTGRESQL_PASS=${POSTGRESQL_PASS:-"postgres"}
@@ -11,11 +11,12 @@ POSTGRESQL_BIN=/usr/lib/postgresql/9.1/bin/postgres
 POSTGRESQL_CONFIG_FILE=/etc/postgresql/9.1/main/postgresql.conf
 POSTGRESQL_DATA=/shared/postgresql
 
-if [ ! -d $POSTGRESQL_DATA ]; then
+if [ ! -d $POSTGRESQL_DATA ] || [ ! -f $POSTGRESQL_DATA/PG_VERSION ]; then
   sudo mkdir -p $POSTGRESQL_DATA
   sudo chown -R developer:developer $POSTGRESQL_DATA
   /usr/lib/postgresql/9.1/bin/initdb -D $POSTGRESQL_DATA &> /.devstep/log/postgresql.log
 fi
+sudo chown -R developer:developer $POSTGRESQL_DATA
 
 sudo chown -R developer:developer /var/run/postgresql
 sudo chown developer:developer /etc/postgresql/9.1/main/*.conf
