@@ -2,8 +2,8 @@
 
 set -e
 
-echo '===> Building fgrehm/devstep:base'
-docker build -t fgrehm/devstep:base .
+echo '===> Building fgrehm/devstep:0.0.1'
+docker build -t fgrehm/devstep:0.0.1 .
 
-echo '===> Building fgrehm/devstep:standalone'
-(cd standalone && docker build -t fgrehm/devstep-standalone .)
+echo '===> Building fgrehm/devstep-standalone:0.0.1'
+(cd standalone && docker build -t fgrehm/devstep-standalone:0.0.1 .)
