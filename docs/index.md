@@ -5,8 +5,9 @@ Devstep is a dead simple, no frills development environment builder that leverag
 abstraction for fast and easy provisioning of project dependencies with a simple
 (yet ambitious) goal in mind:
 
-> I want to `git clone` and run a single command to spin up an environment that I
-can use to hack on any software project with as close to zero configuration as possible.
+> I want to `git clone` and run a single command to spin up a disposable environment
+that I can use to hack on any software project with as close to zero configuration as
+possible.
 
 Have you ever deployed an app to a platform like Heroku? How awesome it is to
 `git push` some code and see it running without worrying about the infrastructure
