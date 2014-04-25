@@ -3,10 +3,10 @@
 set -eo pipefail
 
 if ! [ -d "$(readlink /var/cache/apt/archives)/partial" ]; then
-  echo 'Creating archives dir'
+  # echo 'Creating archives dir'
   sudo mkdir -p "$(readlink /var/cache/apt/archives)/partial"
 fi
 if ! [ -d "$(readlink /var/lib/apt/lists)/partial" ]; then
-  echo 'Creating lists dir'
+  # echo 'Creating lists dir'
   sudo mkdir -p "$(readlink /var/lib/apt/lists)/partial"
 fi

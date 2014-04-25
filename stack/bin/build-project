@@ -65,19 +65,30 @@ function ensure_indent() {
 
 # Centralize cache directories on a single place to simplify
 # caching on the host
-
+empty_directory() {
+  if [ $(ls -A "${1}" 2>/dev/null | wc -l) = '0' ]; then
+    return 0
+  else
+    return 1
+  fi
+}
 if ! [ -L /var/cache/apt/archives ]; then
   mkdir -p $cache_root/apt
-  # Warm up cache with packages available on the container
-  sudo bash -c "shopt -s dotglob && mv /var/cache/apt/archives/* $cache_root/apt"
+  # Warm up cache with packages available on the container if cache is empty
+  if (empty_directory "$cache_root/apt") && ! (empty_directory "/var/cache/apt/archives"); then
+    sudo bash -c "shopt -s dotglob && mv /var/cache/apt/archives/* $cache_root/apt"
+  fi
   sudo rm -rf /var/cache/apt/archives
   sudo ln -s $cache_root/apt /var/cache/apt/archives
 fi
 
 if ! [ -L /var/lib/apt/lists ]; then
+  mkdir -p $cache_root/apt-lists
+  # Warm up cache with packages available on the container if cache is empty
+  if (empty_directory "$cache_root/apt-lists") && ! (empty_directory "/var/lib/apt/lists"); then
+    sudo bash -c "shopt -s dotglob && mv /var/lib/apt/lists/* $cache_root/apt-lists"
+  fi
   mkdir -p $cache_root/apt-lists/partial
-  # Warm up cache with packages available on the container
-  sudo bash -c "shopt -s dotglob && mv /var/lib/apt/lists/* $cache_root/apt-lists"
   sudo rm -rf /var/lib/apt/lists
   sudo ln -s $cache_root/apt-lists /var/lib/apt/lists
 fi
