@@ -33,7 +33,6 @@ DEVSTEP_RUN_OPTS=
 DEVSTEP_BUILD_RUN_OPTS=
 DEVSTEP_BOOTSTRAP_RUN_OPTS=
 DEVSTEP_HACK_RUN_OPTS=
-DEVSTEP_REBUILD_RUN_OPTS=
 
 ################################################################################
 ## Load project and user specific configs
