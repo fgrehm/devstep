@@ -88,7 +88,8 @@ else
   popd &>/dev/null
   # Create this dir from here as we might want to bind mount ~/.gem/credentials
   # from the host
-  mkdir -p $HOME/.gem
+  sudo mkdir -p $HOME/.gem/specs
+  sudo chown -R developer: $HOME/.gem
   cat <<-GEMRC > $HOME/.gemrc
 ---
 gem: --no-ri --no-rdoc
