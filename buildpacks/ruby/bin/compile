@@ -58,6 +58,14 @@ install_nodejs() {
   echo "export PATH=/.devstep/nodejs/bin:\$PATH" > /.devstep/.profile.d/nodejs.sh
 }
 
+requires_phantomjs() {
+  return $(grep -q 'poltergeist' $1/Gemfile*)
+}
+
+install_phantomjs() {
+  /.devstep/buildpacks/phantomjs/bin/compile $1 $2
+}
+
 # TODO: Look into travis.yml as well
 RVM_RUBY_VERSION=${RVM_RUBY_VERSION:-$(version_from_gemfile)}
 if [ -z "$RVM_RUBY_VERSION" ]; then
@@ -113,3 +121,11 @@ fi
 
 echo "Installing gems using bundler '$(bundle -v | cut -d' ' -f 3)'..."
 (cd $1 && bundle install --jobs=4)
+
+if requires_phantomjs $1; then
+  if [ -d /.devstep/phantomjs ]; then
+    echo '-----> PhantomJS already installed, skipping'
+  else
+    install_phantomjs $1 $2
+  fi
+fi
