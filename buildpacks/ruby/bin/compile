@@ -73,16 +73,6 @@ if [ -z "$RVM_RUBY_VERSION" ]; then
   RVM_RUBY_VERSION='2.1.1'
 fi
 
-if requires_nodejs $1; then
-  if [ -f /.devstep/nodejs ]; then
-    echo 'Nodejs already installed, skipping'
-  else
-    echo 'Installing nodejs...'
-    install_nodejs $2
-    source /.devstep/.profile.d/nodejs.sh
-  fi
-fi
-
 if [ -d /.devstep/.rvm/rubies/default ]; then
   echo 'Ruby already installed, skipping'
 else
@@ -121,6 +111,16 @@ fi
 
 echo "Installing gems using bundler '$(bundle -v | cut -d' ' -f 3)'..."
 (cd $1 && bundle install --jobs=4)
+
+if requires_nodejs $1; then
+  if [ -d /.devstep/nodejs ]; then
+    echo '-----> Nodejs already installed, skipping'
+  else
+    echo '-----> Installing nodejs...'
+    install_nodejs $2
+    source /.devstep/.profile.d/nodejs.sh
+  fi
+fi
 
 if requires_phantomjs $1; then
   if [ -d /.devstep/phantomjs ]; then
