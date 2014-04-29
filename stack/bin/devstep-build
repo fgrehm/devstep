@@ -1,0 +1,21 @@
+#!/bin/bash
+set -eo pipefail
+
+project_root="${1}"
+cache_root='/.devstep/cache'
+
+/.devstep/bin/build-project $project_root $cache_root
+if [ "${2}" = '--configure-addons' ]; then
+  /.devstep/bin/configure-addons --auto $project_root
+fi
+
+## Save on disk space if wanted
+if [ "${CLEANUP}" = '1' ]; then
+  echo_title 'Cleaning up...'
+
+  echo_normal "Running 'rm -rf $cache_root/*'"
+  rm -rf $cache_root/*
+
+  echo_normal "Running 'sudo rm -rf tmp/*'"
+  sudo rm -rf /tmp/*
+fi

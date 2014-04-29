@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-project_root=${1:-/workspace}
-cache_root=${2:-/.devstep/cache}
 addons_root="/.devstep/addons"
 
 available_addons() {
@@ -14,7 +12,7 @@ available_addons() {
 usage() {
   cat <<EOF
 Usage:
-configure-addons --auto
+configure-addons --auto <workspace-dir>
 configure-addons <addon-1> <addon-...>
 
 Available addons:
@@ -63,24 +61,29 @@ function ensure_indent() {
   done
 }
 
+declare -a SELECTED_ADDONS
 if [ "${AUTO}" = '1' ]; then
-  [ "$#" != '0' ] &&
-    echo "Auto detect mode does not accept parameters!" &&
+  [ "$#" != '1' ] &&
     usage &&
     exit 1
 
-  echo 'Cannot auto detect yet!'
-  exit 1
+  ADDONS=("${addons_root}"/*)
+  for addon in "${ADDONS[@]}"; do
+    if $($addon/bin/detect "${project_root}" &>/dev/null); then
+      SELECTED_ADDONS+=("$(basename $addon)")
+    fi
+  done
+else
+  SELECTED_ADDONS=$*
 fi
 
-if [ "$#" = '0' ]; then
-  echo 'No addons provided, aborting'
-  exit 1
+if [[ -z "${SELECTED_ADDONS[@]}" ]]; then
+  echo_title "Unable to identify an addon for the workspace!"
+  exit 0
 fi
 
-AVAILABLE_ADDONS=$(available_addons)
 # Validate provided addons
-for addon in $*; do
+for addon in ${SELECTED_ADDONS}; do
   if ! [ -d ${addons_root}/${addon} ]; then
     echo "Invalid addon '${addon}'"
     usage
@@ -88,7 +91,7 @@ for addon in $*; do
   fi
 done
 
-for addon in $*; do
+for addon in ${SELECTED_ADDONS}; do
   echo_title "Configuring ${addon}..."
   ${addons_root}/${addon}/bin/configure $project_root $cache_root | ensure_indent
 done

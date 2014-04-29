@@ -47,8 +47,7 @@ RUN DEBIAN_FRONTEND=noninteractive && \
 
 RUN echo "[client]\nprotocol=tcp\nuser=root" >> /.devstep/.my.cnf && \
     echo "export PGHOST=localhost" >> /.devstep/.profile.d/postgresql.sh && \
-    echo "export PGUSER=postgres" >> /.devstep/.profile.d/postgresql.sh && \
-    echo "localhost" > /etc/container_environment/PGHOST
+    echo "export PGUSER=postgres" >> /.devstep/.profile.d/postgresql.sh
 
 #####################################################################
 # Download and install jq as it is being used by a few buildpacks
@@ -68,7 +67,8 @@ RUN mkdir -p /.devstep/bin && \
 # through SSH) and `htop` has a nicer UI than plain old `top`
 RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y --force-yes vim tmux htop bsdtar
+    apt-get install -y --force-yes vim tmux htop bsdtar && \
+    apt-get clean
 
 #####################################################################
 # Bring back apt .deb caching as they'll be either removed on the
@@ -92,8 +92,6 @@ RUN chown -R developer:developer /.devstep && \
     chown -R developer:developer /etc/my_init.d && \
     chown -R developer:developer /etc/container_environment && \
     chmod u+s /usr/bin/sudo && \
-    echo "#!/bin/bash\nsource /.devstep/load-env.sh" > /etc/my_init.d/000-load-devstep-env.sh && \
-    chmod +x /etc/my_init.d/000-load-devstep-env.sh && \
     ln -s /.devstep/bin/fix-system-cached-dirs /etc/my_init.d/000-fix-system-cached-dirs.sh && \
     ln -s /.devstep/bin/fix-permissions /etc/my_init.d/001-fix-permissions.sh && \
     ln -s /.devstep/bin/forward-linked-ports /etc/my_init.d/002-forward-linked-ports.sh && \
@@ -102,3 +100,6 @@ RUN chown -R developer:developer /.devstep && \
 
 USER developer
 ENV HOME /.devstep
+
+# Start a bash session by default
+CMD ["/bin/bash"]

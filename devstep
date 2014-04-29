@@ -29,6 +29,9 @@ DEVSTEP_SOURCE_IMAGE='fgrehm/devstep-standalone:0.0.1'
 ## Global options for `docker run`
 DEVSTEP_RUN_OPTS=
 
+## Automatic addons provisioning is disabled by default
+DEVSTEP_CONFIGURE_ADDONS='0'
+
 ## `devstep CMD` specific options for `docker run`
 DEVSTEP_BUILD_RUN_OPTS=
 DEVSTEP_BOOTSTRAP_RUN_OPTS=
@@ -164,7 +167,10 @@ fi
 if [ "${COMMAND}" = 'build' ]; then
   DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -d ${DEVSTEP_BUILD_RUN_OPTS}"
   TARGET_IMAGE="${DEVSTEP_WORKSPACE_REPO}:latest"
-  RUN_CMD="/.devstep/bin/build-project /workspace"
+  RUN_CMD="/.devstep/bin/devstep-build /workspace"
+  if [ "${DEVSTEP_CONFIGURE_ADDONS}" = '1' ]; then
+    RUN_CMD="${RUN_CMD} --configure-addons"
+  fi
 
 elif [ "${COMMAND}" = 'bootstrap' ]; then
   CID='devstep-bootstrap'
@@ -176,6 +182,9 @@ elif [ "${COMMAND}" = 'hack' ]; then
   CID="devhack-${DEVSTEP_WORKSPACE_NAME}"
   DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -ti --rm ${DEVSTEP_HACK_RUN_OPTS} --name ${CID}"
   RUN_CMD="/.devstep/bin/hack"
+  if [ "${DEVSTEP_CONFIGURE_ADDONS}" = '1' ]; then
+    RUN_CMD="${RUN_CMD} --configure-addons"
+  fi
 
 elif [ "${COMMAND}" = 'info' ]; then
   function ensure_indent() {
@@ -222,9 +231,9 @@ DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} ${USER_RUN_OPTS}"
 
 function docker_run() {
   echo '==> Creating container with' 1>&2
-  echo "    \`- docker run ${DEVSTEP_RUN_OPTS} ${DEVSTEP_SOURCE_IMAGE} ${RUN_CMD}" 1>&2
+  echo "    \`- docker run ${DEVSTEP_RUN_OPTS} ${DEVSTEP_SOURCE_IMAGE} -- ${RUN_CMD}" 1>&2
   echo 1>&2
-  docker run ${DEVSTEP_RUN_OPTS} ${DEVSTEP_SOURCE_IMAGE} ${RUN_CMD}
+  docker run ${DEVSTEP_RUN_OPTS} ${DEVSTEP_SOURCE_IMAGE} -- ${RUN_CMD}
   return $?
 }
 

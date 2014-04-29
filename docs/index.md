@@ -55,8 +55,8 @@ a bash session for some hacking. Once you `exit` it, it will be garbage collecte
 ## What's on the [Docker image](https://index.docker.io/u/fgrehm/devstep)?
 
 Same packages installed by [`progrium/cedarish`](https://github.com/progrium/cedarish)
-(we use it as a base image) plus [some other stuff](Dockerfile), an (optional)
-init script based on [`phusion/baseimage-docker`](https://github.com/phusion/baseimage-docker)'s
+(we use it as a base image) plus [some other stuff](Dockerfile), an init script
+based on [`phusion/baseimage-docker`](https://github.com/phusion/baseimage-docker)'s
 and [some buildpacks](https://github.com/fgrehm/devstep/tree/master/buildpacks).
 
 
@@ -67,7 +67,6 @@ environments and not all projects are web apps. As an example, for PHP apps,
 you might want to enable [opcache](http://www.php.net/manual/en/intro.opcache.php)
 on production to improve your app's performance but have it disabled during
 development.
-
 
 
 ## Project status

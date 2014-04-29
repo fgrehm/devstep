@@ -126,14 +126,14 @@ fi
 
 ## Compile!
 
-if [[ -n "$selected_buildpacks[@]" ]]; then
+if [[ -n "${selected_buildpacks[@]}" ]]; then
   # TODO: This output is not needed if a single buildpack was detected
   echo_title "Building project at '${project_root}' with the folllowing buildpacks:"
   for bp in "${selected_buildpacks[@]}"; do
     echo "- $bp" | ensure_indent
   done
 else
-  echo_title "Unable to identify a buildpack for your project!"
+  echo_title "Unable to identify a buildpack for the workspace!"
   exit 0
 fi
 
@@ -146,15 +146,3 @@ echo_title "Build finished successfully!"
 
 ## Reload env vars
 source $HOME/.bashrc
-
-## Save on disk space if wanted
-
-if [ "${CLEANUP}" = '1' ]; then
-  echo_title 'Cleaning up...'
-
-  echo_normal "Running 'rm -rf $cache_root/*'"
-  rm -rf $cache_root/*
-
-  echo_normal "Running 'sudo rm -rf tmp/*'"
-  sudo rm -rf /tmp/*
-fi
