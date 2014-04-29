@@ -1,0 +1,10 @@
+#!/bin/sh
+# Usage: bin/detect <build-dir>
+
+if [ -f "${1}/Gemfile.lock" ] && $(grep -q '^\s*pg\s\+' "${1}/Gemfile.lock"); then
+  echo 'postgresql'
+  exit 0
+fi
+
+echo 'no postgresql'
+exit 1
