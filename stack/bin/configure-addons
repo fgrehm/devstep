@@ -67,6 +67,7 @@ if [ "${AUTO}" = '1' ]; then
     usage &&
     exit 1
 
+  project_root="${1}"
   ADDONS=("${addons_root}"/*)
   for addon in "${ADDONS[@]}"; do
     if $($addon/bin/detect "${project_root}" &>/dev/null); then
@@ -93,5 +94,5 @@ done
 
 for addon in ${SELECTED_ADDONS}; do
   echo_title "Configuring ${addon}..."
-  ${addons_root}/${addon}/bin/configure $project_root $cache_root | ensure_indent
+  ${addons_root}/${addon}/bin/configure | ensure_indent
 done
