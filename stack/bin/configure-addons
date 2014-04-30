@@ -84,7 +84,7 @@ if [[ -z "${SELECTED_ADDONS[@]}" ]]; then
 fi
 
 # Validate provided addons
-for addon in ${SELECTED_ADDONS}; do
+for addon in ${SELECTED_ADDONS[@]}; do
   if ! [ -d ${addons_root}/${addon} ]; then
     echo "Invalid addon '${addon}'"
     usage
@@ -92,7 +92,8 @@ for addon in ${SELECTED_ADDONS}; do
   fi
 done
 
-for addon in ${SELECTED_ADDONS}; do
+# Configure addons
+for addon in ${SELECTED_ADDONS[@]}; do
   echo_title "Configuring ${addon}..."
   ${addons_root}/${addon}/bin/configure | ensure_indent
 done
