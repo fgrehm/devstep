@@ -53,7 +53,7 @@ DEVSTEP_HACK_RUN_OPTS=
 
 usage() {
     cat <<EOF
-Usage: devstep [OPTIONS] COMMAND
+Usage: devstep COMMAND [OPTIONS]
 
 Commands:
   build     - Build a Docker image for current directory sources based on latest successfull build
@@ -66,11 +66,12 @@ Commands:
 Available options:
 [ -h | --help ]:     This help message
 [ -r | --run-opts ]: Arguments to provide to the 'docker run' command during the build
+[ -c | --command ]:  Command to use for 'devstep run'
 EOF
     return 0
 }
 
-options=$(getopt -o h,r: -l help,run-opts: -- "$@")
+options=$(getopt -o h,r:,c: -l help,run-opts:,command: -- "$@")
 
 if [ $? -ne 0 ]; then
     usage
@@ -79,10 +80,12 @@ fi
 eval set -- "$options"
 
 USER_RUN_OPTS=
+USER_RUN_CMD=
 while :; do
     case "$1" in
         -h|--help)          usage && exit 1;;
         -r|--run-opts)      USER_RUN_OPTS="${USER_RUN_OPTS} ${2}"; shift 2;;
+        -c|--command)       USER_RUN_CMD="${2}"; shift 2;;
         *)                  break;;
     esac
 done
@@ -218,6 +221,13 @@ elif [ "${COMMAND}" = 'info' ]; then
   done
   exit 0
 
+elif [ "${COMMAND}" = 'run' ]; then
+  RUN_CMD="${USER_RUN_CMD}"
+  if [ -z "${RUN_CMD}" ]; then
+    echo 'You need to provide a command for "devstep run"'
+    usage && exit 1
+  fi
+
 else
   echo "Error: Command not found: ${COMMAND}"
   usage && exit 1
@@ -237,7 +247,7 @@ function docker_run() {
   return $?
 }
 
-if [ $COMMAND = 'hack' ]; then
+if [ $COMMAND = 'hack' ] || [ $COMMAND = 'run' ]; then
   docker_run
   exit $?
 elif [ $COMMAND = 'bootstrap' ]; then
