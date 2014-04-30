@@ -92,7 +92,7 @@ RUN chown -R developer:developer /.devstep && \
     chown -R developer:developer /etc/my_init.d && \
     chown -R developer:developer /etc/container_environment && \
     chmod u+s /usr/bin/sudo && \
-    ln -s /.devstep/bin/fix-system-cached-dirs /etc/my_init.d/000-fix-system-cached-dirs.sh && \
+    ln -s /.devstep/bin/create-cache-symlinks /etc/my_init.d/000-create-cache-symlinks.sh && \
     ln -s /.devstep/bin/fix-permissions /etc/my_init.d/001-fix-permissions.sh && \
     ln -s /.devstep/bin/forward-linked-ports /etc/my_init.d/002-forward-linked-ports.sh && \
     chmod +x /.devstep/bin/* && \
