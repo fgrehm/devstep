@@ -13,7 +13,6 @@ if ! [ -f /etc/init.d/postgresql ]; then
 
   echo "export PGHOST=" >> /.devstep/.profile.d/postgresql.sh
   source /.devstep/.profile.d/postgresql.sh
-  rm -f /etc/container_environment/PGHOST
 fi
 
 addon_basedir="$( cd -P "$( dirname "$0" )" && pwd )"
