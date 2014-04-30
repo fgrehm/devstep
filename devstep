@@ -67,11 +67,12 @@ Available options:
 [ -h | --help ]:     This help message
 [ -r | --run-opts ]: Arguments to provide to the 'docker run' command during the build
 [ -c | --command ]:  Command to use for 'devstep run'
+[ -f | --force ]:    Force 'yes' answer to commands that requires confirmation
 EOF
     return 0
 }
 
-options=$(getopt -o h,r:,c: -l help,run-opts:,command: -- "$@")
+options=$(getopt -o h,f,r:,c: -l help,force,run-opts:,command: -- "$@")
 
 if [ $? -ne 0 ]; then
     usage
@@ -81,11 +82,13 @@ eval set -- "$options"
 
 USER_RUN_OPTS=
 USER_RUN_CMD=
+USER_FORCE_YES='0'
 while :; do
     case "$1" in
         -h|--help)          usage && exit 1;;
         -r|--run-opts)      USER_RUN_OPTS="${USER_RUN_OPTS} ${2}"; shift 2;;
         -c|--command)       USER_RUN_CMD="${2}"; shift 2;;
+        -f|--force)         USER_FORCE_YES="1"; shift 1;;
         *)                  break;;
     esac
 done
@@ -104,6 +107,10 @@ COMMAND="${1}"
 ## Handle `pristine` and `clean` commands
 
 function confirm_clean_repo() {
+  if [ "${USER_FORCE_YES}" = '1' ]; then
+    return 0
+  fi
+
   echo    "==> You are about to remove ${1} image(s) / tag(s) and ${2} container(s) for the '${DEVSTEP_WORKSPACE_REPO}' repository" 1>&2
   echo -n '    Are you sure about that? [y/N] ' 1>&2
   read answer
@@ -253,14 +260,16 @@ if [ $COMMAND = 'hack' ] || [ $COMMAND = 'run' ]; then
 elif [ $COMMAND = 'bootstrap' ]; then
   docker_run
   docker attach $CID || {
-    echo    '==> The bootstrap process has finished and the container returned'
-    echo    '    an exit status != 0'
-    echo -n '    Do you want to go ahead and commit this image? [y/N] '
-    read answer
-    if ! $(echo "${answer}" | grep -qi '^y'); then
-      echo 'Aborting'
-      docker rm -v $CID > /dev/null
-      exit 1
+    if [ "${USER_FORCE_YES}" != '1' ]; then
+      echo    '==> The bootstrap process has finished and the container returned'
+      echo    '    an exit status != 0'
+      echo -n '    Do you want to go ahead and commit this image? [y/N] '
+      read answer
+      if ! $(echo "${answer}" | grep -qi '^y'); then
+        echo 'Aborting'
+        docker rm -v $CID > /dev/null
+        exit 1
+      fi
     fi
   }
 elif [ $COMMAND = 'build' ]; then
