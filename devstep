@@ -179,7 +179,7 @@ elif [ "${COMMAND}" = 'bootstrap' ]; then
   RUN_CMD="bash"
 
 elif [ "${COMMAND}" = 'hack' ]; then
-  CID="devhack-${DEVSTEP_WORKSPACE_NAME}"
+  CID="devhack-${DEVSTEP_WORKSPACE_NAME}-$(date +%Y%m%d%H%M%N)"
   DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -ti --rm ${DEVSTEP_HACK_RUN_OPTS} --name ${CID}"
   RUN_CMD="/.devstep/bin/hack"
   if [ "${DEVSTEP_CONFIGURE_ADDONS}" = '1' ]; then
@@ -238,20 +238,7 @@ function docker_run() {
 }
 
 if [ $COMMAND = 'hack' ]; then
-  # If container already exists and is running, attach
-  if $(docker ps | grep -q $CID); then
-    echo "==> Attaching to existing ${CID} container"
-    docker attach $CID
-
-  # If container exists and is not running, start
-  elif $(docker ps -a | grep -q $CID); then
-    echo "==> Restarting existing ${CID} container"
-    docker start -ai $CID
-
-  # Otherwise just create it
-  else
-    docker_run
-  fi
+  docker_run
   exit $?
 elif [ $COMMAND = 'bootstrap' ]; then
   docker_run
