@@ -12,7 +12,7 @@ URL=https://dl.bintray.com/mitchellh/vagrant/${FILENAME}
 if ! [ -d /opt/vagrant ]; then
   if ! [ -f "${CACHE_DIR}/${FILENAME}" ]; then
     echo "-----> [vagrant] Downloading '${VAGRANT_VERSION}'"
-    curl -l -s $URL > ${CACHE_DIR}/${FILENAME}
+    wget $URL -O ${CACHE_DIR}/${FILENAME}
   fi
 
   echo "-----> [vagrant] Installing '${CACHE_DIR}/${FILENAME}'"
