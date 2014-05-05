@@ -62,6 +62,8 @@ Commands:
   bootstrap - Interactively build a base Docker image for the project based on latest successfull build
   hack      - Start a hacking session for the current project using latest version of image and discard the container on exit
   run       - Run a one off command against the source image
+  images    - Display images available for the current project
+  ps        - List all containers associated with the current project
   info      - Show some information about the current project
 
 Available options:
@@ -197,37 +199,9 @@ elif [ "${COMMAND}" = 'hack' ]; then
     RUN_CMD="${RUN_CMD} --configure-addons"
   fi
 
-elif [ "${COMMAND}" = 'info' ]; then
-  function ensure_indent() {
-    while read line; do
-      echo $'\e[1G   ' "$line"
-    done
-  }
-  images=$(docker images | grep "^${DEVSTEP_WORKSPACE_REPO}") || true
-  if ! [ -z "${images}" ]; then
-    echo '==> Images'
-    docker images | head -n 1 | ensure_indent
-    echo "${images}" | ensure_indent
-    echo -e "==> Total tags: $(docker images | grep "^${DEVSTEP_WORKSPACE_REPO}" | wc -l)\n"
-  else
-    echo -e "==> No images found for this workspace!\n"
-  fi
-
-  containers=$(docker ps -a | grep " ${DEVSTEP_SOURCE_IMAGE}\|${DEVSTEP_WORKSPACE_REPO}\|devhack-${DEVSTEP_WORKSPACE_NAME}" || echo -n)
-  if ! [ -z "${containers}" ]; then
-    echo -e '==> Containers'
-    docker ps -a | head -n 1 | ensure_indent
-    echo "${containers}" | ensure_indent
-    echo -e "==> Total containers: $(echo $containers | wc -l)\n"
-  else
-    echo -e "==> No containers found for this workspace!\n"
-  fi
-
-  echo -e '==> Devstep configs'
-  for var in $(compgen -v | grep '^DEVSTEP_'); do
-    echo "-> $var='${!var}'" | ensure_indent
-  done
-  exit 0
+elif [ "${COMMAND}" = 'info' ] || [ "${COMMAND}" = 'images' ] || [ "${COMMAND}" = 'ps' ]; then
+  # Nothing to do here yet
+  true
 
 elif [ "${COMMAND}" = 'run' ]; then
   RUN_CMD="${USER_RUN_CMD}"
@@ -242,11 +216,57 @@ else
   usage && exit 1
 fi
 
-# Append user provided docker run options at the end so that it has a higher precedence
-DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} ${USER_RUN_OPTS}"
+
+################################################################################
+## Handle info commands
+
+function ensure_indent() {
+  while read line; do
+    echo $'\e[1G   ' "$line"
+  done
+}
+
+if [ "${COMMAND}" = 'info' ] || [ "${COMMAND}" = 'images' ] || [ "${COMMAND}" = 'ps' ]; then
+  if [ "${COMMAND}" = 'info' ] || [ "${COMMAND}" = 'images' ]; then
+    images=$(docker images | grep "^${DEVSTEP_WORKSPACE_REPO}") || true
+    if ! [ -z "${images}" ]; then
+      echo '==> Images'
+      docker images | head -n 1 | ensure_indent
+      echo "${images}" | ensure_indent
+      echo -e "==> Total tags: $(docker images | grep "^${DEVSTEP_WORKSPACE_REPO}" | wc -l)\n"
+    else
+      echo -e "==> No images found for this workspace!\n"
+    fi
+  fi
+
+  if [ "${COMMAND}" = 'info' ] || [ "${COMMAND}" = 'ps' ]; then
+    containers=$(docker ps -a | grep " ${DEVSTEP_SOURCE_IMAGE}\|${DEVSTEP_WORKSPACE_REPO}\|devhack-${DEVSTEP_WORKSPACE_NAME}" || echo -n)
+    if ! [ -z "${containers}" ]; then
+      echo -e '==> Containers'
+      docker ps -a | head -n 1 | ensure_indent
+      echo "${containers}" | ensure_indent
+      echo -e "==> Total containers: $(echo $containers | wc -l)\n"
+    else
+      echo -e "==> No containers found for this workspace!\n"
+    fi
+  fi
+
+  if [ "${COMMAND}" = 'info' ] ; then
+    echo -e '==> Devstep configs'
+    for var in $(compgen -v | grep '^DEVSTEP_'); do
+      echo "-> $var='${!var}'" | ensure_indent
+    done
+  fi
+
+  # And we're done!
+  exit 0
+fi
 
 ################################################################################
 ## Build / hack on image
+
+# Append user provided docker run options at the end so that it has a higher precedence
+DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} ${USER_RUN_OPTS}"
 
 function docker_run() {
   echo '==> Creating container' 1>&2
