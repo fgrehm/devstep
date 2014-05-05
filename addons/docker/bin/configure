@@ -4,7 +4,7 @@ set -e            # fail fast
 set -o pipefail   # dont ignore exit codes when piping output
 # set -x          # enable debugging
 
-CACHE_DIR=$2
+CACHE_DIR=${2:-'/.devstep/cache'}
 DOCKER_CMD=/.devstep/bin/docker
 URL=https://get.docker.io/builds/Linux/x86_64/docker-latest
 
