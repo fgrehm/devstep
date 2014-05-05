@@ -247,9 +247,9 @@ DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} ${USER_RUN_OPTS}"
 ## Build / hack on image
 
 function docker_run() {
-  echo '==> Creating container with' 1>&2
-  echo "    \`- docker run ${DEVSTEP_RUN_OPTS} ${DEVSTEP_SOURCE_IMAGE} -- ${RUN_CMD}" 1>&2
-  echo 1>&2
+  echo '==> Creating container' 1>&2
+  #echo "    \`- docker run ${DEVSTEP_RUN_OPTS} ${DEVSTEP_SOURCE_IMAGE} -- ${RUN_CMD}" 1>&2
+  #echo 1>&2
   docker run ${DEVSTEP_RUN_OPTS} ${DEVSTEP_SOURCE_IMAGE} -- ${RUN_CMD}
   return $?
 }
@@ -284,7 +284,7 @@ elif [ $COMMAND = 'build' ]; then
 
   # Changes container's CMD to run a simple bash session and the WORKDIR back to
   # / since the project sources won't be mounted by default
-  echo -e "\n==> Running 'docker run -d -w / ${DEVSTEP_WORKSPACE_REPO}:tmp bash' to change image's CMD and WORKDIR"
+  echo -e "\n==> Fixing temporary image CMD and WORKDIR"
   CID=$(docker run -d -w / ${DEVSTEP_WORKSPACE_REPO}:tmp bash)
   docker stop -t=1 $CID
 fi
