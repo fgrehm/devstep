@@ -61,6 +61,7 @@ Commands:
   pristine  - Rebuild current project associated Docker image from scratch
   bootstrap - Interactively build a base Docker image for the project based on latest successfull build
   hack      - Start a hacking session for the current project using latest version of image and discard the container on exit
+  run       - Run a one off command against the source image
   info      - Show some information about the current project
 
 Available options:
@@ -234,6 +235,7 @@ elif [ "${COMMAND}" = 'run' ]; then
     echo 'You need to provide a command for "devstep run"'
     usage && exit 1
   fi
+  DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -ti --rm ${DEVSTEP_HACK_RUN_OPTS}"
 
 else
   echo "Error: Command not found: ${COMMAND}"
