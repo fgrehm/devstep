@@ -26,8 +26,7 @@ RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get install -y runit python && \
     apt-get clean && \
     mkdir -p /etc/service && \
-    mkdir -p /etc/my_init.d && \
-    mkdir -p /etc/container_environment
+    mkdir -p /etc/my_init.d
 
 #####################################################################
 # Dependencies for rubies (and possibly other programming language
@@ -90,7 +89,6 @@ RUN chown -R developer:developer /.devstep && \
     chown -R developer:developer /workspace && \
     chown -R developer:developer /etc/service && \
     chown -R developer:developer /etc/my_init.d && \
-    chown -R developer:developer /etc/container_environment && \
     chmod u+s /usr/bin/sudo && \
     ln -s /.devstep/bin/fix-permissions /etc/my_init.d/001-fix-permissions.sh && \
     ln -s /.devstep/bin/create-cache-symlinks /etc/my_init.d/002-create-cache-symlinks.sh && \
