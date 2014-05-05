@@ -24,7 +24,7 @@ DEVSTEP_WORKSPACE_NAME=$(basename ${DEVSTEP_WORKSPACE_PATH})
 DEVSTEP_WORKSPACE_REPO="devstep/${DEVSTEP_WORKSPACE_NAME}"
 
 ## Starting point for project images
-DEVSTEP_SOURCE_IMAGE='fgrehm/devstep-standalone:0.0.1'
+DEVSTEP_SOURCE_IMAGE='fgrehm/devstep-standalone:v0.0.1'
 
 ## Global options for `docker run`
 DEVSTEP_RUN_OPTS=

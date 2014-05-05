@@ -1,4 +1,4 @@
-FROM fgrehm/devstep:0.0.1
+FROM fgrehm/devstep:v0.0.1
 
 # Use init from phusion/baseimage-docker
 ENTRYPOINT ["/.devstep/bin/my-init"]
