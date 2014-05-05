@@ -168,11 +168,21 @@ def wait_for_runit_or_interrupt(pid):
 	except KeyboardInterrupt:
 		return (False, None)
 
+def get_runit_services(dir = "/etc/service"):
+	return [name for name in os.listdir(dir)
+		if os.path.isdir(os.path.join(dir, name))]
+
 def shutdown_runit_services():
+	if not get_runit_services():
+		return
+
 	debug("Begin shutting down runit services...")
 	os.system("/usr/bin/sv down /etc/service/*")
 
 def wait_for_runit_services():
+	if not get_runit_services():
+		return
+
 	debug("Waiting for runit services to exit...")
 	done = False
 	while not done:
