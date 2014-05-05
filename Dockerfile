@@ -85,7 +85,7 @@ ADD buildpacks /.devstep/buildpacks
 ADD addons /.devstep/addons
 
 #####################################################################
-# Fix permissions
+# Fix permissions, set up init and generate locales
 RUN chown -R developer:developer /.devstep && \
     chown -R developer:developer /workspace && \
     chown -R developer:developer /etc/service && \
@@ -96,10 +96,14 @@ RUN chown -R developer:developer /.devstep && \
     ln -s /.devstep/bin/create-cache-symlinks /etc/my_init.d/002-create-cache-symlinks.sh && \
     ln -s /.devstep/bin/forward-linked-ports /etc/my_init.d/003-forward-linked-ports.sh && \
     chmod +x /.devstep/bin/* && \
-    chmod +x /etc/my_init.d/*
+    chmod +x /etc/my_init.d/* && \
+    locale-gen en_US.UTF-8
 
 USER developer
 ENV HOME /.devstep
+ENV LANG en_US.UTF-8
+ENV LC_ALL en_US.UTF-8
+ENV LC_CTYPE en_US.UTF-8
 
 # Start a bash session by default
 CMD ["/bin/bash"]
