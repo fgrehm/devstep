@@ -31,6 +31,6 @@ gid=${info[1]}
 uid=${info[2]}
 
 if [ $user != 'developer' ]; then
-  echo "-----> Change cache dir owner to 'developer'"
+  echo "-----> Changing cache dir owner to 'developer'"
   sudo chown developer: /.devstep/cache
 fi
