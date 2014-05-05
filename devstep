@@ -291,8 +291,8 @@ fi
 
 TIMESTAMP=$(date -u +"%Y%m%d%H%M%S")
 echo -e "\n==> Commiting '${TARGET_IMAGE}' and '${DEVSTEP_WORKSPACE_REPO}:${TIMESTAMP}'"
-docker commit $CID "${DEVSTEP_WORKSPACE_REPO}:latest"
-docker tag "${DEVSTEP_WORKSPACE_REPO}:latest" "${DEVSTEP_WORKSPACE_REPO}:${TIMESTAMP}"
+docker commit $CID "${DEVSTEP_WORKSPACE_REPO}:${TIMESTAMP}"
+docker tag "${DEVSTEP_WORKSPACE_REPO}:${TIMESTAMP}" "${DEVSTEP_WORKSPACE_REPO}:latest"
 
 echo -e "\n==> Removing temporary artifacts used for build"
 docker rm -v $CID
