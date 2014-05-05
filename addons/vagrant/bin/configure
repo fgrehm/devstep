@@ -4,7 +4,7 @@ set -e            # fail fast
 set -o pipefail   # dont ignore exit codes when piping output
 # set -x          # enable debugging
 
-CACHE_DIR=$2
+CACHE_DIR=${2:-'/.devstep/cache'}
 VAGRANT_VERSION=1.5.4
 FILENAME=vagrant_${VAGRANT_VERSION}_x86_64.deb
 URL=https://dl.bintray.com/mitchellh/vagrant/${FILENAME}
