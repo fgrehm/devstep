@@ -34,7 +34,7 @@ RUN DEBIAN_FRONTEND=noninteractive && \
 
 RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y gawk libreadline6-dev libyaml-dev libgdbm-dev libncurses5-dev libffi-dev && \
+    apt-get install -y gawk libreadline6-dev libyaml-dev libgdbm-dev libncurses5-dev libffi-dev libicu-dev && \
     apt-get clean
 
 #####################################################################
