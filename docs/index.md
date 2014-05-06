@@ -36,15 +36,15 @@ and should be capable of building and running a wide range of applications / too
 
 Devstep is also capable of reducing the disk space and initial configuration times by
 (optionally) caching packages on host using a strategy similar to [vagrant-cachier's cache buckets](http://fgrehm.viewdocs.io/vagrant-cachier/how-does-it-work),
-allowing you to even build some images while offline.
+allowing you to even build images while offline.
 
 ## Ok, so how does it work?
 
-Devstep is basically a Docker image builder that takes your app's source as an
-input and produces a Docker image with all dependencies required for hacking on
-it. You can use Devstep in two different ways (from `Dockerfile`s or from the
-provided Bash CLI) and you are free to manually run the images or use other tools
-to manage your containers at runtime.
+Devstep is a Docker image builder that takes your app's source as an input and
+produces a Docker image with all dependencies required for hacking on it. You
+can use Devstep in two different ways (from `Dockerfile`s or from the provided
+Bash CLI) and you are free to manually run the images or use other tools to manage
+your containers at runtime.
 
 For quick hacks, there is a `devstep hack` command that will create a new
 container, install everything that is needed for your project and will fire up
@@ -63,10 +63,10 @@ and [some buildpacks](https://github.com/fgrehm/devstep/tree/master/buildpacks).
 ## Why standard Heroku buildpacks are not used?
 
 Because development environments have a few different needs than production
-environments and not all projects are web apps. As an example, for PHP apps,
-you might want to enable [opcache](http://www.php.net/manual/en/intro.opcache.php)
-on production to improve your app's performance but have it disabled during
-development.
+environments and not all projects are web apps. For example, PHP apps are likely
+to have [opcache](http://www.php.net/manual/en/intro.opcache.php) enabled
+on production to improve app's performance but have it disabled during development
+and Ruby on Rails apps might require assets to be precompiled.
 
 
 ## Project status
