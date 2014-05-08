@@ -48,6 +48,32 @@
       th {
         padding: 10px;
       }
+
+      /* https://gist.github.com/jgarber/2302238 */
+      .flex-video {
+        position: relative;
+        padding-top: 25px;
+        padding-bottom: 67.5%;
+        height: 0;
+        margin-bottom: 16px;
+        overflow: hidden;
+      }
+
+      .flex-video.widescreen { padding-bottom: 57.25%; }
+      .flex-video.vimeo { padding-top: 0; }
+
+      .flex-video iframe,
+      .flex-video object,
+      .flex-video embed {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+      @media only screen and (max-device-width: 800px), only screen and (device-width: 1024px) and (device-height: 600px), only screen and (width: 1280px) and (orientation: landscape), only screen and (device-width: 800px), only screen and (max-width: 767px) {
+        .flex-video { padding-top: 0; }
+      }
     </style>
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -69,6 +95,14 @@
             </button>
           </div>
           <div class="navbar-collapse collapse" id="navbar-main">
+            <ul class="nav navbar-nav">
+              <li>
+                <a href="introduction">Introduction</a>
+              </li>
+              <li>
+                <a href="getting-started">Getting started</a>
+              </li>
+            </ul>
             <ul class="nav navbar-nav navbar-right visible-md visible-lg">
               <li><iframe src="http://ghbtns.com/github-btn.html?user={{USER}}&repo={{NAME}}&type=watch&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe></li>
               <li><iframe src="http://ghbtns.com/github-btn.html?user={{USER}}&repo={{NAME}}&type=fork&count=true" allowtransparency="true" frameborder="0" scrolling="0" width="95" height="20"></iframe></li>
@@ -95,15 +129,26 @@
 
     <script src="//oss.maxcdn.com/libs/jquery/2.0.3/jquery.min.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
-    <!--
+    <script>
+      (function($) {
+        $('a[href*="vimeo"]').each(function() {
+          var $this  = $(this);
+          var url    = $this.prop('href').split('/');
+          var id     = url[url.length - 1];
+
+          var iframe = '<iframe src="//player.vimeo.com/video/' + id + '" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>';
+          iframe = '<div class="row"><div class="col-md-6 col-md-offset-3"><div class="flex-video widescreen">' + iframe + '</div></div></div>';
+          $this.parent().replaceWith(iframe);
+        });
+      })(jQuery);
+    </script>
     <script>
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
       (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
       m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
       })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-      ga('create', 'UA-38687494-5', 'viewdocs.io');
+      ga('create', 'UA-38687494-8', 'auto');
       ga('send', 'pageview');
     </script>
-    -->
   </body>
 </html>
