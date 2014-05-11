@@ -274,7 +274,7 @@ function docker_run() {
   echo '==> Creating container' 1>&2
   #echo "    \`- docker run ${DEVSTEP_RUN_OPTS} ${DEVSTEP_SOURCE_IMAGE} -- ${RUN_CMD}" 1>&2
   #echo 1>&2
-  docker run ${DEVSTEP_RUN_OPTS} ${DEVSTEP_SOURCE_IMAGE} -- ${RUN_CMD}
+  eval "docker run ${DEVSTEP_RUN_OPTS} ${DEVSTEP_SOURCE_IMAGE} -- ${RUN_CMD}"
   return $?
 }
 
