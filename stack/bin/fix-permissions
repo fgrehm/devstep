@@ -17,11 +17,9 @@ elif [ "${uid}" = '0' ]; then
   fi
 
 else
-  # Fixes the user uid / gid to be the same as the bind mount
-  echo "-----> Changing 'developer' user uid to '${uid}' and gid to '${gid}'"
-  sudo sed -i.bkp "s/^developer:x:1000:1000:\\(.\\+\\)$/developer:x:${uid}:${gid}:\\1/" /etc/passwd
-  sudo sed -i.bkp "s/^developer:x:1000:$/developer:x:${gid}:/" /etc/group
-  echo "-----> Please restart the container!"
+  # If the directory has some other uid, there's nothing we can do right now
+  echo "-----> The workspace directory is owned by a different user!"
+  exit 1
 fi
 
 
