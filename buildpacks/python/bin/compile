@@ -18,7 +18,7 @@ ENV_DIR=$3
 
 basedir="${CACHE_DIR}/heroku-buildpack-python"
 if ! [ -d $basedir ]; then
-  git clone https://github.com/heroku/heroku-buildpack-python.git $basedir
+  git clone --depth 0 https://github.com/heroku/heroku-buildpack-python.git $basedir
 else
   echo 'Using cached version of https://github.com/heroku/heroku-buildpack-python.git'
 fi

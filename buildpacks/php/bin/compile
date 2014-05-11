@@ -9,7 +9,7 @@ CACHE_DIR="$2"
 
 basedir="${CACHE_DIR}/chh-heroku-buildpack-php"
 if ! [ -d $basedir ]; then
-  git clone https://github.com/CHH/heroku-buildpack-php.git $basedir
+  git clone --depth 0 https://github.com/CHH/heroku-buildpack-php.git $basedir
 else
   echo 'Using cached version of https://github.com/CHH/heroku-buildpack-php'
 fi
