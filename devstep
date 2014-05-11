@@ -71,6 +71,7 @@ Available options:
 [ -r | --run-opts ]: Arguments to provide to the 'docker run' command during the build
 [ -c | --command ]:  Command to use for 'devstep run'
 [ -f | --force ]:    Force 'yes' answer to commands that requires confirmation
+[ -w | --workspace]: Set the workspace name used when commiting docker images
 EOF
     return 0
 }
@@ -92,6 +93,7 @@ while :; do
         -r|--run-opts)      USER_RUN_OPTS="${USER_RUN_OPTS} ${2}"; shift 2;;
         -c|--command)       USER_RUN_CMD="${2}"; shift 2;;
         -f|--force)         USER_FORCE_YES="1"; shift 1;;
+        -w|--workspace)     DEVSTEP_WORKSPACE_NAME="${2}"; shift 2;;
         *)                  break;;
     esac
 done
