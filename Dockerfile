@@ -19,55 +19,37 @@ RUN mkdir -p /.devstep/cache && \
     chmod 0440 /etc/sudoers.d/developer
 
 #####################################################################
-# Dependencies for init script based on phusion/baseimage-docker
+# Dependencies for our init script based on phusion/baseimage-docker
 
 RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y runit python && \
+    apt-get install -y python runit && \
     apt-get clean && \
-    mkdir -p /etc/service && \
-    mkdir -p /etc/my_init.d
+    mkdir -p /etc/my_init.d && \
+    mkdir -p /etc/service
 
 #####################################################################
-# Dependencies for rubies (and possibly other programming language
-# envs as well)
+# * Dependencies for rubies (and possibly other programming language
+#   envs as well)
+# * Install and configure PostgreSQL and MySQL clients
+# * Install vim because editing files with plain old vi sucks
+# * Install tmux so that we can run lots of shells within the same
+#   bash session (without the need of running through SSH)
+# * Install `htop` because it has a nicer UI than plain old `top`
+# * Download and install jq as it is being used by a few buildpacks
+#   See http://stedolan.github.io/jq for more info
 
 RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
     apt-get install -y gawk libreadline6-dev libyaml-dev libgdbm-dev libncurses5-dev libffi-dev libicu-dev && \
-    apt-get clean
-
-#####################################################################
-# Install and configure PostgreSQL and MySQL clients
-RUN DEBIAN_FRONTEND=noninteractive && \
-    apt-get update && \
     apt-get install -y postgresql-client mysql-client && \
-    apt-get clean
-
-RUN echo "[client]\nprotocol=tcp\nuser=root" >> /.devstep/.my.cnf && \
+    echo "[client]\nprotocol=tcp\nuser=root" >> /.devstep/.my.cnf && \
     echo "export PGHOST=localhost" >> /.devstep/.profile.d/postgresql.sh && \
-    echo "export PGUSER=postgres" >> /.devstep/.profile.d/postgresql.sh
-
-#####################################################################
-# Download and install jq as it is being used by a few buildpacks
-# See http://stedolan.github.io/jq for more info
-RUN mkdir -p /.devstep/bin && \
-    curl -L -s http://stedolan.github.io/jq/download/linux64/jq > /.devstep/bin/jq
-
-#####################################################################
-# Download and install forego so that apps that have Procfiles can be
-# easily started
-RUN mkdir -p /.devstep/bin && \
-    curl -L -s https://godist.herokuapp.com/projects/ddollar/forego/releases/current/linux-amd64/forego > /.devstep/bin/forego
-
-#####################################################################
-# Because editing files with `vi` sucks, tmux allow us to run lots
-# of shells within the same bash session (without the need of running
-# through SSH) and `htop` has a nicer UI than plain old `top`
-RUN DEBIAN_FRONTEND=noninteractive && \
-    apt-get update && \
+    echo "export PGUSER=postgres" >> /.devstep/.profile.d/postgresql.sh && \
     apt-get install -y --force-yes vim tmux htop bsdtar && \
-    apt-get clean
+    apt-get clean && \
+    mkdir -p /.devstep/bin && \
+    curl -L -s http://stedolan.github.io/jq/download/linux64/jq > /.devstep/bin/jq
 
 #####################################################################
 # Bring back apt .deb caching as they'll be either removed on the
@@ -80,22 +62,26 @@ RUN rm /etc/apt/apt.conf.d/no-cache
 ADD stack/bin /.devstep/bin
 ADD stack/bashrc /.devstep/.bashrc
 ADD stack/load-env.sh /.devstep/load-env.sh
-ADD buildpacks /.devstep/buildpacks
 ADD addons /.devstep/addons
+ADD buildpacks /.devstep/buildpacks
 
 #####################################################################
 # Fix permissions, set up init and generate locales
 RUN chown -R developer:developer /.devstep && \
     chown -R developer:developer /workspace && \
-    chown -R developer:developer /etc/service && \
     chown -R developer:developer /etc/my_init.d && \
+    chown -R developer:developer /etc/service && \
     chmod u+s /usr/bin/sudo && \
-    ln -s /.devstep/bin/fix-permissions /etc/my_init.d/001-fix-permissions.sh && \
-    ln -s /.devstep/bin/create-cache-symlinks /etc/my_init.d/002-create-cache-symlinks.sh && \
-    ln -s /.devstep/bin/forward-linked-ports /etc/my_init.d/003-forward-linked-ports.sh && \
+    ln -s /.devstep/bin/fix-fd /etc/my_init.d/02-fix-fd.sh && \
+    ln -s /.devstep/bin/fix-permissions /etc/my_init.d/05-fix-permissions.sh && \
+    ln -s /.devstep/bin/create-cache-symlinks /etc/my_init.d/10-create-cache-symlinks.sh && \
+    ln -s /.devstep/bin/forward-linked-ports /etc/my_init.d/10-forward-linked-ports.sh && \
     chmod +x /.devstep/bin/* && \
     chmod +x /etc/my_init.d/* && \
     locale-gen en_US.UTF-8
+
+#####################################################################
+# Setup locales and default user
 
 USER developer
 ENV HOME /.devstep
@@ -103,5 +89,9 @@ ENV LANG en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 ENV LC_CTYPE en_US.UTF-8
 
+#####################################################################
+# Use our init
+ENTRYPOINT ["/.devstep/bin/entrypoint"]
+
 # Start a bash session by default
-CMD ["/bin/bash"]
+CMD ["/bin/bash", "--login"]

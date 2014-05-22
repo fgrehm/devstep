@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
+/.devstep/bin/fix-fd
+
 addons_root="/.devstep/addons"
 
 available_addons() {
@@ -97,3 +99,14 @@ for addon in ${SELECTED_ADDONS[@]}; do
   echo_title "Configuring ${addon}..."
   ${addons_root}/${addon}/bin/configure | ensure_indent
 done
+
+## Save on disk space if wanted
+if [ "${CLEANUP}" = '1' ]; then
+  echo '-----> Cleaning up...'
+
+  echo "       Running 'rm -rf $cache_root/*'"
+  rm -rf $cache_root/*
+
+  echo "       Running 'sudo rm -rf tmp/*'"
+  sudo rm -rf /tmp/*
+fi

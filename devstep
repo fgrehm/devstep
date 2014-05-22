@@ -2,6 +2,13 @@
 
 set -eu
 
+VERSION='v0.0.1'
+
+if [ "${1:-}" = '--version' ] || [ "${1:-}" = '-v' ]; then
+  echo "${VERSION}"
+  exit 0
+fi
+
 DEVSTEP_DEBUG=${DEVSTEP_DEBUG:-}
 if [ "$DEVSTEP_DEBUG" = '1' ]; then
   export PS4='+ [${BASH_SOURCE##*/}:${LINENO}] '
@@ -24,7 +31,7 @@ DEVSTEP_WORKSPACE_NAME=$(basename ${DEVSTEP_WORKSPACE_PATH})
 DEVSTEP_WORKSPACE_REPO="devstep/${DEVSTEP_WORKSPACE_NAME}"
 
 ## Starting point for project images
-DEVSTEP_SOURCE_IMAGE='fgrehm/devstep-standalone:v0.0.1'
+DEVSTEP_SOURCE_IMAGE="fgrehm/devstep:${VERSION}"
 
 ## Global options for `docker run`
 DEVSTEP_RUN_OPTS=
@@ -182,7 +189,7 @@ fi
 if [ "${COMMAND}" = 'build' ]; then
   DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -d ${DEVSTEP_BUILD_RUN_OPTS}"
   TARGET_IMAGE="${DEVSTEP_WORKSPACE_REPO}:latest"
-  RUN_CMD="/.devstep/bin/devstep-build /workspace"
+  RUN_CMD="/.devstep/bin/build-project /workspace"
   if [ "${DEVSTEP_CONFIGURE_ADDONS}" = '1' ]; then
     RUN_CMD="${RUN_CMD} --configure-addons"
   fi

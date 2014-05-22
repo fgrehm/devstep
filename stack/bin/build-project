@@ -2,6 +2,8 @@
 # usage: build-project <build-dir> <cache-dir> -b <buildpack> -b <buildpack>
 set -eo pipefail
 
+/.devstep/bin/fix-fd
+
 usage() {
   cat <<EOF
 Usage:
@@ -115,4 +117,15 @@ done
 echo_title "Build finished successfully!"
 
 ## Reload env vars
-source $HOME/.bashrc
+source $HOME/load-env.sh
+
+## Save on disk space if wanted
+if [ "${CLEANUP}" = '1' ]; then
+  echo '-----> Cleaning up...'
+
+  echo "       Running 'rm -rf $cache_root/*'"
+  rm -rf $cache_root/*
+
+  echo "       Running 'sudo rm -rf tmp/*'"
+  sudo rm -rf /tmp/*
+fi

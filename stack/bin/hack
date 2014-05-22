@@ -1,5 +1,6 @@
 #!/bin/bash
 set -eo pipefail
 
-/.devstep/bin/devstep-build $PWD "${1}"
-exec /bin/bash --rcfile $HOME/.bashrc
+/.devstep/bin/fix-fd
+/.devstep/bin/build-project $PWD "${1}"
+exec /bin/bash --login

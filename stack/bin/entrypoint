@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# This is the entrypoint for Devstep images that loads the environment
+# before running the commands
+
+source /.devstep/load-env.sh
+eval "/.devstep/bin/init $@"

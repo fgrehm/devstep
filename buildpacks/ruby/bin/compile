@@ -6,13 +6,15 @@ GEMFILE_PATH=$1/Gemfile
 
 # From https://github.com/aripollak/rbenv-bundler-ruby-version/blob/32bd1a63ed57c6fcfbd4f3766fed64fad21b61b0/bin/rbenv-bundler-ruby-version#L24-L33
 version_from_gemfile() {
-  # handles simple ruby statements, as well as engine and engine_version,
-  # with single or double quotes and in either order
-  grep '^\s*ruby' "$GEMFILE_PATH" | sed -e 's/\s*#.*//' -e 's/engine:/:engine =>/' \
-        -e 's/engine_version:/:engine_version =>/' \
-        -e "s/.*:engine\s*=>\s*['\"]\([^'\"]*\).*:engine_version\s*=>\s*['\"]\([^'\"]*\).*/\1-\2/" \
-        -e "s/.*:engine_version\s*=>\s*['\"]\([^'\"]*\).*:engine\s*=>\s*['\"]\([^'\"]*\).*/\2-\1/" \
-        -e "s/^\s*ruby\s*['\"]\([^'\"]*\).*/\1/" | head -1
+	if [ -f ${GEMFILE_PATH} ]; then
+    # handles simple ruby statements, as well as engine and engine_version,
+    # with single or double quotes and in either order
+    grep '^\s*ruby' "$GEMFILE_PATH" | sed -e 's/\s*#.*//' -e 's/engine:/:engine =>/' \
+          -e 's/engine_version:/:engine_version =>/' \
+          -e "s/.*:engine\s*=>\s*['\"]\([^'\"]*\).*:engine_version\s*=>\s*['\"]\([^'\"]*\).*/\1-\2/" \
+          -e "s/.*:engine_version\s*=>\s*['\"]\([^'\"]*\).*:engine\s*=>\s*['\"]\([^'\"]*\).*/\2-\1/" \
+          -e "s/^\s*ruby\s*['\"]\([^'\"]*\).*/\1/" | head -1
+  fi
 }
 
 install_ruby() {
@@ -25,7 +27,6 @@ install_ruby() {
 
   _rvm=/.devstep/.rvm/bin/rvm
 
-  # TODO: Figure out if this is really needed
   echo 'export rvm_ignore_gemset_flag=1' >> $HOME/.rvmrc &>>/tmp/build.log &>> /tmp/build.log
   export rvm_ignore_gemset_flag=1
   $_rvm rvmrc warning ignore allGemfiles &>> /tmp/build.log
@@ -33,7 +34,6 @@ install_ruby() {
   RVM_RUBY_VERSION="ruby-${RVM_RUBY_VERSION}"
   echo "Installing ${RVM_RUBY_VERSION}..."
   $_rvm install ${RVM_RUBY_VERSION} --binary --ignore-gemsets --default &>>/tmp/build.log
-  # TODO: rm /tmp/rvm.log
 
   mkdir -p /.devstep/.profile.d
   $_rvm env --ignore-gemsets > /.devstep/.profile.d/rvm.sh 2>/dev/null
@@ -95,7 +95,7 @@ GEMRC
 fi
 
 source /.devstep/.profile.d/rvm.sh
-if $(bundle -v | grep -q '1.5.0'); then
+if $(which bundle &>/dev/null) && $(bundle -v | grep -q '1.5.0'); then
   echo "Bundler 1.5.0 was detected and it is known to have issues with some projects, upgrading to 1.5.2"
   gem uninstall bundler --force -aIx &>>/tmp/build.log || {
     echo 'Error uninstalling bundler!'
@@ -107,6 +107,14 @@ if $(bundle -v | grep -q '1.5.0'); then
     tail /tmp/build.log
     exit 1
   }
+elif ! $(which bundle &> /dev/null); then
+  echo "Installing latest bundler"
+  gem install bundler &>>/tmp/build.log
+fi
+
+# If there's no Gemfile in place, our work here is done
+if ! [ -f $GEMFILE_PATH ]; then
+  exit 0
 fi
 
 echo "Installing gems using bundler '$(bundle -v | cut -d' ' -f 3)'..."
