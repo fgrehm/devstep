@@ -8,7 +8,11 @@ MAINTAINER Fabio Rehm "fgrehm@gmail.com"
 # The provided /usr/bin/fix-permissions script can be used at startup
 # to ensure the 'developer' user id / group id are the same as the
 # directory bind mounted into the container.
-RUN mkdir -p /.devstep/cache && \
+RUN DEBIAN_FRONTEND=noninteractive && \
+    apt-get update && \
+    apt-get install -y sudo && \
+    apt-get clean && \
+    mkdir -p /.devstep/cache && \
     mkdir -p /.devstep/.profile.d && \
     mkdir -p /.devstep/bin && \
     mkdir -p /.devstep/log && \
