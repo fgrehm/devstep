@@ -27,7 +27,7 @@ install_ruby() {
 
   _rvm=/.devstep/.rvm/bin/rvm
 
-  echo 'export rvm_ignore_gemset_flag=1' >> $HOME/.rvmrc &>>/tmp/build.log &>> /tmp/build.log
+  echo 'export rvm_ignore_gemset_flag=1' >> $HOME/.rvmrc &>>/tmp/build.log
   export rvm_ignore_gemset_flag=1
   $_rvm rvmrc warning ignore allGemfiles &>> /tmp/build.log
 
