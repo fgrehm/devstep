@@ -9,6 +9,11 @@ if [ "${1:-}" = '--version' ] || [ "${1:-}" = '-v' ]; then
   exit 0
 fi
 
+if [ "${1:-}" = '--debug' ] || [ "${1:-}" = '-d' ]; then
+  DEVSTEP_DEBUG='1'
+  shift 1
+fi
+
 DEVSTEP_DEBUG=${DEVSTEP_DEBUG:-}
 if [ "$DEVSTEP_DEBUG" = '1' ]; then
   export PS4='+ [${BASH_SOURCE##*/}:${LINENO}] '
