@@ -1,0 +1,15 @@
+SCRIPT_PATH="${BASH_SOURCE[0]}";
+if ([ -h "${SCRIPT_PATH}" ]) then
+  while([ -h "${SCRIPT_PATH}" ]) do SCRIPT_PATH=`readlink "${SCRIPT_PATH}"`; done
+fi
+pushd . > /dev/null
+cd `dirname ${SCRIPT_PATH}` > /dev/null
+SCRIPT_PATH=`pwd`;
+popd  > /dev/null
+
+DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} --link squid3:squid3.dev"
+DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -e http_proxy='http://squid3.dev:3128'"
+DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -e https_proxy='http://squid3.dev:3128'"
+DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -v /tmp/squid3/certs:/tmp/proxy-certs"
+DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -e HTTPS_PROXY_CERT='/tmp/proxy-certs/squid3.dev.crt'"
+DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -v ${SCRIPT_PATH}/proxy.sh:/etc/my_init.d/proxy.sh"
