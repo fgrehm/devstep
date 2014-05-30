@@ -182,7 +182,7 @@ if [ -z "${DEVSTEP_WORKSPACE_PATH}" ]; then
   exit 1
 fi
 
-DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -v ${DEVSTEP_WORKSPACE_PATH}:/workspace -w /workspace"
+CURRENT_DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -v ${DEVSTEP_WORKSPACE_PATH}:/workspace -w /workspace"
 
 # if Docker repo exists, we use the latest version as the source image
 if $(docker images | grep -q "^${DEVSTEP_WORKSPACE_REPO}"); then
@@ -192,7 +192,7 @@ else # otherwise we start from scratch
 fi
 
 if [ "${COMMAND}" = 'build' ]; then
-  DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -d ${DEVSTEP_BUILD_RUN_OPTS}"
+  CURRENT_DEVSTEP_RUN_OPTS="${CURRENT_DEVSTEP_RUN_OPTS} -d ${DEVSTEP_BUILD_RUN_OPTS}"
   TARGET_IMAGE="${DEVSTEP_WORKSPACE_REPO}:latest"
   RUN_CMD="/.devstep/bin/build-project /workspace"
   if [ "${DEVSTEP_CONFIGURE_ADDONS}" = '1' ]; then
@@ -201,13 +201,13 @@ if [ "${COMMAND}" = 'build' ]; then
 
 elif [ "${COMMAND}" = 'bootstrap' ]; then
   CID='devstep-bootstrap'
-  DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -d -ti ${DEVSTEP_BOOTSTRAP_RUN_OPTS} --name ${CID}"
+  CURRENT_DEVSTEP_RUN_OPTS="${CURRENT_DEVSTEP_RUN_OPTS} -d -ti ${DEVSTEP_BOOTSTRAP_RUN_OPTS} --name ${CID}"
   TARGET_IMAGE="${DEVSTEP_WORKSPACE_REPO}:latest"
   RUN_CMD="bash"
 
 elif [ "${COMMAND}" = 'hack' ]; then
   CID="devhack-${DEVSTEP_WORKSPACE_NAME}-$(date +%Y%m%d%H%M%N)"
-  DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -ti --rm ${DEVSTEP_HACK_RUN_OPTS} --name ${CID}"
+  CURRENT_DEVSTEP_RUN_OPTS="${CURRENT_DEVSTEP_RUN_OPTS} -ti --rm ${DEVSTEP_HACK_RUN_OPTS} --name ${CID}"
   RUN_CMD="/.devstep/bin/hack"
   if [ "${DEVSTEP_CONFIGURE_ADDONS}" = '1' ]; then
     RUN_CMD="${RUN_CMD} --configure-addons"
@@ -223,7 +223,7 @@ elif [ "${COMMAND}" = 'run' ]; then
     echo 'You need to provide a command for "devstep run"'
     usage && exit 1
   fi
-  DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -ti --rm ${DEVSTEP_HACK_RUN_OPTS}"
+  CURRENT_DEVSTEP_RUN_OPTS="${CURRENT_DEVSTEP_RUN_OPTS} -ti --rm ${DEVSTEP_HACK_RUN_OPTS}"
 
 else
   echo "Error: Command not found: ${COMMAND}"
@@ -280,13 +280,13 @@ fi
 ## Build / hack on image
 
 # Append user provided docker run options at the end so that it has a higher precedence
-DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} ${USER_RUN_OPTS}"
+CURRENT_DEVSTEP_RUN_OPTS="${CURRENT_DEVSTEP_RUN_OPTS} ${USER_RUN_OPTS}"
 
 function docker_run() {
   echo '==> Creating container' 1>&2
-  #echo "    \`- docker run ${DEVSTEP_RUN_OPTS} ${DEVSTEP_SOURCE_IMAGE} -- ${RUN_CMD}" 1>&2
+  #echo "    \`- docker run ${CURRENT_DEVSTEP_RUN_OPTS} ${DEVSTEP_SOURCE_IMAGE} -- ${RUN_CMD}" 1>&2
   #echo 1>&2
-  eval "docker run ${DEVSTEP_RUN_OPTS} ${DEVSTEP_SOURCE_IMAGE} -- ${RUN_CMD}"
+  eval "docker run ${CURRENT_DEVSTEP_RUN_OPTS} ${DEVSTEP_SOURCE_IMAGE} -- ${RUN_CMD}"
   return $?
 }
 
@@ -321,7 +321,7 @@ elif [ $COMMAND = 'build' ]; then
   # Changes container's CMD to run a simple bash session and the WORKDIR back to
   # / since the project sources won't be mounted by default
   echo -e "\n==> Fixing temporary image CMD and WORKDIR"
-  CID=$(docker run -d -w / ${DEVSTEP_WORKSPACE_REPO}:tmp bash)
+  CID=$(docker run ${DEVSTEP_RUN_OPTS} -d -w / ${DEVSTEP_WORKSPACE_REPO}:tmp bash)
   docker stop -t=1 $CID
 fi
 
