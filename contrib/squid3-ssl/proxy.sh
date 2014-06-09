@@ -13,3 +13,7 @@ if $(which npm &>/dev/null); then
 elif ! [ -f $HOME/.npmrc ] || ! $(grep -q 'strict-ssl' $HOME/.npmrc); then
   echo 'strict-ssl = false' >> $HOME/.npmrc
 fi
+
+if ! [ -f $HOME/.bowerrc ]; then
+  echo '{ "strict-ssl": false }' > $HOME/.bowerrc
+fi
