@@ -40,7 +40,7 @@ elif test -d $build/Godeps; then
 elif test -f $build/.godir; then
   name=$(cat $build/.godir)
 fi
-ver=${ver:-go${GOVERSION:-1.2.1}}
+ver=${ver:-go${GOVERSION:-1.3}}
 
 file=${GOFILE:-$ver.$(uname|tr A-Z a-z)-amd64.tar.gz}
 url=${GOURL:-http://go.googlecode.com/files/$file}
