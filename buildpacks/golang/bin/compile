@@ -43,7 +43,7 @@ fi
 ver=${ver:-go${GOVERSION:-1.3}}
 
 file=${GOFILE:-$ver.$(uname|tr A-Z a-z)-amd64.tar.gz}
-url=${GOURL:-http://go.googlecode.com/files/$file}
+url=${GOURL:-http://golang.org/dl/$file}
 
 mkdir -p $cache/$ver
 cd $cache/$ver
@@ -51,7 +51,7 @@ if test -f $cache/$ver/$file; then
   echo "-----> Using $ver"
 else
   echo "-----> Downloading ${ver}..."
-  curl -sO $url
+  curl -sLO $url
   echo "done"
 fi
 tar zxf $file -C /.devstep
