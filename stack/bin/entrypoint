@@ -5,7 +5,7 @@
 
 # This is needed since some custom logic can be injected into the container's
 # init process by "plugins" (like the squid3-ssl contrib)
-find /etc/my_init.d -size 0 -print0 | xargs -0 rm
+find /etc/my_init.d -size 0 -print0 | xargs -0 rm &>/dev/null
 
 source /.devstep/load-env.sh
 eval "/.devstep/bin/init $@"
