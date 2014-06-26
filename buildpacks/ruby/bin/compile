@@ -69,8 +69,8 @@ install_phantomjs() {
 # TODO: Look into travis.yml as well
 RVM_RUBY_VERSION=${RVM_RUBY_VERSION:-$(version_from_gemfile)}
 if [ -z "$RVM_RUBY_VERSION" ]; then
-  echo 'Unable to identify the project ruby version, setting to 2.1.1'
-  RVM_RUBY_VERSION='2.1.1'
+  RVM_RUBY_VERSION='2.1.2'
+  echo "Unable to identify the project ruby version, setting to ${RVM_RUBY_VERSION}"
 fi
 
 if [ -d /.devstep/.rvm/rubies/default ]; then
