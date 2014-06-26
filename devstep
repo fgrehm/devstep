@@ -322,6 +322,9 @@ elif [ $COMMAND = 'build' ]; then
   # / since the project sources won't be mounted by default
   echo -e "\n==> Fixing temporary image CMD and WORKDIR"
   CID=$(docker run ${DEVSTEP_RUN_OPTS} -d -w / ${DEVSTEP_WORKSPACE_REPO}:tmp bash)
+  # TODO: Replace line above with this one once a new Docker release is out with
+  #       https://github.com/dotcloud/docker/pull/6646
+  # CID=$(docker run ${DEVSTEP_RUN_OPTS} -d -w /.devstep ${DEVSTEP_WORKSPACE_REPO}:tmp bash)
   docker stop -t=1 $CID
 fi
 
