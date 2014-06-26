@@ -1,7 +1,11 @@
 #!/bin/bash
 
 # This is the entrypoint for Devstep images that loads the environment
-# before running the commands
+# before running the commands and does some small cleanup on the container
+
+# This is needed since some custom logic can be injected into the container's
+# init process by "plugins" (like the squid3-ssl contrib)
+find /etc/my_init.d -size 0 -print0 | xargs -0 rm
 
 source /.devstep/load-env.sh
 eval "/.devstep/bin/init $@"
