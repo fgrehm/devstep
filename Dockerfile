@@ -47,6 +47,7 @@ RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
     apt-get install -y gawk libreadline6-dev libyaml-dev libgdbm-dev libncurses5-dev libffi-dev libicu-dev && \
     apt-get install -y postgresql-client mysql-client && \
+    apt-get install -y software-properties-common && \
     echo "[client]\nprotocol=tcp\nuser=root" >> /.devstep/.my.cnf && \
     echo "export PGHOST=localhost" >> /.devstep/.profile.d/postgresql.sh && \
     echo "export PGUSER=postgres" >> /.devstep/.profile.d/postgresql.sh && \
