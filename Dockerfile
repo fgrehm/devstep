@@ -16,7 +16,6 @@ RUN DEBIAN_FRONTEND=noninteractive && \
     mkdir -p /.devstep/.profile.d && \
     mkdir -p /.devstep/bin && \
     mkdir -p /.devstep/log && \
-    mkdir -p /workspace && \
     echo "developer:x:1000:1000:Developer,,,:/.devstep:/bin/bash" >> /etc/passwd && \
     echo "developer:x:1000:" >> /etc/group && \
     echo "developer ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/developer && \
@@ -73,7 +72,6 @@ ADD buildpacks /.devstep/buildpacks
 #####################################################################
 # Fix permissions, set up init and generate locales
 RUN chown -R developer:developer /.devstep && \
-    chown -R developer:developer /workspace && \
     chown -R developer:developer /etc/my_init.d && \
     chown -R developer:developer /etc/service && \
     chmod u+s /usr/bin/sudo && \
