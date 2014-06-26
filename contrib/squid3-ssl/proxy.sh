@@ -3,9 +3,11 @@
 set -e
 
 if ! [ -z "${HTTPS_PROXY_CERT}" ]; then
-  sudo cp $HTTPS_PROXY_CERT /usr/share/ca-certificates
-  sudo sh -c "echo '$(basename ${HTTPS_PROXY_CERT})' >> /etc/ca-certificates.conf"
-  sudo /usr/sbin/update-ca-certificates
+  if ! $(grep -q "${HTTPS_PROXY_CERT}" '/etc/ca-certificates.conf'); then
+    echo 'Configuring HTTPS proxy certificates'
+    sudo sh -c "echo '${HTTPS_PROXY_CERT}' >> /etc/ca-certificates.conf"
+    sudo /usr/sbin/update-ca-certificates &> /tmp/update-ca-certificates.log
+  fi
 fi
 
 if $(which npm &>/dev/null); then
