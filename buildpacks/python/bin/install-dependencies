@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -e
+
+echo -n '   Installing dependencies for Python buildpack... '
+
+url='https://github.com/heroku/heroku-buildpack-python/archive/1f9b0bfe02efda7a6888eb73e90bce06b3fd0a19.tar.gz'
+mkdir -p /.devstep/buildpacks/python/heroku-buildpack-python
+curl -sL $url | tar xz --strip-components=1 -C /.devstep/buildpacks/python/heroku-buildpack-python
+
+echo 'DONE'

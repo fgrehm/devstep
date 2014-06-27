@@ -16,11 +16,13 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 ENV_DIR=$3
 
-basedir="${CACHE_DIR}/heroku-buildpack-python"
+bp_basedir="$( cd -P "$( dirname "$0" )" && cd .. && pwd )"
+bp_basedir=$(readlink -f $bp_basedir)
+
+basedir="${bp_basedir}/heroku-buildpack-python"
 if ! [ -d $basedir ]; then
-  git clone --depth 0 https://github.com/heroku/heroku-buildpack-python.git $basedir
-else
-  echo 'Using cached version of https://github.com/heroku/heroku-buildpack-python.git'
+  echo 'Unable to find Heroku buildpack for python!'
+  exit 1
 fi
 
 BIN_DIR=$basedir/bin
@@ -37,10 +39,10 @@ export HEROKU_PHP_BUILDPACK=$basedir
 # LEGACY_TRIGGER="lib/python2.7"
 PROFILE_PATH="/.devstep/.profile.d/python.sh"
 
-DEFAULT_PYTHON_VERSION="python-2.7.6"
+DEFAULT_PYTHON_VERSION="python-2.7.7"
 PYTHON_EXE="/.devstep/python/bin/python"
-PIP_VERSION="1.5.4"
-SETUPTOOLS_VERSION="2.1"
+PIP_VERSION="1.5.6"
+SETUPTOOLS_VERSION="3.6"
 
 # Setup bpwatch
 # export PATH=$PATH:$ROOT_DIR/vendor/bpwatch
@@ -170,8 +172,8 @@ fi
 if [ ! "$SKIP_INSTALL" ]; then
   # bpwatch start install_python
     puts-step "Preparing Python runtime ($PYTHON_VERSION)"
-    if ! [ -f $CACHE_DIR/${PYTHON_VERSION}.tar.bz2 ]; then
-      curl -s -L http://envy-versions.s3.amazonaws.com/${PYTHON_VERSION}.tar.bz2 > ${CACHE_DIR}/${PYTHON_VERSION}.tar.bz2
+    if ! [ -f $CACHE_DIR/${PYTHON_VERSION}.tar.gz ]; then
+      curl -s -L http://lang-python.s3.amazonaws.com/runtimes/${PYTHON_VERSION}.tar.gz > ${CACHE_DIR}/${PYTHON_VERSION}.tar.gz
       if [[ $? != 0 ]] ; then
         puts-warn "Requested runtime ($PYTHON_VERSION) was not found."
         puts-warn "Aborting.  More info: https://devcenter.heroku.com/articles/python-support"
@@ -179,7 +181,8 @@ if [ ! "$SKIP_INSTALL" ]; then
       fi
     fi
     rm -rf /.devstep/python
-    tar jxf ${CACHE_DIR}/${PYTHON_VERSION}.tar.bz2 -C /.devstep #&> /dev/null
+    mkdir -p /.devstep/python
+    tar zxf ${CACHE_DIR}/${PYTHON_VERSION}.tar.gz -C /.devstep/python &> /dev/null
   # bpwatch stop install_python
 
   # Record for future reference.
@@ -200,6 +203,8 @@ if [ "$FRESH_PYTHON" ] || [[ ! $(pip --version) == *$PIP_VERSION* ]]; then
   # bpwatch start install_setuptools
     # Prepare it for the real world
     puts-step "Installing Setuptools ($SETUPTOOLS_VERSION)"
+    cd $ROOT_DIR/vendor/
+    tar zxf setuptools-$SETUPTOOLS_VERSION.tar.gz
     cd $ROOT_DIR/vendor/setuptools-$SETUPTOOLS_VERSION/
     python setup.py install &> /dev/null
     cd $WORKING_DIR
@@ -207,6 +212,9 @@ if [ "$FRESH_PYTHON" ] || [[ ! $(pip --version) == *$PIP_VERSION* ]]; then
 
   # bpwatch start install_pip
     puts-step "Installing Pip ($PIP_VERSION)"
+
+    cd $ROOT_DIR/vendor/
+    tar zxf pip-$PIP_VERSION.tar.gz
     cd $ROOT_DIR/vendor/pip-$PIP_VERSION/
     python setup.py install &> /dev/null
     cd $WORKING_DIR
