@@ -7,19 +7,12 @@ shopt -s dotglob
 BUILD_DIR="$1"
 CACHE_DIR="$2"
 
-basedir="${CACHE_DIR}/chh-heroku-buildpack-php"
-if ! [ -d $basedir ]; then
-  git clone --depth 0 https://github.com/CHH/heroku-buildpack-php.git $basedir
-else
-  echo 'Using cached version of https://github.com/CHH/heroku-buildpack-php'
-fi
+bp_basedir="$( cd -P "$( dirname "$0" )" && cd .. && pwd )"
+bp_basedir=$(readlink -f $bp_basedir)
 
-basedir="${basedir}/bin"
+basedir="${bp_basedir}/chh-heroku-buildpack-php/bin"
 basedir=$(readlink -f $basedir)
 export HEROKU_PHP_BUILDPACK=$basedir
-
-bp_basedir="$( cd -P "$( dirname "$0" )" && pwd )"
-bp_basedir=$(readlink -f $bp_basedir)
 
 source "$basedir/../conf/buildpack.conf"
 source $basedir/common.sh
@@ -340,7 +333,7 @@ if [ -n "$BUILDPACK_DEBUG" ]; then
 fi
 
 mkdir -p "/app/conf"
-cp "$bp_basedir/../conf/nginx/base.conf.erb" "/app/conf/nginx.conf.erb"
+cp "$bp_basedir/conf/nginx/base.conf.erb" "/app/conf/nginx.conf.erb"
 cp "$basedir/../conf/php/php-fpm.conf" "/app/vendor/php/etc/php-fpm.conf"
 cp "$basedir/../conf/php/php.ini" "/app/vendor/php/etc/php.ini"
 
@@ -358,7 +351,7 @@ install_node_deps "$BUILD_DIR"
 install_composer_deps "$BUILD_DIR"
 
 # Detect PHP framework
-for f in "$bp_basedir/../frameworks/"*; do
+for f in "$bp_basedir/frameworks/"*; do
     if "$f" detect "$BUILD_DIR"; then
         FRAMEWORK="$f"
     fi
@@ -366,13 +359,13 @@ done
 
 # Fall back to classic mode
 if [ -z "$FRAMEWORK" ]; then
-    FRAMEWORK="$bp_basedir/../frameworks/default"
+    FRAMEWORK="$bp_basedir/frameworks/default"
 fi
 
 # Try to load the framework from the "frameworks" directory if it's just a
 # simple framework name like "symfony2"
-if [ ! -f "$FRAMEWORK" ] && [ -f "$bp_basedir/../frameworks/$FRAMEWORK" ]; then
-    FRAMEWORK="$bp_basedir/../frameworks/$FRAMEWORK"
+if [ ! -f "$FRAMEWORK" ] && [ -f "$bp_basedir/frameworks/$FRAMEWORK" ]; then
+    FRAMEWORK="$bp_basedir/frameworks/$FRAMEWORK"
 fi
 
 if [ ! -f "$FRAMEWORK" ]; then
