@@ -70,6 +70,12 @@ ADD addons /.devstep/addons
 ADD buildpacks /.devstep/buildpacks
 
 #####################################################################
+# Prepare buildpack dependencies
+RUN for script in /.devstep/buildpacks/*/bin/install-dependencies; do \
+      $script; \
+    done
+
+#####################################################################
 # Fix permissions, set up init and generate locales
 RUN chown -R developer:developer /.devstep && \
     chown -R developer:developer /etc/my_init.d && \
