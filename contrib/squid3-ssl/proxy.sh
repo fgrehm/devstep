@@ -19,3 +19,8 @@ fi
 if ! [ -f $HOME/.bowerrc ]; then
   echo '{ "strict-ssl": false }' > $HOME/.bowerrc
 fi
+
+if ! [ -f $HOME/.pip/pip.conf ]; then
+  mkdir -p $HOME/.pip
+  echo -e "[global]\ncert = /etc/ssl/certs/ca-certificates.crt" > $HOME/.pip/pip.conf
+fi
