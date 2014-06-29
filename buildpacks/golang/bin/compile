@@ -5,6 +5,23 @@
 
 set -eo pipefail
 
+# Go releases have moved to a new URL scheme
+# starting with Go version 1.2.2. Return the old
+# location for known old versions and the new
+# location otherwise.
+urlfor() {
+  ver=$1
+  file=$2
+  case $ver in
+    go1.0*|go1.1beta*|go1.1rc*|go1.1|go1.1.*|go1.2beta*|go1.2rc*|go1.2|go1.2.1)
+      echo http://go.googlecode.com/files/$file
+      ;;
+    *)
+      echo https://storage.googleapis.com/golang/$file
+      ;;
+  esac
+}
+
 mkdir -p "$1" "$2"
 build=$1
 cache=$2
@@ -48,7 +65,7 @@ fi
 ver=${ver:-go${GOVERSION:-1.3}}
 
 file=${GOFILE:-$ver.$(uname|tr A-Z a-z)-amd64.tar.gz}
-url=${GOURL:-http://golang.org/dl/$file}
+url=${GOURL:-$(urlfor $ver $file)}
 
 mkdir -p $cache/$ver
 cd $cache/$ver
