@@ -73,7 +73,7 @@ Commands:
   pristine  - Rebuild current project associated Docker image from scratch
   bootstrap - Interactively build a base Docker image for the project based on latest successfull build
   hack      - Start a hacking session for the current project using latest version of image and discard the container on exit
-  run       - Run a one off command against the source image
+  run       - Run a one off command against the current source image
   images    - Display images available for the current project
   ps        - List all containers associated with the current project
   info      - Show some information about the current project
@@ -88,7 +88,7 @@ EOF
     return 0
 }
 
-options=$(getopt -o h,f,r:,c: -l help,force,run-opts:,command: -- "$@")
+options=$(getopt -o h,f,r:,c:,w: -l help,force,run-opts:,command:,workspace: -- "$@")
 
 if [ $? -ne 0 ]; then
     usage
@@ -105,7 +105,10 @@ while :; do
         -r|--run-opts)      USER_RUN_OPTS="${USER_RUN_OPTS} ${2}"; shift 2;;
         -c|--command)       USER_RUN_CMD="${2}"; shift 2;;
         -f|--force)         USER_FORCE_YES="1"; shift 1;;
-        -w|--workspace)     DEVSTEP_WORKSPACE_NAME="${2}"; shift 2;;
+        -w|--workspace)
+          DEVSTEP_WORKSPACE_NAME="${2}"
+          DEVSTEP_WORKSPACE_REPO="devstep/${DEVSTEP_WORKSPACE_NAME}"
+          shift 2;;
         *)                  break;;
     esac
 done
