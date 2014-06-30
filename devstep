@@ -298,7 +298,8 @@ if [ $COMMAND = 'hack' ] || [ $COMMAND = 'run' ]; then
   exit $?
 elif [ $COMMAND = 'bootstrap' ]; then
   docker_run
-  docker attach $CID || {
+  docker attach $CID
+  test $(docker wait $CID) -eq '0' || {
     if [ "${USER_FORCE_YES}" != '1' ]; then
       echo    '==> The bootstrap process has finished and the container returned'
       echo    '    an exit status != 0'
