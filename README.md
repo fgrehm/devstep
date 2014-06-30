@@ -1,8 +1,8 @@
 # Devstep
 
-Dead simple, no frills development environment builder that leverages
-[Docker](https://www.docker.io/) and the [buildpack](https://devcenter.heroku.com/articles/buildpacks)
-abstraction for fast and easy provisioning of project dependencies.
+A dead simple, no frills development environment builder that is based around a
+simple goal:
 
-See http://fgrehm.viewdocs.io/devstep or the project's [/docs](/docs) folder
-for more information.
+> I want to `git clone` and run a single command to hack on any software project.
+
+For more information please check http://fgrehm.viewdocs.io/devstep
