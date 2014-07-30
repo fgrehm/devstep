@@ -1,8 +1,6 @@
 #!/bin/bash
 set -eo pipefail
 
-/.devstep/bin/fix-fd
-
 # Capture max updated at timestamp so we can detect we the environment needs to
 # be reloaded
 last_modified_env_file() {

@@ -81,7 +81,6 @@ RUN chown -R developer:developer /.devstep && \
     chown -R developer:developer /etc/my_init.d && \
     chown -R developer:developer /etc/service && \
     chmod u+s /usr/bin/sudo && \
-    ln -s /.devstep/bin/fix-fd /etc/my_init.d/02-fix-fd.sh && \
     ln -s /.devstep/bin/fix-permissions /etc/my_init.d/05-fix-permissions.sh && \
     ln -s /.devstep/bin/create-cache-symlinks /etc/my_init.d/10-create-cache-symlinks.sh && \
     ln -s /.devstep/bin/forward-linked-ports /etc/my_init.d/10-forward-linked-ports.sh && \

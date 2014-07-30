@@ -1,8 +1,0 @@
-#!/bin/bash
-
-# https://github.com/dotcloud/docker/issues/5510
-
-if ! [ -d /dev/fd ]; then
-  echo '-----> Symlinking /proc/self/fd to /dev/fd'
-  sudo ln -s /proc/self/fd /dev/fd
-fi

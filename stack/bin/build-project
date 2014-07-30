@@ -2,8 +2,6 @@
 # usage: build-project <build-dir> <cache-dir> -b <buildpack> -b <buildpack>
 set -eo pipefail
 
-/.devstep/bin/fix-fd
-
 usage() {
   cat <<EOF
 Usage:
