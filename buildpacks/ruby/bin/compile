@@ -1,139 +1,19 @@
-#!/usr/bin/env bash
+#!/usr/bin/env ruby
 
-set -e
+# sync output
+$stdout.sync = true
 
-GEMFILE_PATH=$1/Gemfile
+$:.unshift File.expand_path("../../lib", __FILE__)
 
-# From https://github.com/aripollak/rbenv-bundler-ruby-version/blob/32bd1a63ed57c6fcfbd4f3766fed64fad21b61b0/bin/rbenv-bundler-ruby-version#L24-L33
-version_from_gemfile() {
-	if [ -f ${GEMFILE_PATH} ]; then
-    # handles simple ruby statements, as well as engine and engine_version,
-    # with single or double quotes and in either order
-    grep '^\s*ruby' "$GEMFILE_PATH" | sed -e 's/\s*#.*//' -e 's/engine:/:engine =>/' \
-          -e 's/engine_version:/:engine_version =>/' \
-          -e "s/.*:engine\s*=>\s*['\"]\([^'\"]*\).*:engine_version\s*=>\s*['\"]\([^'\"]*\).*/\1-\2/" \
-          -e "s/.*:engine_version\s*=>\s*['\"]\([^'\"]*\).*:engine\s*=>\s*['\"]\([^'\"]*\).*/\2-\1/" \
-          -e "s/^\s*ruby\s*['\"]\([^'\"]*\).*/\1/" | head -1
-  fi
-}
+require 'devstep_buildpack'
 
-install_ruby() {
-  mkdir -p $1/rvm-cache
-  mkdir -p /.devstep/.rvm
-  ln -s $1/rvm-cache /.devstep/.rvm/archives
+if ENV['DEBUG']
+  Thread.current[:out] = $stdout
+end
 
-  echo 'Installing rvm...'
-  \curl -sSL https://get.rvm.io | bash -s -- --ignore-dotfiles &>>/tmp/build.log
-
-  _rvm=/.devstep/.rvm/bin/rvm
-
-  echo 'export rvm_ignore_gemset_flag=1' >> $HOME/.rvmrc &>>/tmp/build.log
-  export rvm_ignore_gemset_flag=1
-  $_rvm rvmrc warning ignore allGemfiles &>> /tmp/build.log
-
-  RVM_RUBY_VERSION="ruby-${RVM_RUBY_VERSION}"
-  echo "Installing ${RVM_RUBY_VERSION}..."
-  $_rvm install ${RVM_RUBY_VERSION} --binary --ignore-gemsets --default &>>/tmp/build.log
-
-  mkdir -p /.devstep/.profile.d
-  $_rvm env --ignore-gemsets > /.devstep/.profile.d/rvm.sh 2>/dev/null
-
-  return 0
-}
-
-requires_nodejs() {
-  return $(grep -q 'execjs' $1/Gemfile*) || \
-          $(grep -q 'coffee-script' $1/Gemfile*) || \
-          $(grep -q 'uglifier' $1/Gemfile*)
-}
-
-install_nodejs() {
-  version='0.10.26'
-  file="node-v${version}-linux-x64.tar.gz"
-  if ! [ -f $1/$file ]; then
-    wget -P $1 http://nodejs.org/dist/v${version}/$file &>>/tmp/build.log
-  fi
-  mkdir -p /.devstep/nodejs
-  tar xfz $1/$file -C /.devstep/nodejs --strip-components=1 &>>/tmp/build.log
-  echo "export PATH=/.devstep/nodejs/bin:\$PATH" > /.devstep/.profile.d/nodejs.sh
-}
-
-requires_phantomjs() {
-  return $(grep -q 'poltergeist' $1/Gemfile*)
-}
-
-install_phantomjs() {
-  /.devstep/buildpacks/phantomjs/bin/compile $1 $2
-}
-
-# TODO: Look into travis.yml as well
-RVM_RUBY_VERSION=${RVM_RUBY_VERSION:-$(version_from_gemfile)}
-if [ -z "$RVM_RUBY_VERSION" ]; then
-  RVM_RUBY_VERSION='2.1.2'
-  echo "Unable to identify the project ruby version, setting to ${RVM_RUBY_VERSION}"
-fi
-
-if [ -d /.devstep/.rvm/rubies/default ]; then
-  echo 'Ruby already installed, skipping'
+if pack = LanguagePack.detect(ARGV[0], ARGV[1])
+  LanguagePack::ShellHelpers.initialize_env(ARGV[2])
+  pack.compile
 else
-  # Step away from project sources to avoid loading .ruby-version and .ruby-gemset files
-  pushd / &>/dev/null
-  install_ruby $2 || {
-    echo 'Error installing ruby!'
-    tail /tmp/build.log
-    exit 1
-  }
-  popd &>/dev/null
-  # Create this dir from here as we might want to bind mount ~/.gem/credentials
-  # from the host
-  sudo mkdir -p $HOME/.gem/specs
-  sudo chown -R developer: $HOME/.gem
-  cat <<-GEMRC > $HOME/.gemrc
----
-gem: --no-ri --no-rdoc
-GEMRC
-fi
-
-source /.devstep/.profile.d/rvm.sh
-if $(which bundle &>/dev/null) && $(bundle -v | grep -q '1.5.0'); then
-  echo "Bundler 1.5.0 was detected and it is known to have issues with some projects, upgrading to 1.5.2"
-  gem uninstall bundler --force -aIx &>>/tmp/build.log || {
-    echo 'Error uninstalling bundler!'
-    tail /tmp/build.log
-    exit 1
-  }
-  gem install bundler -v 1.5.2 &>>/tmp/build.log || {
-    echo 'Error upgrading bundler!'
-    tail /tmp/build.log
-    exit 1
-  }
-elif ! $(which bundle &> /dev/null); then
-  echo "Installing latest bundler"
-  gem install bundler &>>/tmp/build.log
-fi
-
-# If there's no Gemfile in place, our work here is done
-if ! [ -f $GEMFILE_PATH ]; then
-  exit 0
-fi
-
-echo "Installing gems using bundler '$(bundle -v | cut -d' ' -f 3)'..."
-(cd $1 && bundle install --jobs=4)
-
-if requires_nodejs $1; then
-  if [ -d /.devstep/nodejs ]; then
-    echo '-----> Nodejs already installed, skipping'
-  else
-    echo '-----> Installing nodejs...'
-    install_nodejs $2
-    source /.devstep/.profile.d/nodejs.sh
-  fi
-fi
-
-if requires_phantomjs $1; then
-  if [ -d /.devstep/phantomjs ]; then
-    echo '-----> PhantomJS already installed, skipping'
-  else
-    install_phantomjs $1 $2
-  fi
-fi
+  raise 'Error compiling Ruby!'
+end
