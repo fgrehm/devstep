@@ -9,7 +9,7 @@ alias l='ls -CF'
 # shortcut for reloading envs after a build
 alias reload-env="source ${HOME}/load-env.sh"
 
-export PATH="${PATH}:/.devstep/bin"
+export PATH="/.devstep/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 # TODO: Review these paths
 profile_dirs="/etc /.devstep ${PWD}/.devstep"
