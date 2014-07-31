@@ -1,4 +1,7 @@
 #!/usr/bin/python2 -u
+
+# This is a trimmed out version of https://github.com/phusion/baseimage-docker/blob/master/image/bin/my_init
+
 import os, os.path, sys, stat, signal, errno, argparse, time, json, re, posixfile
 
 KILL_PROCESS_TIMEOUT = 5
@@ -223,6 +226,7 @@ def main(args):
 					info("%s exited with status %d." % (args.main_command[0], exit_status))
 			except KeyboardInterrupt:
 				stop_child_process(args.main_command[0], pid)
+                                raise
 			except BaseException as s:
 				warn("An error occurred. Aborting.")
 				stop_child_process(args.main_command[0], pid)
