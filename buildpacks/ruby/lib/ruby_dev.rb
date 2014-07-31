@@ -8,20 +8,6 @@ class LanguagePack::RubyDev < LanguagePack::Ruby
     @fetchers[:rbx] = LanguagePack::Fetcher.new(RBX_BASE_URL)
   end
 
-  def default_config_vars
-    instrument "ruby.default_config_vars" do
-      vars = {
-        "LANG" => env("LANG") || "en_US.UTF-8"
-      }
-
-      ruby_version.jruby? ? vars.merge({
-        "JAVA_OPTS" => default_java_opts,
-        "JRUBY_OPTS" => default_jruby_opts,
-        "JAVA_TOOL_OPTIONS" => default_java_tool_options
-      }) : vars
-    end
-  end
-
   def compile
     instrument 'ruby.compile' do
       # check for new app at the beginning of the compile
