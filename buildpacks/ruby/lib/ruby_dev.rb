@@ -3,7 +3,7 @@ require 'language_pack/ruby'
 # Force our custom metadata dir to be used
 DEVSTEP_METADATA = "#{ENV['HOME']}/.metadata"
 LanguagePack::Metadata.send(:remove_const, :FOLDER)
-LanguagePack::Metadata.const_set(:FOLDER, LanguagePack::RubyDev::DEVSTEP_METADATA)
+LanguagePack::Metadata.const_set(:FOLDER, DEVSTEP_METADATA)
 
 class LanguagePack::RubyDev < LanguagePack::Ruby
   def initialize(build_path, cache_path=nil)
@@ -78,7 +78,6 @@ private
   def binstubs_relative_paths
     [
       "bin",
-      bundler_binstubs_path,
       "#{slug_vendor_base}/bin"
     ]
   end
@@ -94,25 +93,25 @@ private
       if @slug_vendor_base
         @slug_vendor_base
       elsif ruby_version.ruby_version == "1.8.7"
-        @slug_vendor_base = "vendor/bundle/1.8"
+        @slug_vendor_base = "#{ENV['HOME']}/vendor/bundle/1.8"
       else
-        @slug_vendor_base = run_no_pipe(%q(ruby -e "require 'rbconfig';puts \"vendor/bundle/#{RUBY_ENGINE}/#{RbConfig::CONFIG['ruby_version']}\"")).chomp
+        @slug_vendor_base = run_no_pipe(%q(ruby -e "require 'rbconfig';puts \"#{ENV['HOME']}/vendor/bundle/#{RUBY_ENGINE}/#{RbConfig::CONFIG['ruby_version']}\"")).chomp
         error "Problem detecting bundler vendor directory: #{@slug_vendor_base}" unless $?.success?
         @slug_vendor_base
       end
     end
   end
 
-  # the relative path to the vendored ruby directory
+  # the path to the vendored ruby directory
   # @return [String] resulting path
   def slug_vendor_ruby
-    "vendor/#{ruby_version.version_without_patchlevel}"
+    "#{ENV['HOME']}/vendor/#{ruby_version.version_without_patchlevel}"
   end
 
-  # the relative path to the vendored jvm
+  # the path to the vendored jvm
   # @return [String] resulting path
   def slug_vendor_jvm
-    "vendor/jvm"
+    "#{ENV['HOME']}/vendor/jvm"
   end
 
   # the absolute path of the build ruby to use during the buildpack
@@ -177,7 +176,8 @@ private
     instrument 'ruby_dev.setup_language_pack_environment' do
       ENV["PATH"] += ":bin" if ruby_version.jruby?
       setup_ruby_install_env
-      ENV["PATH"] += ":#{node_bp_bin_path}" if node_js_installed?
+      # Node is already installed on the base image
+      # ENV["PATH"] += ":#{node_bp_bin_path}" if node_js_installed?
 
       # TODO when buildpack-env-args rolls out, we can get rid of
       # ||= and the manual setting below
@@ -194,9 +194,12 @@ private
   # sets up the profile.d script for this buildpack
   def setup_profiled
     instrument 'ruby_dev.setup_profiled' do
-      set_env_override "GEM_PATH", "$HOME/#{slug_vendor_base}:$GEM_PATH"
+      File.delete("#{ENV['HOME']}/.profile.d/ruby.sh") if File.exists?("#{ENV['HOME']}/.profile.d/ruby.sh")
+
+      set_env_override "GEM_HOME", "#{slug_vendor_base}"
+      set_env_override "GEM_PATH", "#{slug_vendor_base}"
       set_env_default  "LANG",     "en_US.UTF-8"
-      set_env_override "PATH",     binstubs_relative_paths.map {|path| "$HOME/#{path}" }.join(":") + ":$PATH"
+      set_env_override "PATH",     "#{slug_vendor_base}/bin:$PATH"
 
       if ruby_version.jruby?
         set_env_default "JAVA_OPTS", default_java_opts
@@ -232,25 +235,7 @@ ERROR
       Dir.chdir(slug_vendor_ruby) do
         instrument "ruby_dev.fetch_ruby" do
           if ruby_version.rbx?
-            file     = "#{ruby_version.version}.tar.bz2"
-            sha_file = "#{file}.sha1"
-            @fetchers[:rbx].fetch(file)
-            @fetchers[:rbx].fetch(sha_file)
-
-            expected_checksum = File.read(sha_file).chomp
-            actual_checksum   = Digest::SHA1.file(file).hexdigest
-
-            error <<-ERROR_MSG unless expected_checksum == actual_checksum
-RBX Checksum for #{file} does not match.
-Expected #{expected_checksum} but got #{actual_checksum}.
-Please try pushing again in a few minutes.
-ERROR_MSG
-
-            run("tar jxf #{file}")
-            FileUtils.mv(Dir.glob("app/#{slug_vendor_ruby}/*"), ".")
-            FileUtils.rm_rf("app")
-            FileUtils.rm(file)
-            FileUtils.rm(sha_file)
+            raise 'RBX IS NOT SUPPORTED YET!'
           else
             @fetchers[:mri].fetch_untar("#{ruby_version.version}.tgz")
           end
@@ -258,13 +243,13 @@ ERROR_MSG
       end
       error invalid_ruby_version_message unless $?.success?
 
-      app_bin_dir = "bin"
+      app_bin_dir = "#{ENV['HOME']}/bin"
       FileUtils.mkdir_p app_bin_dir
 
       run("ln -s ruby #{slug_vendor_ruby}/bin/ruby.exe")
 
       Dir["#{slug_vendor_ruby}/bin/*"].each do |vendor_bin|
-        run("ln -s ../#{vendor_bin} #{app_bin_dir}")
+        run("ln -s #{vendor_bin} #{app_bin_dir}")
       end
 
       @metadata.write("buildpack_ruby_version", ruby_version.version)
@@ -284,32 +269,14 @@ WARNING
   end
 
   def new_app?
-    @new_app ||= !File.exist?("vendor/heroku")
+    @new_app ||= !File.exist?(DEVSTEP_METADATA)
   end
 
   # vendors JVM into the slug for JRuby
   def install_jvm
     instrument 'ruby_dev.install_jvm' do
       if ruby_version.jruby?
-        jvm_version =
-          if Gem::Version.new(ruby_version.engine_version) >= Gem::Version.new("1.7.4")
-            LATEST_JVM_VERSION
-          else
-            LEGACY_JVM_VERSION
-          end
-
-        topic "Installing JVM: #{jvm_version}"
-
-        FileUtils.mkdir_p(slug_vendor_jvm)
-        Dir.chdir(slug_vendor_jvm) do
-          @fetchers[:jvm].fetch_untar("#{jvm_version}.tar.gz")
-        end
-
-        bin_dir = "bin"
-        FileUtils.mkdir_p bin_dir
-        Dir["#{slug_vendor_jvm}/bin/*"].each do |bin|
-          run("ln -s ../#{bin} #{bin_dir}")
-        end
+        raise 'JRUBY IS NOT SUPPORTED YET!'
       end
     end
   end
@@ -348,56 +315,6 @@ WARNING
     end
   end
 
-  # default set of binaries to install
-  # @return [Array] resulting list
-  def binaries
-    add_node_js_binary
-  end
-
-  # vendors individual binary into the slug
-  # @param [String] name of the binary package from S3.
-  #   Example: https://s3.amazonaws.com/language-pack-ruby/node-0.4.7.tgz, where name is "node-0.4.7"
-  def install_binary(name)
-    bin_dir = "bin"
-    FileUtils.mkdir_p bin_dir
-    Dir.chdir(bin_dir) do |dir|
-      @fetchers[:buildpack].fetch_untar("#{name}.tgz")
-    end
-  end
-
-  # removes a binary from the slug
-  # @param [String] relative path of the binary on the slug
-  def uninstall_binary(path)
-    FileUtils.rm File.join('bin', File.basename(path)), :force => true
-  end
-
-  def load_default_cache?
-    new_app? && ruby_version.default?
-  end
-
-  # loads a default bundler cache for new apps to speed up initial bundle installs
-  def load_default_cache
-    instrument "ruby_dev.load_default_cache" do
-      if false # load_default_cache?
-        puts "New app detected loading default bundler cache"
-        patchlevel = run("ruby -e 'puts RUBY_PATCHLEVEL'").chomp
-        cache_name  = "#{DEFAULT_RUBY_VERSION}-p#{patchlevel}-default-cache"
-        @fetchers[:buildpack].fetch_untar("#{cache_name}.tgz")
-      end
-    end
-  end
-
-  # install libyaml into the LP to be referenced for psych compilation
-  # @param [String] tmpdir to store the libyaml files
-  def install_libyaml(dir)
-    instrument 'ruby_dev.install_libyaml' do
-      FileUtils.mkdir_p dir
-      Dir.chdir(dir) do |dir|
-        @fetchers[:buildpack].fetch_untar("#{LIBYAML_PATH}.tgz")
-      end
-    end
-  end
-
   # runs bundler to install the dependencies
   def build_bundler
     instrument 'ruby_dev.build_bundler' do
@@ -406,25 +323,7 @@ WARNING
         bundle_command = "#{bundle_bin} install"
         bundle_command << " -j4"
 
-        if bundler.windows_gemfile_lock?
-          warn(<<WARNING, inline: true)
-Removing `Gemfile.lock` because it was generated on Windows.
-Bundler will do a full resolve so native gems are handled properly.
-This may result in unexpected gem versions being used in your app.
-In rare occasions Bundler may not be able to resolve your dependencies at all.
-https://devcenter.heroku.com/articles/bundler-windows-gemfile
-WARNING
-
-          log("bundle", "has_windows_gemfile_lock")
-          File.unlink("Gemfile.lock")
-        else
-          # using --deployment is preferred if we can
-          bundle_command += " --deployment"
-          cache.load ".bundle"
-        end
-
         topic("Installing dependencies using #{bundler.version}")
-        load_bundler_cache
 
         bundler_output = ""
         bundle_time    = nil
@@ -464,9 +363,6 @@ WARNING
           instrument "ruby_dev.bundle_clean" do
             pipe("#{bundle_bin} clean", out: "2> /dev/null")
           end
-
-          # Keep gem cache out of the slug
-          FileUtils.rm_rf("#{slug_vendor_base}/cache")
         else
           log "bundle", :status => "failure"
           error_message = "Failed to install gems via Bundler."
@@ -484,45 +380,5 @@ ERROR
         end
       end
     end
-  end
-
-  # RUBYOPT line that requires syck_hack file
-  # @return [String] require string if needed or else an empty string
-  def syck_hack
-    instrument "ruby_dev.syck_hack" do
-      syck_hack_file = File.expand_path(File.join(File.dirname(__FILE__), "../../vendor/syck_hack"))
-      rv             = run_stdout('ruby -e "puts RUBY_VERSION"').chomp
-      # < 1.9.3 includes syck, so we need to use the syck hack
-      if Gem::Version.new(rv) < Gem::Version.new("1.9.3")
-        "-r#{syck_hack_file}"
-      else
-        ""
-      end
-    end
-  end
-
-  # executes the block with GIT_DIR environment variable removed since it can mess with the current working directory git thinks it's in
-  # @param [block] block to be executed in the GIT_DIR free context
-  def allow_git(&blk)
-    git_dir = ENV.delete("GIT_DIR") # can mess with bundler
-    blk.call
-    ENV["GIT_DIR"] = git_dir
-  end
-
-  # decides if we need to install the node.js binary
-  # @note execjs will blow up if no JS RUNTIME is detected and is loaded.
-  # @return [Array] the node.js binary path if we need it or an empty Array
-  def add_node_js_binary
-    bundler.has_gem?('execjs') && !node_js_installed? ? [NODE_JS_BINARY_PATH] : []
-  end
-
-  def node_bp_bin_path
-    "#{Dir.pwd}/#{NODE_BP_PATH}"
-  end
-
-  # checks if node.js is installed via the official heroku-buildpack-nodejs using multibuildpack
-  # @return [Boolean] true if it's detected and false if it isn't
-  def node_js_installed?
-    @node_js_installed ||= run("#{node_bp_bin_path}/node -v") && $?.success?
   end
 end
