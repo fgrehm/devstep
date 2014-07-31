@@ -19,14 +19,18 @@ fi
 
 eval set -- "$options"
 
+# This is pretty hacky but werks
+FORCED_BUILDPACKS=""
 declare -a buildpacks
 while :; do
     case "$1" in
         -h|--help)  usage && exit 1;;
-        -b)         buildpacks+=("${2}"); shift 2;;
+        -b)         buildpacks+=("${2}"); FORCED_BUILDPACKS='1'; shift 2;;
         *)          shift 1 && break;;
     esac
 done
+
+export FORCED_BUILDPACKS
 
 project_root=${1:-/workspace}
 cache_root=${2:-/.devstep/cache}
