@@ -21,6 +21,7 @@ class LanguagePack::RubyDev < LanguagePack::Ruby
 
   def compile
     instrument 'ruby_dev.compile' do
+      fix_gem_permissions
       # check for new app at the beginning of the compile
       new_app?
       Dir.chdir(build_path)
@@ -65,6 +66,13 @@ class LanguagePack::RubyDev < LanguagePack::Ruby
   end
 
 private
+
+  def fix_gem_permissions
+    # Create this dir from here as we might want to bind mount ~/.gem/credentials
+    # from the host
+    system("sudo mkdir -p #{ENV['HOME']}/.gem/specs")
+    system("sudo chown -R developer: #{ENV['HOME']}/.gem")
+  end
 
   def ruby_install_needed?
     !File.exists?(slug_vendor_ruby)
