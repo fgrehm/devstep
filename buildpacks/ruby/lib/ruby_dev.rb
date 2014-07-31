@@ -388,7 +388,7 @@ WARNING
           log "bundle", :status => "success"
           puts "Cleaning up the bundler cache."
           instrument "ruby_dev.bundle_clean" do
-            pipe("#{bundle_bin} clean", out: "2> /dev/null")
+            pipe("#{bundle_bin} clean --force", out: "2> /dev/null")
           end
         else
           log "bundle", :status => "failure"
