@@ -9,7 +9,7 @@ class LanguagePack::RubyDev < LanguagePack::Ruby
   end
 
   def compile
-    instrument 'ruby.compile' do
+    instrument 'ruby_dev.compile' do
       # check for new app at the beginning of the compile
       new_app?
       Dir.chdir(build_path)
@@ -64,7 +64,7 @@ private
   # the relative path to the bundler directory of gems
   # @return [String] resulting path
   def slug_vendor_base
-    instrument 'ruby.slug_vendor_base' do
+    instrument 'ruby_dev.slug_vendor_base' do
       if @slug_vendor_base
         @slug_vendor_base
       elsif ruby_version.ruby_version == "1.8.7"
@@ -98,7 +98,7 @@ private
   # fetch the ruby version from bundler
   # @return [String, nil] returns the ruby version if detected or nil if none is detected
   def ruby_version
-    instrument 'ruby.ruby_version' do
+    instrument 'ruby_dev.ruby_version' do
       return @ruby_version if @ruby_version
       new_app           = !File.exist?("vendor/heroku")
       last_version_file = "buildpack_ruby_version"
@@ -148,7 +148,7 @@ private
 
   # sets up the environment variables for the build process
   def setup_language_pack_environment
-    instrument 'ruby.setup_language_pack_environment' do
+    instrument 'ruby_dev.setup_language_pack_environment' do
       ENV["PATH"] += ":bin" if ruby_version.jruby?
       setup_ruby_install_env
       ENV["PATH"] += ":#{node_bp_bin_path}" if node_js_installed?
@@ -167,7 +167,7 @@ private
 
   # sets up the profile.d script for this buildpack
   def setup_profiled
-    instrument 'setup_profiled' do
+    instrument 'ruby_dev.setup_profiled' do
       set_env_override "GEM_PATH", "$HOME/#{slug_vendor_base}:$GEM_PATH"
       set_env_default  "LANG",     "en_US.UTF-8"
       set_env_override "PATH",     binstubs_relative_paths.map {|path| "$HOME/#{path}" }.join(":") + ":$PATH"
@@ -183,7 +183,7 @@ private
   # install the vendored ruby
   # @return [Boolean] true if it installs the vendored ruby and false otherwise
   def install_ruby
-    instrument 'ruby.install_ruby' do
+    instrument 'ruby_dev.install_ruby' do
       return false unless ruby_version
 
       invalid_ruby_version_message = <<ERROR
@@ -195,7 +195,7 @@ ERROR
         FileUtils.mkdir_p(build_ruby_path)
         Dir.chdir(build_ruby_path) do
           ruby_vm = "ruby"
-          instrument "ruby.fetch_build_ruby" do
+          instrument "ruby_dev.fetch_build_ruby" do
             @fetchers[:mri].fetch_untar("#{ruby_version.version.sub(ruby_vm, "#{ruby_vm}-build")}.tgz")
           end
         end
@@ -204,7 +204,7 @@ ERROR
 
       FileUtils.mkdir_p(slug_vendor_ruby)
       Dir.chdir(slug_vendor_ruby) do
-        instrument "ruby.fetch_ruby" do
+        instrument "ruby_dev.fetch_ruby" do
           if ruby_version.rbx?
             file     = "#{ruby_version.version}.tar.bz2"
             sha_file = "#{file}.sha1"
@@ -263,7 +263,7 @@ WARNING
 
   # vendors JVM into the slug for JRuby
   def install_jvm
-    instrument 'ruby.install_jvm' do
+    instrument 'ruby_dev.install_jvm' do
       if ruby_version.jruby?
         jvm_version =
           if Gem::Version.new(ruby_version.engine_version) >= Gem::Version.new("1.7.4")
@@ -303,7 +303,7 @@ WARNING
 
   # setup the environment so we can use the vendored ruby
   def setup_ruby_install_env
-    instrument 'ruby.setup_ruby_install_env' do
+    instrument 'ruby_dev.setup_ruby_install_env' do
       ENV["PATH"] = "#{ruby_install_binstub_path}:#{ENV["PATH"]}"
 
       if ruby_version.jruby?
@@ -314,7 +314,7 @@ WARNING
 
   # installs vendored gems into the slug
   def install_bundler_in_app
-    instrument 'ruby.install_language_pack_gems' do
+    instrument 'ruby_dev.install_language_pack_gems' do
       FileUtils.mkdir_p(slug_vendor_base)
       Dir.chdir(slug_vendor_base) do |dir|
         `cp -R #{bundler.bundler_path}/. .`
@@ -330,7 +330,7 @@ WARNING
 
   # vendors binaries into the slug
   def install_binaries
-    instrument 'ruby.install_binaries' do
+    instrument 'ruby_dev.install_binaries' do
       binaries.each {|binary| install_binary(binary) }
       Dir["bin/*"].each {|path| run("chmod +x #{path}") }
     end
@@ -359,7 +359,7 @@ WARNING
 
   # loads a default bundler cache for new apps to speed up initial bundle installs
   def load_default_cache
-    instrument "ruby.load_default_cache" do
+    instrument "ruby_dev.load_default_cache" do
       if false # load_default_cache?
         puts "New app detected loading default bundler cache"
         patchlevel = run("ruby -e 'puts RUBY_PATCHLEVEL'").chomp
@@ -372,7 +372,7 @@ WARNING
   # install libyaml into the LP to be referenced for psych compilation
   # @param [String] tmpdir to store the libyaml files
   def install_libyaml(dir)
-    instrument 'ruby.install_libyaml' do
+    instrument 'ruby_dev.install_libyaml' do
       FileUtils.mkdir_p dir
       Dir.chdir(dir) do |dir|
         @fetchers[:buildpack].fetch_untar("#{LIBYAML_PATH}.tgz")
@@ -398,7 +398,7 @@ WARNING
 
   # runs bundler to install the dependencies
   def build_bundler
-    instrument 'ruby.build_bundler' do
+    instrument 'ruby_dev.build_bundler' do
       log("bundle") do
         bundle_bin     = "bundle"
         bundle_command = "#{bundle_bin} install"
@@ -448,7 +448,7 @@ WARNING
           }
           env_vars["BUNDLER_LIB_PATH"] = "#{bundler_path}" if ruby_version.ruby_version == "1.8.7"
           puts "Running: #{bundle_command}"
-          instrument "ruby.bundle_install" do
+          instrument "ruby_dev.bundle_install" do
             bundle_time = Benchmark.realtime do
               bundler_output << pipe("#{bundle_command} --no-clean", out: "2>&1", env: env_vars, user_env: true)
             end
@@ -459,7 +459,7 @@ WARNING
           puts "Bundle completed (#{"%.2f" % bundle_time}s)"
           log "bundle", :status => "success"
           puts "Cleaning up the bundler cache."
-          instrument "ruby.bundle_clean" do
+          instrument "ruby_dev.bundle_clean" do
             pipe("#{bundle_bin} clean", out: "2> /dev/null")
           end
 
@@ -487,7 +487,7 @@ ERROR
   # RUBYOPT line that requires syck_hack file
   # @return [String] require string if needed or else an empty string
   def syck_hack
-    instrument "ruby.syck_hack" do
+    instrument "ruby_dev.syck_hack" do
       syck_hack_file = File.expand_path(File.join(File.dirname(__FILE__), "../../vendor/syck_hack"))
       rv             = run_stdout('ruby -e "puts RUBY_VERSION"').chomp
       # < 1.9.3 includes syck, so we need to use the syck hack
