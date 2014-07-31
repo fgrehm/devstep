@@ -1,51 +1,11 @@
 require 'language_pack/ruby'
 
 class LanguagePack::RubyDev < LanguagePack::Ruby
-  NAME                 = "ruby"
-  LIBYAML_VERSION      = "0.1.6"
-  LIBYAML_PATH         = "libyaml-#{LIBYAML_VERSION}"
-  BUNDLER_VERSION      = "1.6.3"
-  BUNDLER_GEM_PATH     = "bundler-#{BUNDLER_VERSION}"
-  NODE_VERSION         = "0.4.7"
-  NODE_JS_BINARY_PATH  = "node-#{NODE_VERSION}"
-  JVM_BASE_URL         = "http://heroku-jdk.s3.amazonaws.com"
-  LATEST_JVM_VERSION   = "openjdk7-latest"
-  LEGACY_JVM_VERSION   = "openjdk1.7.0_25"
-  DEFAULT_RUBY_VERSION = "ruby-2.0.0"
-  RBX_BASE_URL         = "http://binaries.rubini.us/heroku"
-  NODE_BP_PATH         = "vendor/node/bin"
-
-  # detects if this is a valid Ruby app
-  # @return [Boolean] true if it's a Ruby app
-  def self.use?
-    instrument "ruby.use" do
-      File.exist?("Gemfile")
-    end
-  end
-
-  def self.bundler
-    @bundler ||= LanguagePack::Helpers::BundlerWrapper.new.install
-  end
-
-  def bundler
-    self.class.bundler
-  end
-
   def initialize(build_path, cache_path=nil)
     super(build_path, cache_path)
     @fetchers[:mri] = LanguagePack::Fetcher.new(VENDOR_URL, @stack)
     @fetchers[:jvm] = LanguagePack::Fetcher.new(JVM_BASE_URL)
     @fetchers[:rbx] = LanguagePack::Fetcher.new(RBX_BASE_URL)
-  end
-
-  def name
-    "Ruby"
-  end
-
-  def default_addons
-    instrument "ruby.default_addons" do
-      add_dev_database_addon
-    end
   end
 
   def default_config_vars
@@ -59,15 +19,6 @@ class LanguagePack::RubyDev < LanguagePack::Ruby
         "JRUBY_OPTS" => default_jruby_opts,
         "JAVA_TOOL_OPTIONS" => default_java_tool_options
       }) : vars
-    end
-  end
-
-  def default_process_types
-    instrument "ruby.default_process_types" do
-      {
-        "rake"    => "bundle exec rake",
-        "console" => "bundle exec irb"
-      }
     end
   end
 
@@ -574,105 +525,12 @@ ERROR
     end
   end
 
-  # writes ERB based database.yml for Rails. The database.yml uses the DATABASE_URL from the environment during runtime.
-  def create_database_yml
-    instrument 'ruby.create_database_yml' do
-      log("create_database_yml") do
-        return unless File.directory?("config")
-        topic("Writing config/database.yml to read from DATABASE_URL")
-        File.open("config/database.yml", "w") do |file|
-          file.puts <<-DATABASE_YML
-<%
-
-require 'cgi'
-require 'uri'
-
-begin
-  uri = URI.parse(ENV["DATABASE_URL"])
-rescue URI::InvalidURIError
-  raise "Invalid DATABASE_URL"
-end
-
-raise "No RACK_ENV or RAILS_ENV found" unless ENV["RAILS_ENV"] || ENV["RACK_ENV"]
-
-def attribute(name, value, force_string = false)
-  if value
-    value_string =
-      if force_string
-        '"' + value + '"'
-      else
-        value
-      end
-    "\#{name}: \#{value_string}"
-  else
-    ""
-  end
-end
-
-adapter = uri.scheme
-adapter = "postgresql" if adapter == "postgres"
-
-database = (uri.path || "").split("/")[1]
-
-username = uri.user
-password = uri.password
-
-host = uri.host
-port = uri.port
-
-params = CGI.parse(uri.query || "")
-
-%>
-
-<%= ENV["RAILS_ENV"] || ENV["RACK_ENV"] %>:
-  <%= attribute "adapter",  adapter %>
-  <%= attribute "database", database %>
-  <%= attribute "username", username %>
-  <%= attribute "password", password, true %>
-  <%= attribute "host",     host %>
-  <%= attribute "port",     port %>
-
-<% params.each do |key, value| %>
-  <%= key %>: <%= value.first %>
-<% end %>
-        DATABASE_YML
-        end
-      end
-    end
-  end
-
-  def rake
-    @rake ||= begin
-      LanguagePack::Helpers::RakeRunner.new(
-                bundler.has_gem?("rake") || ruby_version.rake_is_vendored?
-              ).load_rake_tasks!(env: rake_env)
-    end
-  end
-
-  def rake_env
-    if database_url
-      { "DATABASE_URL" => database_url }
-    else
-      {}
-    end.merge(user_env_hash)
-  end
-
-  def database_url
-    env("DATABASE_URL") if env("DATABASE_URL")
-  end
-
   # executes the block with GIT_DIR environment variable removed since it can mess with the current working directory git thinks it's in
   # @param [block] block to be executed in the GIT_DIR free context
   def allow_git(&blk)
     git_dir = ENV.delete("GIT_DIR") # can mess with bundler
     blk.call
     ENV["GIT_DIR"] = git_dir
-  end
-
-  # decides if we need to enable the dev database addon
-  # @return [Array] the database addon if the pg gem is detected or an empty Array if it isn't.
-  def add_dev_database_addon
-    bundler.has_gem?("pg") ? ['heroku-postgresql:hobby-dev'] : []
   end
 
   # decides if we need to install the node.js binary
@@ -690,32 +548,6 @@ params = CGI.parse(uri.query || "")
   # @return [Boolean] true if it's detected and false if it isn't
   def node_js_installed?
     @node_js_installed ||= run("#{node_bp_bin_path}/node -v") && $?.success?
-  end
-
-  def run_assets_precompile_rake_task
-    instrument 'ruby.run_assets_precompile_rake_task' do
-
-      precompile = rake.task("assets:precompile")
-      return true unless precompile.is_defined?
-
-      topic "Precompiling assets"
-      precompile.invoke(env: rake_env)
-      if precompile.success?
-        puts "Asset precompilation completed (#{"%.2f" % precompile.time}s)"
-      else
-        precompile_fail(precompile.output)
-      end
-    end
-  end
-
-  def precompile_fail(output)
-    log "assets_precompile", :status => "failure"
-    msg = "Precompiling assets failed.\n"
-    if output.match(/(127\.0\.0\.1)|(org\.postgresql\.util)/)
-      msg << "Attempted to access a nonexistent database:\n"
-      msg << "https://devcenter.heroku.com/articles/pre-provision-database\n"
-    end
-    error msg
   end
 
   def bundler_cache
