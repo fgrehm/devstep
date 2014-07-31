@@ -12,6 +12,13 @@ class LanguagePack::RubyDev < LanguagePack::Ruby
     # TODO: Find out how can we use the cache for rubies
   end
 
+  def self.use?
+    # FORCED_BUILDPACKS means we specified a buildpack along with the image
+    # builder, so lets make sure we really use it regardless if it was
+    # detected. This usually happen during the bootstrap process
+    super or (ENV['FORCED_BUILDPACKS'] == '1')
+  end
+
   def compile
     instrument 'ruby_dev.compile' do
       # check for new app at the beginning of the compile
@@ -24,7 +31,11 @@ class LanguagePack::RubyDev < LanguagePack::Ruby
       setup_profiled
       allow_git do
         install_bundler_in_app
-        build_bundler
+        if File.exists?("#{@build_path}/Gemfile")
+          build_bundler
+        else
+          topic "Skipping bundle install"
+        end
         # create_database_yml
         # install_binaries
         # run_assets_precompile_rake_task
@@ -125,12 +136,19 @@ private
   def ruby_version
     instrument 'ruby_dev.ruby_version' do
       return @ruby_version if @ruby_version
-      new_app           = !File.exist?("vendor/heroku")
+      new_app           = !File.exist?(DEVSTEP_METADATA)
       last_version_file = "buildpack_ruby_version"
       last_version      = nil
       last_version      = @metadata.read(last_version_file).chomp if @metadata.exists?(last_version_file)
 
-      @ruby_version = LanguagePack::RubyVersion.new(bundler.ruby_version,
+      # Suppport building projects without a Gemfile
+      if File.exists?("#{@build_path}/Gemfile")
+        ruby_version = bundler.ruby_version
+      else
+        ruby_version = DEFAULT_RUBY_VERSION
+      end
+
+      @ruby_version = LanguagePack::RubyVersion.new(ruby_version,
         is_new:       new_app,
         last_version: last_version)
       return @ruby_version
