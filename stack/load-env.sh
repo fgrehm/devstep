@@ -6,6 +6,9 @@ alias ll='ls -alFh'
 alias la='ls -A'
 alias l='ls -CF'
 
+# shortcut for reloading envs after a build
+alias reload-env="source ${HOME}/load-env.sh"
+
 export PATH="${PATH}:/.devstep/bin"
 
 # TODO: Review these paths
