@@ -46,7 +46,7 @@ class LanguagePack::RubyDev < LanguagePack::Ruby
 
     # ... so we somehow mimic its behavior over here
     instrument 'base.compile' do
-      Kernel.puts ""
+      Kernel.puts "" if @warnings.any? || @deprecations.any?
       @warnings.each do |warning|
         Kernel.puts "###### WARNING:"
         puts warning
