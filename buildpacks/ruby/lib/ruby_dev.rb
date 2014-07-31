@@ -17,7 +17,7 @@ class LanguagePack::RubyDev < LanguagePack::Ruby
       # check for new app at the beginning of the compile
       new_app?
       Dir.chdir(build_path)
-      remove_vendor_bundle
+      # remove_vendor_bundle
       install_ruby
       install_jvm
       setup_language_pack_environment
@@ -25,11 +25,26 @@ class LanguagePack::RubyDev < LanguagePack::Ruby
       allow_git do
         install_bundler_in_app
         build_bundler
-        create_database_yml
-        install_binaries
-        run_assets_precompile_rake_task
+        # create_database_yml
+        # install_binaries
+        # run_assets_precompile_rake_task
       end
-      super
+      # We can't call super here...
+      # super
+    end
+
+    # ... so we somehow mimic its behavior over here
+    instrument 'base.compile' do
+      Kernel.puts ""
+      @warnings.each do |warning|
+        Kernel.puts "###### WARNING:"
+        puts warning
+        Kernel.puts ""
+      end
+      if @deprecations.any?
+        topic "DEPRECATIONS:"
+        puts @deprecations.join("\n")
+      end
     end
   end
 
@@ -332,14 +347,6 @@ WARNING
     add_node_js_binary
   end
 
-  # vendors binaries into the slug
-  def install_binaries
-    instrument 'ruby_dev.install_binaries' do
-      binaries.each {|binary| install_binary(binary) }
-      Dir["bin/*"].each {|path| run("chmod +x #{path}") }
-    end
-  end
-
   # vendors individual binary into the slug
   # @param [String] name of the binary package from S3.
   #   Example: https://s3.amazonaws.com/language-pack-ruby/node-0.4.7.tgz, where name is "node-0.4.7"
@@ -381,22 +388,6 @@ WARNING
       Dir.chdir(dir) do |dir|
         @fetchers[:buildpack].fetch_untar("#{LIBYAML_PATH}.tgz")
       end
-    end
-  end
-
-  # remove `vendor/bundle` that comes from the git repo
-  # in case there are native ext.
-  # users should be using `bundle pack` instead.
-  # https://github.com/heroku/heroku-buildpack-ruby/issues/21
-  def remove_vendor_bundle
-    if File.exists?("vendor/bundle")
-      warn(<<WARNING)
-Removing `vendor/bundle`.
-Checking in `vendor/bundle` is not supported. Please remove this directory
-and add it to your .gitignore. To vendor your gems with Bundler, use
-`bundle pack` instead.
-WARNING
-      FileUtils.rm_rf("vendor/bundle")
     end
   end
 
