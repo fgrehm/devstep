@@ -410,17 +410,12 @@ WARNING
     end
   end
 
-  def bundler_binstubs_path
-    "vendor/bundle/bin"
-  end
-
   # runs bundler to install the dependencies
   def build_bundler
     instrument 'ruby.build_bundler' do
       log("bundle") do
-        bundle_without = env("BUNDLE_WITHOUT") || "development:test"
         bundle_bin     = "bundle"
-        bundle_command = "#{bundle_bin} install --without #{bundle_without} --path vendor/bundle --binstubs #{bundler_binstubs_path}"
+        bundle_command = "#{bundle_bin} install"
         bundle_command << " -j4"
 
         if bundler.windows_gemfile_lock?
@@ -479,12 +474,7 @@ WARNING
           log "bundle", :status => "success"
           puts "Cleaning up the bundler cache."
           instrument "ruby.bundle_clean" do
-            # Only show bundle clean output when not using default cache
-            if load_default_cache?
-              run "bundle clean > /dev/null"
-            else
-              pipe("#{bundle_bin} clean", out: "2> /dev/null")
-            end
+            pipe("#{bundle_bin} clean", out: "2> /dev/null")
           end
           cache.store ".bundle"
           @bundler_cache.store
