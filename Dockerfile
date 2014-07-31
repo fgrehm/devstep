@@ -64,7 +64,6 @@ RUN rm /etc/apt/apt.conf.d/no-cache
 # Devstep goodies (ADDed at the end to increase image "cacheability")
 
 ADD stack/bin /.devstep/bin
-ADD stack/bashrc /.devstep/.bashrc
 ADD stack/load-env.sh /.devstep/load-env.sh
 ADD addons /.devstep/addons
 ADD buildpacks /.devstep/buildpacks
