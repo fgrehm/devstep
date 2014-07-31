@@ -1,11 +1,15 @@
 require 'language_pack/ruby'
 
+# Force our custom metadata dir to be used
+DEVSTEP_METADATA = "#{ENV['HOME']}/.metadata"
+LanguagePack::Metadata.send(:remove_const, :FOLDER)
+LanguagePack::Metadata.const_set(:FOLDER, LanguagePack::RubyDev::DEVSTEP_METADATA)
+
 class LanguagePack::RubyDev < LanguagePack::Ruby
   def initialize(build_path, cache_path=nil)
-    super(build_path, cache_path)
-    @fetchers[:mri] = LanguagePack::Fetcher.new(VENDOR_URL, @stack)
-    @fetchers[:jvm] = LanguagePack::Fetcher.new(JVM_BASE_URL)
-    @fetchers[:rbx] = LanguagePack::Fetcher.new(RBX_BASE_URL)
+    # Prevent metadata object from using the cache by forcing a nil here
+    super(build_path, nil)
+    # TODO: Find out how can we use the cache for rubies
   end
 
   def compile
