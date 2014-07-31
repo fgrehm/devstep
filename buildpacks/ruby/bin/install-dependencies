@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -e
+
+echo -n '   Installing dependencies for Ruby buildpack... '
+
+# Vendor a specific ruby buildpack version
+url='https://github.com/heroku/heroku-buildpack-ruby/archive/b3a0795b36f048f5a4775b594ed3dba8ca06b9f2.tar.gz'
+mkdir -p /.devstep/buildpacks/ruby/heroku-buildpack-ruby
+curl -sL $url | tar xz --strip-components=1 -C /.devstep/buildpacks/ruby/heroku-buildpack-ruby
+
+# Bundler is required by the heroku buildpack
+gem install bundler
+
+echo 'DONE'
