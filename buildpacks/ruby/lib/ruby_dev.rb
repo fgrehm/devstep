@@ -25,10 +25,15 @@ class LanguagePack::RubyDev < LanguagePack::Ruby
       new_app?
       Dir.chdir(build_path)
       # remove_vendor_bundle
-      install_ruby
-      install_jvm
-      setup_language_pack_environment
-      setup_profiled
+      if ruby_install_needed?
+        install_ruby
+        install_jvm
+        setup_language_pack_environment
+        setup_profiled
+      else
+        topic "Ruby '#{ruby_version.version}' already installed"
+      end
+
       allow_git do
         install_bundler_in_app
         if File.exists?("#{@build_path}/Gemfile")
@@ -60,6 +65,10 @@ class LanguagePack::RubyDev < LanguagePack::Ruby
   end
 
 private
+
+  def ruby_install_needed?
+    !File.exists?(slug_vendor_ruby)
+  end
 
   def add_to_profiled(string)
     FileUtils.mkdir_p "#{ENV['HOME']}/.profile.d"
