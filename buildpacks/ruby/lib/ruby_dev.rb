@@ -9,6 +9,7 @@ class LanguagePack::RubyDev < LanguagePack::Ruby
   def initialize(build_path, cache_path=nil)
     # Prevent metadata object from using the cache by forcing a nil here
     super(build_path, nil)
+    @_cache_path = cache_path
     # TODO: Find out how can we use the cache for rubies
   end
 
@@ -263,33 +264,7 @@ private
     instrument 'ruby_dev.install_ruby' do
       return false unless ruby_version
 
-      invalid_ruby_version_message = <<ERROR
-Invalid RUBY_VERSION specified: #{ruby_version.version}
-Valid versions: #{ruby_versions.join(", ")}
-ERROR
-
-      if ruby_version.build?
-        FileUtils.mkdir_p(build_ruby_path)
-        Dir.chdir(build_ruby_path) do
-          ruby_vm = "ruby"
-          instrument "ruby_dev.fetch_build_ruby" do
-            @fetchers[:mri].fetch_untar("#{ruby_version.version.sub(ruby_vm, "#{ruby_vm}-build")}.tgz")
-          end
-        end
-        error invalid_ruby_version_message unless $?.success?
-      end
-
-      FileUtils.mkdir_p(slug_vendor_ruby)
-      Dir.chdir(slug_vendor_ruby) do
-        instrument "ruby_dev.fetch_ruby" do
-          if ruby_version.rbx?
-            raise 'RBX IS NOT SUPPORTED YET!'
-          else
-            @fetchers[:mri].fetch_untar("#{ruby_version.version}.tgz")
-          end
-        end
-      end
-      error invalid_ruby_version_message unless $?.success?
+      install_specified_ruby_version
 
       app_bin_dir = "#{ENV['HOME']}/bin"
       FileUtils.mkdir_p app_bin_dir
@@ -318,6 +293,49 @@ WARNING
 
   def new_app?
     @new_app ||= !File.exist?(DEVSTEP_METADATA)
+  end
+
+  def install_specified_ruby_version
+    invalid_ruby_version_message = <<ERROR
+Invalid RUBY_VERSION specified: #{ruby_version.version}
+Valid versions: #{ruby_versions.join(", ")}
+ERROR
+
+    # TODO: Is this actually needed?
+    if ruby_version.build?
+      FileUtils.mkdir_p(build_ruby_path)
+      Dir.chdir(build_ruby_path) do
+        ruby_vm = "ruby"
+        instrument "ruby_dev.fetch_build_ruby" do
+          path_to_tarball = fetch_mri_ruby_with_cache(ruby_version.version.sub(ruby_vm, "#{ruby_vm}-build"))
+          run!("tar zxf #{path_to_tarball}")
+        end
+      end
+      error invalid_ruby_version_message unless $?.success?
+    end
+
+    FileUtils.mkdir_p(slug_vendor_ruby)
+    Dir.chdir(slug_vendor_ruby) do
+      instrument "ruby_dev.fetch_ruby" do
+        if ruby_version.rbx?
+          raise 'RBX IS NOT SUPPORTED YET!'
+        else
+          path_to_tarball = fetch_mri_ruby_with_cache(ruby_version.version)
+          run!("tar zxf #{path_to_tarball}")
+        end
+      end
+    end
+    error invalid_ruby_version_message unless $?.success?
+  end
+
+  def fetch_mri_ruby_with_cache(ruby_string)
+    file_name = "#{ruby_string}.tgz"
+    Dir.chdir(@_cache_path) do
+      if !File.exists?(file_name)
+        @fetchers[:mri].fetch(file_name)
+      end
+    end
+    return "#{@_cache_path}/#{file_name}"
   end
 
   # vendors JVM into the slug for JRuby
