@@ -22,6 +22,7 @@ class LanguagePack::RubyDev < LanguagePack::Ruby
   def compile
     instrument 'ruby_dev.compile' do
       fix_gem_permissions
+      ensure_docs_are_not_installed
       # check for new app at the beginning of the compile
       new_app?
       Dir.chdir(build_path)
@@ -68,10 +69,22 @@ class LanguagePack::RubyDev < LanguagePack::Ruby
 private
 
   def fix_gem_permissions
-    # Create this dir from here as we might want to bind mount ~/.gem/credentials
-    # from the host
-    system("sudo mkdir -p #{ENV['HOME']}/.gem/specs")
-    system("sudo chown -R developer: #{ENV['HOME']}/.gem")
+    instrument 'ruby_dev.fix_gem_permissions' do
+      # Create this dir from here as we might want to bind mount ~/.gem/credentials
+      # from the host
+      system("sudo mkdir -p #{ENV['HOME']}/.gem/specs")
+      system("sudo chown -R developer: #{ENV['HOME']}/.gem")
+    end
+  end
+
+  def ensure_docs_are_not_installed
+    return if File.exists?("#{ENV['HOME']}/.gemrc")
+
+    instrument 'ruby_dev.ensure_docs_are_not_installed' do
+      File.open("#{ENV['HOME']}/.gemrc", "w") do |file|
+        file.puts "---\ngem: --no-ri --no-rdoc"
+      end
+    end
   end
 
   def ruby_install_needed?
