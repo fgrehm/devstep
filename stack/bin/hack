@@ -12,7 +12,7 @@ last_modified_before=$(last_modified_env_file)
 last_modified_after=$(last_modified_env_file)
 
 # Reload env vars if needed
-if [ $last_modified_before -lt $last_modified_after ]; then
+if [ -z $last_modified_before ] || [ $last_modified_before -lt $last_modified_after ]; then
   echo 'Reloading env...'
   source $HOME/load-env.sh
 fi
