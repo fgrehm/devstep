@@ -118,8 +118,11 @@ done
 
 echo_title "Build finished successfully!"
 
-## Reload env vars
-source $HOME/load-env.sh
+## Let the user know a reload is needed
+if [ "${FORCED_BUILDPACKS}" = '1' ]; then
+  echo "********************************************************************************"
+  echo "* HEADS UP: Your environment is likely to have changed, please run \`reload-env'"
+fi
 
 ## Save on disk space if wanted
 if [ "${CLEANUP}" = '1' ]; then
