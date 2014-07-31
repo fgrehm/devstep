@@ -61,18 +61,19 @@ RUN DEBIAN_FRONTEND=noninteractive && \
 RUN rm /etc/apt/apt.conf.d/no-cache
 
 #####################################################################
+# Devstep buildpacks
+
+ADD buildpacks /.devstep/buildpacks
+RUN for script in /.devstep/buildpacks/*/bin/install-dependencies; do \
+      $script; \
+    done
+
+#####################################################################
 # Devstep goodies (ADDed at the end to increase image "cacheability")
 
 ADD stack/bin /.devstep/bin
 ADD stack/load-env.sh /.devstep/load-env.sh
 ADD addons /.devstep/addons
-ADD buildpacks /.devstep/buildpacks
-
-#####################################################################
-# Prepare buildpack dependencies
-RUN for script in /.devstep/buildpacks/*/bin/install-dependencies; do \
-      $script; \
-    done
 
 #####################################################################
 # Fix permissions, set up init and generate locales
