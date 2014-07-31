@@ -50,6 +50,13 @@ class LanguagePack::RubyDev < LanguagePack::Ruby
 
 private
 
+  def add_to_profiled(string)
+    FileUtils.mkdir_p "#{ENV['HOME']}/.profile.d"
+    File.open("#{ENV['HOME']}/.profile.d/ruby.sh", "a") do |file|
+      file.puts string
+    end
+  end
+
   # the base PATH environment variable to be used
   # @return [String] the resulting PATH
   def default_path
