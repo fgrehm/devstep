@@ -32,25 +32,24 @@ RUN DEBIAN_FRONTEND=noninteractive && \
     mkdir -p /etc/service
 
 #####################################################################
-# * Dependencies for rubies (and possibly other programming language
-#   envs as well)
+# * Install dependencies for rubies, php and possibly other programming
+#   language envs as well
 # * Install and configure PostgreSQL and MySQL clients
+# * Install bash-completion to save us a few keystrokes
 # * Install vim because editing files with plain old vi sucks
-# * Install tmux so that we can run lots of shells within the same
-#   bash session (without the need of running through SSH)
 # * Install `htop` because it has a nicer UI than plain old `top`
 # * Download and install jq as it is being used by a few buildpacks
 #   See http://stedolan.github.io/jq for more info
 
 RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y gawk libreadline6-dev libyaml-dev libgdbm-dev libncurses5-dev libffi-dev libicu-dev && \
+    apt-get install -y gawk libreadline5 libmcrypt4 libaprutil1 libreadline6-dev libyaml-dev libgdbm-dev libncurses5-dev libffi-dev libicu-dev && \
     apt-get install -y postgresql-client mysql-client && \
-    apt-get install -y software-properties-common && \
+    apt-get install -y software-properties-common bash-completion && \
     echo "[client]\nprotocol=tcp\nuser=root" >> /.devstep/.my.cnf && \
     echo "export PGHOST=localhost" >> /.devstep/.profile.d/postgresql.sh && \
     echo "export PGUSER=postgres" >> /.devstep/.profile.d/postgresql.sh && \
-    apt-get install -y --force-yes vim tmux htop bsdtar && \
+    apt-get install -y --force-yes vim htop && \
     apt-get clean && \
     mkdir -p /.devstep/bin && \
     curl -L -s http://stedolan.github.io/jq/download/linux64/jq > /.devstep/bin/jq
