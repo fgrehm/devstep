@@ -1,20 +1,6 @@
 #!/bin/bash
 set -eo pipefail
 
-# Capture max updated at timestamp so we can detect we the environment needs to
-# be reloaded
-last_modified_env_file() {
-  find $HOME/.profile.d -type f -printf '%T@\n' | sort -n | tail -1 | cut -f1 -d"."
-}
-
-last_modified_before=$(last_modified_env_file)
 /.devstep/bin/build-project $PWD "${1}"
-last_modified_after=$(last_modified_env_file)
 
-# Reload env vars if needed
-if [ -z $last_modified_before ] || [ $last_modified_before -lt $last_modified_after ]; then
-  echo 'Reloading env...'
-  source $HOME/load-env.sh
-fi
-
-exec /bin/bash --login
+exec /bin/bash

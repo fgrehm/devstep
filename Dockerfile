@@ -72,6 +72,7 @@ RUN for script in /.devstep/buildpacks/*/bin/install-dependencies; do \
 # Devstep goodies (ADDed at the end to increase image "cacheability")
 
 ADD stack/bin /.devstep/bin
+ADD stack/bashrc /.devstep/.bashrc
 ADD stack/load-env.sh /.devstep/load-env.sh
 ADD addons /.devstep/addons
 
@@ -102,4 +103,4 @@ ENV LC_CTYPE en_US.UTF-8
 ENTRYPOINT ["/.devstep/bin/entrypoint"]
 
 # Start a bash session by default
-CMD ["/bin/bash", "--login"]
+CMD ["/bin/bash"]
