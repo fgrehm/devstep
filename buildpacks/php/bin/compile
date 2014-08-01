@@ -188,6 +188,9 @@ tar xzf $CACHE_DIR/$TARBALL -C $PHP_DIR
 cp $BP_DIR/conf/apache2/httpd.conf.default $PHP_DIR/etc/apache2/httpd.conf
 # remember the version for future upgrade handling
 echo $APACHE_VERSION > $HOME/apache2_version
+if ! [ -L /lib/x86_64-linux-gnu/libpcre.so.1 ]; then
+  sudo ln -s /lib/x86_64-linux-gnu/libpcre.so.3 /lib/x86_64-linux-gnu/libpcre.so.1
+fi
 
 NGINX_VERSION="1.6.0"
 TARBALL="nginx-${NGINX_VERSION}.tar.gz"
@@ -358,6 +361,15 @@ fi
 #     export NEW_RELIC_LOG=${NEW_RELIC_LOG:-"stderr"}
 # fi
 # EOF
+
+if ! [ -d /app/.heroku ]; then
+  sudo mkdir -p /app/.heroku
+  sudo chown -R developer:developer /app/
+fi
+
+if ! [ -L /app/.heroku/php ]; then
+  ln -s $PHP_DIR /app/.heroku/php
+fi
 
 if [[ ! -f "Procfile" ]]; then
     bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
