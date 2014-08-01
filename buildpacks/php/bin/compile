@@ -1,444 +1,339 @@
 #!/bin/bash
 
-set -e
+install_ext () {
+    local ext=$1
+    local reason=${2:-}
+    local ext_ini="$BP_DIR/conf/php/conf.d/ext-$ext.ini"
+    local ext_dir=$(basename $(php-config --extension-dir))
+    if [[ -f "$ext_ini" ]]; then
+        if [[ ! -f "$PHP_EXT_DIR/$ext.so" ]]; then
+            curl --silent --location "${S3_URL}/extensions/${ext_dir}/${ext}.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
+            echo "- ${ext} (${reason}; downloaded, using 'ext-${ext}.ini')" | indent
+        else
+            echo "- ${ext} (${reason}; bundled, using 'ext-${ext}.ini')" | indent
+        fi
+        cp "${ext_ini}" "${BUILD_DIR}/.heroku/php/etc/php/conf.d"
+    elif [[ -f "${PHP_EXT_DIR}/${ext}.so" ]]; then
+        echo "extension = ${ext}.so" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/ext-${ext}.ini"
+        echo "- ${ext} (${reason}; bundled)" | indent
+    elif echo -n ${ext} | php -r 'exit((int)!extension_loaded(file_get_contents("php://stdin")));'; then
+        echo "- ${ext} (${reason}; enabled by default)" | indent
+    else
+        warning_inline "Unknown extension ${ext} (${reason}), install may fail!"
+    fi
+}
+
+# fail hard
 set -o pipefail
+# fail harder
+set -eu
+# move hidden files too, just in case
 shopt -s dotglob
 
-BUILD_DIR="$1"
-CACHE_DIR="$2"
+STACK=${STACK:-cedar} # Anvil has none
+BUILD_DIR=$1
+CACHE_DIR=$2/php
+mkdir -p "$CACHE_DIR"
+ENV_DIR=${3:-} # Anvil has none
+BP_DIR=$(cd $(dirname $0); cd ..; pwd)
 
-bp_basedir="$( cd -P "$( dirname "$0" )" && cd .. && pwd )"
-bp_basedir=$(readlink -f $bp_basedir)
+# convenience functions
+source $BP_DIR/bin/common.sh
 
-basedir="${bp_basedir}/chh-heroku-buildpack-php/bin"
-basedir=$(readlink -f $basedir)
-export HEROKU_PHP_BUILDPACK=$basedir
+export_env_dir "$ENV_DIR" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK)$'
 
-source "$basedir/../conf/buildpack.conf"
-source $basedir/common.sh
+BUILDPACK_URL=${BUILDPACK_URL:-} # Anvil has none
+BUILDPACK_BRANCH=$(expr "$BUILDPACK_URL" : '^.*/heroku-buildpack-php#\(..*\)$' || expr "$BUILDPACK_URL" : '^.*/heroku-buildpack-php\.git#\(..*\)$' || true)
+BUILDPACK_BRANCH=${BUILDPACK_BRANCH:-master}
+BUILDPACK_OWNER=$(expr "$BUILDPACK_URL" : '^.*/\(..*\)/heroku-buildpack-php' || true)
 
-if [ -n "$BUILDPACK_DEBUG" ]; then
-    set -x
+S3_URL="master"
+if [[ "$BUILDPACK_BRANCH" != v* && "$BUILDPACK_BRANCH" != "master" ]]; then
+    S3_URL="develop"
 fi
+S3_URL="https://lang-php.s3.amazonaws.com/dist-${STACK}-${S3_URL}"
 
-cd "$BUILD_DIR"
-mkdir -p "$CACHE_DIR/package"
+cd $BUILD_DIR
 
-export PATH="/.devstep/bin:$PATH"
-
-function fetch_engine_package() {
-    local engine="$1"
-    local version="$2"
-    local location="$3"
-
-    fetch_package "${engine}-${version}" "$location"
-}
-
-function fetch_package() {
-    local package="$1"
-    local location="$2"
-
-    mkdir -p "$location"
-
-    local checksum_url="http://${S3_BUCKET}.s3.amazonaws.com/package/${package}.md5"
-    local package_url="http://${S3_BUCKET}.s3.amazonaws.com/package/${package}.tgz"
-    local checksum=$(curl "$checksum_url" 2> /dev/null)
-    local cache_checksum=
-
-    if [ -f "$CACHE_DIR/package/${package}.md5" ]; then
-        local cache_checksum=$(cat "$CACHE_DIR/package/${package}.md5")
-    fi
-
-    mkdir -p "$CACHE_DIR/package/$(dirname "$package")"
-
-    if [ "$cache_checksum" != "$checksum" ]; then
-        curl "$package_url" -L -s > "$CACHE_DIR/package/${package}.tgz"
-        echo "$checksum" > "$CACHE_DIR/package/${package}.md5"
+if [[ -s "composer.json" ]]; then
+    cat composer.json | python -mjson.tool &> /dev/null || error "Could not parse composer.json; make sure it's valid!"
+else
+    if [[ ! -f "composer.json" ]]; then
+        warning 'No composer.json found.
+Using index.php to declare PHP applications is considered legacy
+functionality and may lead to unexpected behavior.'
     else
-        echo "Checksums match. Fetching from cache."
+        notice 'Your composer.json is completely empty.
+Please change its contents to at least "{}" so it is valid JSON.'
+    fi
+    echo "{}" > composer.json
+fi
+
+mkdir -p .heroku/php
+
+export COMPOSER_HOME=$CACHE_DIR/.composer
+mkdir -p $COMPOSER_HOME
+
+PHP_VERSION=
+HHVM_VERSION=
+runtimes=$(cd $BP_DIR/support/build; ls {php,hhvm}-*)
+if [[ $STACK == "cedar-14" ]]; then
+    # FIXME: remove once HHVM works on cedar-14
+    runtimes=$(cd $BP_DIR/support/build; ls php-*)
+fi
+engine="php"
+if [[ -f "composer.json" ]]; then
+    if [[ ! -f "composer.lock" ]]; then
+        cat composer.json | python -c 'import sys, json; print sys.exit(any(key.count("/") for key in json.load(sys.stdin).get("require", {})))' 2> /dev/null || error "Your composer.json specifies dependencies, but no composer.lock
+was found, please check it into your repository along with composer.json!"
     fi
 
-    tar xzf "$CACHE_DIR/package/${package}.tgz" -C "$location"
-}
+    solver_payload=$(echo -n "$runtimes" | python -c '
+import sys, json
+ret = {}
+ret["packages"] = sys.stdin.read().splitlines()
+c_json = dict(json.load(open("composer.json"))) # wrap in dict() to prevent simple errors with {} vs []
+ret["json"] = {k: c_json.get(k, None) for k in ["minimum-stability", "prefer-stable"]}
+ret["json"]["platform"] = {k: dict(c_json.get("require", {})).get(k, None) for k in ["php", "hhvm"]} # wrap in dict() to prevent simple errors with {} vs []
+try:
+    c_lock = json.load(open("composer.lock"))
+    ret["lock"] = {k: c_lock.get(k, None) for k in ["minimum-stability", "prefer-stable", "stability-flags"]}
+    ret["lock"]["platform"] = {k: dict(c_lock.get("platform", {})).get(k, None) for k in ["php", "hhvm"]} # wrap in dict() to prevent simple errors with {} vs []
+except IOError:
+    ret["lock"] = None
+print json.dumps(ret)
+' 2> /dev/null) || error "Couldn't parse composer.lock; it must be non-empty and valid JSON.
+Run 'composer update' to have it re-generated or removed by Composer."
+    solver_result=$(echo -n "$solver_payload" | curl --silent --location --fail -H'Content-Type: application/json' -d @- "http://php-runtime-version-selector.herokuapp.com/resolve?default_runtime=php") || error "Failed to resolve runtime requirements.
+If the issue persists, please contact support."
+    while IFS="|" read runtime_name runtime_source runtime_constraint runtime_result; do
+        if [[ $runtime_result ]]; then
+            if [[ $runtime_source == "default" ]]; then
+                status "No runtime requirements in composer.json, defaulting to ${runtime_name^^} $runtime_result."
+            else
+                status "Resolved $runtime_source requirement for ${runtime_name^^} $runtime_constraint to version $runtime_result."
+            fi
+            if [[ $runtime_name == "php" ]]; then
+                PHP_VERSION="$runtime_result"
+            elif [[ $runtime_name == "hhvm" ]]; then
+                HHVM_VERSION="$runtime_result"
+                engine=hhvm
+            fi
+        else
+            error "Could not resolve $runtime_source requirement for ${runtime_name^^} $runtime_constraint,
+please adjust the version selector. The following runtimes are available:
+$(echo $runtimes | fold -s -w 73)"
+        fi
+    done <<<"$solver_result"
+fi
 
-function log_error() {
-    local c='s/^/ !     /'
-    case $(uname) in
-        Darwin) echo "$*" | sed -l "$c";;
-        *)      echo "$*" | sed -u "$c";;
-    esac
-}
+status "Installing system packages..."
 
-function indent() {
-    local c='s/^/       /'
-    case $(uname) in
-        Darwin) sed -l "$c";;
-        *)      sed -u "$c";;
-    esac
-}
+# we need to run things in here, set it up!
+ln -s $BUILD_DIR/.heroku /app/.heroku
+export PATH=/app/.heroku/php/bin:$PATH
 
-function install_composer_deps() {
-    local cwd=$(pwd)
-    local target="$1"
+if [[ "${PHP_VERSION}" ]]; then
+    PHP_DIST_URL="$S3_URL/php-$PHP_VERSION.tar.gz"
+    echo "- PHP $PHP_VERSION" | indent
+    curl --silent --location "$PHP_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+    PHP_EXT_DIR=$(php-config --extension-dir)
+    # update config files
+    mkdir -p $BUILD_DIR/.heroku/php/etc/php
+    cp $BP_DIR/conf/php/php.ini $BUILD_DIR/.heroku/php/etc/php
+    cp $BP_DIR/conf/php/php-fpm.conf $BUILD_DIR/.heroku/php/etc/php
+    mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
+    # remember the version for future upgrade handling
+    echo $PHP_VERSION > $CACHE_DIR/php_version
+fi
+if [[ "${HHVM_VERSION}" ]]; then
+    HHVM_DIST_URL="$S3_URL/hhvm-$HHVM_VERSION.tar.gz"
+    echo "- HHVM $HHVM_VERSION" | indent
+    curl --silent --location "$HHVM_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+    echo $HHVM_VERSION > $CACHE_DIR/hhvm_version
+    # make HHVM accessible
+    export PATH=$PATH:/app/.heroku/php/usr/bin
+    # so it'll start. remember to use the full path to the binary, or we'll get an infinite loop
+    hhvm() { LD_LIBRARY_PATH=/app/.heroku/php/usr/lib/hhvm:/app/.heroku/php/usr/lib `which hhvm` "$@"; }
+    export -f hhvm
+fi
 
-    if [ ! -f "$target/composer.json" ]; then
-        return 0
+APACHE_VERSION="2.4.10"
+APACHE_DIST_URL="$S3_URL/apache-$APACHE_VERSION.tar.gz"
+echo "- Apache $APACHE_VERSION" | indent
+curl --silent --location "$APACHE_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+# Apache; copy in our config
+cp $BP_DIR/conf/apache2/httpd.conf.default $BUILD_DIR/.heroku/php/etc/apache2/httpd.conf
+# remember the version for future upgrade handling
+echo $APACHE_VERSION > $CACHE_DIR/apache2_version
+
+NGINX_VERSION="1.6.0"
+NGINX_DIST_URL="$S3_URL/nginx-$NGINX_VERSION.tar.gz"
+echo "- Nginx $NGINX_VERSION" | indent
+curl --silent --location "$NGINX_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+# nginx; copy in our config
+cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.conf
+# remember the version for future upgrade handling
+echo $NGINX_VERSION > $CACHE_DIR/nginx_version
+
+# handle extensions for PHP
+if [[ "${PHP_VERSION}" ]]; then
+    status "Installing PHP extensions..."
+    install_ext "opcache" "automatic"
+    exts=
+    if [[ -f "composer.json" ]]; then
+        exts=$(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key[4:]) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)
+    fi
+    newrelic_installed=false
+    if [[ -n "$exts" ]]; then
+        while read -r ext; do
+            if [[ "$ext" == "newrelic" ]]; then
+                newrelic_installed=true
+            fi
+            install_ext "$ext" "composer.json"
+        done <<< "$exts"
+    fi
+    # special treatment for New Relic; we enable it if we detect a license key for it
+    # otherwise users would have to have it in their require section, which is annoying in development environments
+    NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY:-}
+    if [[ $newrelic_installed == false && -n "$NEW_RELIC_LICENSE_KEY" ]]; then
+        newrelic_installed=true
+        install_ext "newrelic" "add-on detected"
     fi
 
-    export COMPOSER_CACHE_DIR=$CACHE_DIR/composer
-    mkdir -p $COMPOSER_CACHE_DIR
-    mkdir -p "$target/vendor/composer/bin"
-
-    local checksum=$(curl --silent "http://${S3_BUCKET}.s3.amazonaws.com/composer/composer.phar.md5")
-
-    status "Vendoring Composer"
-    if [ ! -f "$CACHE_DIR/composer.phar.md5" ] || [ "$(cat $CACHE_DIR/composer.phar.md5)" != "$checksum" ]; then
-        echo "Updating Composer" | indent
-        curl --silent "http://${S3_BUCKET}.s3.amazonaws.com/composer/composer.phar" > "$CACHE_DIR/composer.phar" | indent
-        chmod a+x "$CACHE_DIR/composer.phar"
-        echo "$checksum" > $CACHE_DIR/composer.phar.md5
+    if [[ $newrelic_installed == true ]]; then
+        # newrelic logs to stderr, and that mangles our build output and seems to cause calls to Composer to potentially hang, so we disable it for the duration of this build
+        echo "newrelic.enabled = 0
+newrelic.loglevel = error
+newrelic.daemon.dont_launch = 3
+newrelic.daemon.loglevel = error" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/ext-newrelic-off.ini"
     fi
+fi
 
-    cp "$CACHE_DIR/composer.phar" "$target/vendor/composer/bin/"
+status "Installing dependencies..."
 
-    local required_extensions=$(jq --raw-output '.require | keys | .[]' < "$BUILD_DIR/composer.json" | grep '^ext-' | sed 's/^ext-//')
-    if [ -n "$required_extensions" ]; then
-        status "Bundling additional extensions $required_extensions"
-        for ext in $required_extensions; do
-            echo "$ext" | indent
-            # TODO: Find a better way to ignore extensions which were not found in S3
-            fetch_package "ext/$(php_api_version)/php-${ext}" "/.devstep/vendor/php" 2>/dev/null || true | indent
-        done
+# check if we should use a composer.phar version bundled with the project
+if [[ -f "composer.phar" ]]; then
+    composer() {
+        $engine composer.phar "$@"
+    }
+    export -f composer
+    notice_inline "Found a composer.phar in root directory, will use it for install."
+else
+    curl --silent --location "$S3_URL/composer.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
+    composer() {
+        $engine `which composer` "$@"
+    }
+    export -f composer
+    composer self-update --no-interaction --quiet # TODO: specify a version once composer has stable releases
+fi
+# echo composer version for info purposes
+# tail to get rid of outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+composer --version 2> /dev/null | tail -n 1 | indent
+
+# throw a notice if people have added their vendor dir to Git; that's bad practice and makes everything slow and cluttered
+if [[ -e "$(composer config vendor-dir)" ]]; then
+    warning "You have put Composer's vendor directory under version control.
+That directory should not be in your Git repository; only composer.json
+and composer.lock should be added, with Composer handling installation.
+Please 'git rm --cached $(composer config vendor-dir)/' to remove the folder from your index,
+then add '/$(composer config vendor-dir)/' to your '.gitignore' list to remove this notice.
+For more information, refer to the Composer FAQ: http://bit.ly/1rlCSZU"
+fi
+
+# handle custom oauth keys
+COMPOSER_GITHUB_OAUTH_TOKEN=${COMPOSER_GITHUB_OAUTH_TOKEN:-}
+if [[ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ]]; then
+    if curl --fail --silent -H "Authorization: token $COMPOSER_GITHUB_OAUTH_TOKEN" https://api.github.com/rate_limit > /dev/null; then
+        composer config -g github-oauth.github.com "$COMPOSER_GITHUB_OAUTH_TOKEN" &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+        notice_inline 'Using custom GitHub OAuth token in $COMPOSER_GITHUB_OAUTH_TOKEN'
+    else
+        error 'Invalid GitHub OAuth token in $COMPOSER_GITHUB_OAUTH_TOKEN'
     fi
-
-    mkdir -p $HOME/.composer/cache
-    mkdir -p $CACHE_DIR/composer
-    ln -s $CACHE_DIR/composer $HOME/.composer/cache
-    php "vendor/composer/bin/composer.phar" self-update
-
-    status "Installing application dependencies with Composer"
-    {
-        cd "$target"
-        php "vendor/composer/bin/composer.phar" install \
-            --prefer-dist \
-            --optimize-autoloader \
-            --no-interaction
-        cd "$cwd"
-    } | indent
-}
-
-function install_node_deps() {
-    local cwd=$(pwd)
-    local target="$1"
-
-    if [ ! -f "$target/package.json" ]; then
-        return 0
+else
+    # don't forget to remove any stored key if it's gone from the env
+    composer config -g --unset github-oauth.github.com &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+    if curl --silent https://api.github.com/rate_limit | python -c 'import sys, json; sys.exit((json.load(sys.stdin)["resources"]["core"]["remaining"] > 0))'; then # yes, check > 0, not < 1 - exit status of 0 will trigger the if
+        notice "You've reached the GitHub API's request rate limit.
+Composer will now try and fall back to slower downloads from source.
+It's strongly recommended you use a custom OAuth token; for details, see
+http://devcenter.heroku.com/articles/php-support#custom-github-oauth-tokens"
     fi
+fi
+# no need for the token to stay around in the env
+unset COMPOSER_GITHUB_OAUTH_TOKEN
 
-    status "NODE (package.json) app detected"
+# install dependencies
+composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction | indent
 
-    source ${basedir}/compile_node $BUILD_DIR $CACHE_DIR
+composer show --installed heroku/heroku-buildpack-php &> /dev/null && error "Your composer.json requires package 'heroku/heroku-buildpack-php'.
+This package may only be used as a dev dependency (in 'require-dev')!"
 
-    local node_path='vendor/node'
+status "Preparing runtime environment..."
 
-    # Symlink node to /.devstep/vendor/node so node and its modules are runnable.
+# install this buildpack like a composer package
+# it will contain the apache/nginx/php configs and the boot script
+# TODO: warn if require-dev has the package using a different branch
+shopt -u dotglob # we don't want .git, .gitignore et al
+composer_vendordir=$(composer config vendor-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
+composer_bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
+# figure out the package dir name to write to and copy to it
+hbpdir="$composer_vendordir/$(cat $BP_DIR/composer.json | python -c 'import sys, json; print json.load(sys.stdin)["name"]')"
+mkdir -p "$BUILD_DIR/$hbpdir"
+cp -r "$BP_DIR"/* "$BUILD_DIR/$hbpdir/"
+# make bin dir, just in case
+mkdir -p "$BUILD_DIR/$composer_bindir"
+# figure out shortest relative path from vendor/heroku/heroku-buildpack-php to vendor/bin (or whatever the bin dir is)
+relbin=$(python -c "import os.path; print os.path.relpath('$hbpdir', '$composer_bindir')")
+# collect bin names from composer.json
+relbins=$(cat $BP_DIR/composer.json | python -c 'from __future__ import print_function; import sys, json; { print(sys.argv[1]+"/"+bin) for bin in json.load(sys.stdin)["bin"] }' $relbin)
+# link to bins
+cd $BUILD_DIR/$composer_bindir
+ln -s $relbins .
+cd $BUILD_DIR
 
-    ln -s ${BUILD_DIR}/${node_path}/ /.devstep/${node_path}
-    ln -s ${BUILD_DIR}/node_modules /.devstep/node_modules
-
-    echo "Node " `node -v` | indent
+# Update the PATH
+mkdir -p $BUILD_DIR/.profile.d
+cat > $BUILD_DIR/.profile.d/php.sh <<"EOF"
+export PATH="$HOME/.heroku/php/bin:$HOME/.heroku/php/sbin:$PATH"
+EOF
+if [[ $engine == "hhvm" ]]; then
+    cat > $BUILD_DIR/.profile.d/hhvm.sh <<"EOF"
+export PATH="$PATH:$HOME/.heroku/php/usr/bin"
+hhvm() { LD_LIBRARY_PATH=$HOME/.heroku/php/usr/lib/hhvm:$HOME/.heroku/php/usr/lib `which hhvm` "$@"; }
+export -f hhvm
+EOF
+fi
+# Alias composer if needed
+if [[ -f "composer.phar" ]]; then
+    cat > $BUILD_DIR/.profile.d/composer.sh <<EOF
+composer() {
+    $engine composer.phar "\$@"
 }
-
-export_env_dir() {
-    env_dir=$1
-    blacklist_regex=${3:-'^(PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH)$'}
-    if [ -d "$env_dir" ]; then
-        for e in $(ls $env_dir); do
-            echo "$e" | grep -qvE "$blacklist_regex" &&
-            export "$e=$(cat $env_dir/$e)"
-            :
-        done
-    fi
+export -f composer
+EOF
+else
+    cat > $BUILD_DIR/.profile.d/composer.sh <<EOF
+composer() {
+    $engine \`which composer\` "\$@"
 }
-
-function mktmpdir() {
-    dir=$(mktemp -t php-$1-XXXX)
-    rm -rf $dir
-    mkdir -p $dir
-    echo $dir
-}
-
-function php_api_version() {
-    basename "$(php-config --extension-dir)" | tr '-' ' ' | cut -f 5 -d ' '
-}
-
-function package_document_root() {
-    jq --raw-output '.extra.heroku["document-root"] // ""' < "$BUILD_DIR/composer.json"
-}
-
-function package_index_file() {
-    jq --raw-output '.extra.heroku["index-document"] // "index.php"' < "$BUILD_DIR/composer.json"
-}
-
-function package_framework() {
-    jq --raw-output '.extra.heroku.framework // ""' < "$BUILD_DIR/composer.json"
-}
-
-function package_nginx_version() {
-    jq --raw-output ".extra.heroku.engines.nginx // \"default\"" < "$BUILD_DIR/composer.json"
-}
-
-function package_php_version() {
-    jq --raw-output ".extra.heroku.engines.php // \"default\"" < "$BUILD_DIR/composer.json"
-}
-
-function package_php_config() {
-    jq --raw-output '.extra.heroku["php-config"] // [] | .[]' < "$BUILD_DIR/composer.json"
-}
-
-function package_php_includes() {
-    jq --raw-output '.extra.heroku["php-includes"] // [] | .[]' < "$BUILD_DIR/composer.json"
-}
-
-function package_nginx_includes() {
-    jq --raw-output '.extra.heroku["nginx-includes"] // [] | .[]' < "$BUILD_DIR/composer.json"
-}
-
-function package_log_files() {
-    jq --raw-output '.extra.heroku["log-files"] // [] | .[]' < "$BUILD_DIR/composer.json"
-}
-
-function package_compile_cmd() {
-    jq --raw-output '.extra.heroku["compile"] // [] | .[]' < "$BUILD_DIR/composer.json"
-}
-
-export_env_dir "$3"
-
-# Download jq binary for JSON processing
-mkdir -p /.devstep/bin
-if ! [ -f /.devstep/bin/jq ]; then
-  curl "http://${S3_BUCKET}.s3.amazonaws.com/jq/jq" -L -s -o - > /.devstep/bin/jq
+export -f composer
+EOF
 fi
-chmod +x /.devstep/bin/jq
+# new relic defaults
+cat > $BUILD_DIR/.profile.d/newrelic.sh <<"EOF"
+if [[ -n "$NEW_RELIC_LICENSE_KEY" ]]; then
+    export NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME:-"PHP Application on Heroku"}
+    export NEW_RELIC_LOG=${NEW_RELIC_LOG:-"stderr"}
+fi
+EOF
 
-DEFAULT_PHP="5.5.10"
-DEFAULT_NGINX="1.4.4"
-
-AVAILABLE_PHP_VERSIONS=$(curl "http://${S3_BUCKET}.s3.amazonaws.com/manifest.php" 2> /dev/null)
-AVAILABLE_NGINX_VERSIONS=$(curl "http://${S3_BUCKET}.s3.amazonaws.com/manifest.nginx" 2> /dev/null)
-
-MCRYPT_VERSION="2.5.8"
-PHP_VERSION="default"
-NGINX_VERSION="default"
-DOCUMENT_ROOT=$BUILD_DIR
-INDEX_DOCUMENT="index.php"
-FRAMEWORK=
-PHP_EXTRA_CONFIG=
-PHP_INCLUDES=
-COMPILE_CMD=
-NGINX_INCLUDES=
-NEWRELIC_VERSION=4.4.5.35
-LOG_FILES=( "/.devstep/vendor/nginx/logs/access.log" "/.devstep/vendor/nginx/logs/error.log" "/.devstep/vendor/php/var/log/error.log" )
-
-# Read config variables from composer.json if it exists
-if [ -f "$BUILD_DIR/composer.json" ]; then
-    PHP_VERSION=$(package_php_version)
-    NGINX_VERSION=$(package_nginx_version)
-    DOCUMENT_ROOT=$(package_document_root)
-    INDEX_DOCUMENT=$(package_index_file)
-    FRAMEWORK=$(package_framework)
-    PHP_EXTRA_CONFIG=$(package_php_config)
-    PHP_INCLUDES=$(package_php_includes)
-    COMPILE_CMD=$(package_compile_cmd)
-    NGINX_INCLUDES=$(package_nginx_includes)
-    USER_LOG_FILES=$(package_log_files)
+if [[ ! -f "Procfile" ]]; then
+    bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
+    echo "web: $bindir/heroku-$engine-apache2" > Procfile
+    notice_inline "No Procfile, defaulting to 'web: $bindir/heroku-$engine-apache2'"
 fi
 
-if [ -z "${DOCUMENT_ROOT}" ]; then
-  DOCUMENT_ROOT='/workspace'
-fi
-
-if [ -f "${DOCUMENT_ROOT}/public/index.php" ]; then
-  DOCUMENT_ROOT="${DOCUMENT_ROOT}/public"
-elif [ -f "${DOCUMENT_ROOT}/webroot/index.php" ]; then
-  DOCUMENT_ROOT="${DOCUMENT_ROOT}/webroot"
-elif [ -f "${DOCUMENT_ROOT}/web/index.php" ]; then
-  DOCUMENT_ROOT="${DOCUMENT_ROOT}/web"
-fi
-
-# Try reading PHP version from .php-version file in project
-if [ -f "$BUILD_DIR/.php-version" ]; then
-    PHP_VERSION=$(cat "$BUILD_DIR/.php-version")
-fi
-
-if [ "$PHP_VERSION" = "default" ]; then
-    PHP_VERSION="$DEFAULT_PHP"
-fi
-
-if [ "$NGINX_VERSION" = "default" ]; then
-    NGINX_VERSION="$DEFAULT_NGINX"
-fi
-
-# Look for ".*" versions, match them against all available versions
-# and select the latest version which was found.
-if echo "$PHP_VERSION" | grep '\*' &>/dev/null; then
-    PHP_VERSION=$(echo "$AVAILABLE_PHP_VERSIONS" | grep "^$PHP_VERSION$" | sort -r | head -n1)
-fi
-
-if echo "$NGINX_VERSION" | grep '\*' &>/dev/null; then
-    NGINX_VERSION=$(echo "$AVAILABLE_NGINX_VERSIONS" | grep "^$NGINX_VERSION$" | sort -r | head -n1)
-fi
-
-VENDORED_NGINX=/.devstep/vendor/nginx
-VENDORED_PHP=/app/vendor/php
-
-[ ! -d "$BUILD_DIR/vendor" ] && mkdir -p "$BUILD_DIR/vendor"
-
-status "Bundling NGINX ${NGINX_VERSION}"
-fetch_engine_package nginx "$NGINX_VERSION" /.devstep/vendor/nginx | indent
-
-status "Bundling PHP ${PHP_VERSION}"
-
-# Install libraries also on build container, so PHP doesn't wayne about missing
-# dynamic libraries when running it during the slug compilation.
-sudo mkdir -p /app/vendor/{libicu,libmcrypt}
-sudo chown -R developer: /app
-fetch_package "libicu-51" /app/vendor/libicu > /dev/null
-fetch_package "libmcrypt-${MCRYPT_VERSION}" /app/vendor/libmcrypt > /dev/null
-
-fetch_engine_package php "$PHP_VERSION" /app/vendor/php | indent
-
-test ! -d "/.devstep/.profile.d" && mkdir -p /.devstep/.profile.d || true
-
-cat > "/.devstep/.profile.d/php.sh" <<SH
-export PATH=/.devstep/vendor/nginx/sbin:/app/vendor/php/sbin:/app/vendor/php/bin:/app/vendor/bin:\$PATH
-export HEROKU_BUILD_TIME=$(date +%Y%m%d%H%M%S)
-export PORT=8080
-SH
-
-source "/.devstep/.profile.d/php.sh"
-
-# Fetch additional extensions
-status "Bundling extensions"
-echo "       apcu"
-fetch_package "ext/$(php_api_version)/php-apcu" "/.devstep/vendor/php" | indent
-echo "       phpredis"
-fetch_package "ext/$(php_api_version)/php-redis" "/.devstep/vendor/php" | indent
-echo "       mongo"
-fetch_package "ext/$(php_api_version)/php-mongo" "/.devstep/vendor/php" | indent
-
-if [ -n "$BUILDPACK_DEBUG" ]; then
-    ls -R /.devstep/vendor/nginx
-    ls -R /.devstep/vendor/php
-fi
-
-mkdir -p "/app/conf"
-cp "$bp_basedir/conf/nginx/base.conf.erb" "/app/conf/nginx.conf.erb"
-cp "$basedir/../conf/php/php-fpm.conf" "/app/vendor/php/etc/php-fpm.conf"
-cp "$basedir/../conf/php/php.ini" "/app/vendor/php/etc/php.ini"
-
-sudo $(which pear) config-set php_ini /app/vendor/php/etc/php.ini &> /dev/null
-
-for conf in $PHP_EXTRA_CONFIG; do
-    echo "$conf" >> "/app/vendor/php/etc/php.ini"
-done
-
-for include in $PHP_INCLUDES; do
-    cp "$BUILD_DIR/$include" "/app/vendor/php/etc/conf.d/"
-done
-
-install_node_deps "$BUILD_DIR"
-install_composer_deps "$BUILD_DIR"
-
-# Detect PHP framework
-for f in "$bp_basedir/frameworks/"*; do
-    if "$f" detect "$BUILD_DIR"; then
-        FRAMEWORK="$f"
-    fi
-done
-
-# Fall back to classic mode
-if [ -z "$FRAMEWORK" ]; then
-    FRAMEWORK="$bp_basedir/frameworks/default"
-fi
-
-# Try to load the framework from the "frameworks" directory if it's just a
-# simple framework name like "symfony2"
-if [ ! -f "$FRAMEWORK" ] && [ -f "$bp_basedir/frameworks/$FRAMEWORK" ]; then
-    FRAMEWORK="$bp_basedir/frameworks/$FRAMEWORK"
-fi
-
-if [ ! -f "$FRAMEWORK" ]; then
-    log_error "Framework \"$FRAMEWORK\" not found!"
-    exit 1
-fi
-
-"$FRAMEWORK" compile "$BUILD_DIR" "$CACHE_DIR"
-
-LOG_FILES=$(unique_array ${LOG_FILES[@]} ${USER_LOG_FILES[@]})
-if [ -n "$FRAMEWORK" ] && [ -f "$FRAMEWORK" ]; then
-    FRAMEWORK_LOG_FILES=$("$FRAMEWORK" get-log-files)
-    LOG_FILES=$(unique_array ${LOG_FILES[@]} ${FRAMEWORK_LOG_FILES[@]})
-fi
-
-if [ -n "$COMPILE_CMD" ]; then
-    status "Running compile commands"
-    while read -r cmd; do
-        echo "Running '$cmd'" | indent
-        eval $cmd             | indent
-    done <<< "$COMPILE_CMD"
-fi
-
-if [ -n "$FRAMEWORK" ] && [ -f "$FRAMEWORK" ]; then
-    "$FRAMEWORK" end "$BUILD_DIR" "$CACHE_DIR"
-fi
-
-"$FRAMEWORK" post-compile "$BUILD_DIR" "$CACHE_DIR" || true
-
-status "Disabling opcache"
-rm /app/vendor/php/etc/conf.d/opcache.ini
-
-cat > /.devstep/bin/run-nginx <<SH
-#!/usr/bin/env bash
-
-pmsgr=/tmp/pmsgr
-rm -f \$pmsgr
-mkfifo \$pmsgr
-
-for var in \`env | cut -f1 -d=\`; do
-    echo "env[\$var] = \\$\${var}" >> /app/vendor/php/etc/php-fpm.conf
-done
-
-export DOCUMENT_ROOT="$DOCUMENT_ROOT"
-export INDEX_DOCUMENT="$INDEX_DOCUMENT"
-export NGINX_INCLUDES="$NGINX_INCLUDES"
-export PORT=8080
-
-erb /app/conf/nginx.conf.erb > /.devstep/vendor/nginx/conf/nginx.conf
-erb /app/conf/site.conf.erb > /.devstep/vendor/nginx/conf/site.conf
-
-`init_log_plex_fifo ${LOG_FILES}`
-`tail_log_plex ${LOG_FILES} ${SYS_LOG_FILES}`
-
-(
-    /app/vendor/php/sbin/php-fpm -p "/app/vendor/php"
-    #\$pmsgr < "php-fpm"
-)&
-
-(
-    /.devstep/vendor/nginx/sbin/nginx -p "/.devstep/vendor/nginx" -c /.devstep/vendor/nginx/conf/nginx.conf
-    #\$pmsgr < "nginx"
-)&
-
-
-read exitproc <\$pmsgr
-echo "Boot failed: \$exitproc"
-exit 1
-SH
-
-chmod +x /.devstep/bin/run-nginx
-
-if ! [ -L /etc/service/nginx/run ]; then
-  mkdir -p /etc/service/nginx
-  ln -s /.devstep/bin/run-nginx /etc/service/nginx/run
-fi
+# cleanup
+# re-enable newrelic in case we installed but disabled it for the duration of the build
+rm -f "${BUILD_DIR}/.heroku/php/etc/php/conf.d/ext-newrelic-off.ini"

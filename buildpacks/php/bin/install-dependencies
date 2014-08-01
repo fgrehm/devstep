@@ -4,8 +4,8 @@ set -e
 
 echo -n '   Installing dependencies for PHP buildpack... '
 
-url='https://github.com/CHH/heroku-buildpack-php/archive/bb1667220c43f16321e95cec4c61f8152b633c73.tar.gz'
-mkdir -p /.devstep/buildpacks/php/chh-heroku-buildpack-php
-curl -sL $url | tar xz --strip-components=1 -C /.devstep/buildpacks/php/chh-heroku-buildpack-php
+url='https://github.com/heroku/heroku-buildpack-php/archive/b1695c54ee6c89729c1842b4f247f6289aa4db6f.tar.gz'
+mkdir -p /.devstep/buildpacks/php/heroku-buildpack-php
+curl -sL $url | tar xz --strip-components=1 -C /.devstep/buildpacks/php/heroku-buildpack-php
 
 echo 'DONE'

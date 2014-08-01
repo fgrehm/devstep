@@ -1,11 +1,9 @@
 #!/bin/bash
 
-# This is the same as https://github.com/CHH/heroku-buildpack-php/blob/master/bin/detect
+# Same as https://github.com/heroku/heroku-buildpack-php/blob/master/bin/detect
 
-if [ -f "$1/composer.lock" ]; then
-    echo "PHP (composer.json)" && exit 0
-elif [ -f "$1/index.php" ]; then
-    echo "PHP (classic)" && exit 0
+if [[ -f "$1/composer.json" || -f "$1/index.php" ]]; then
+  echo "PHP" && exit 0
 else
-    exit 1
+  exit 1
 fi
