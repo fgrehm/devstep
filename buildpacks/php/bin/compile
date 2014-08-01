@@ -381,7 +381,7 @@ fi
 #     notice_inline "No Procfile, defaulting to 'web: $bindir/heroku-$engine-apache2'"
 # fi
 bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
-notice_inline "To start the server run '$bindir/heroku-$engine-apache2'!"
+notice_inline "To start the server run 'PORT=\"<DESIRED_PORT>\" $bindir/heroku-$engine-apache2'!"
 
 # cleanup
 # re-enable newrelic in case we installed but disabled it for the duration of the build
