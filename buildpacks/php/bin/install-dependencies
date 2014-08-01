@@ -8,4 +8,11 @@ url='https://github.com/heroku/heroku-buildpack-php/archive/b1695c54ee6c89729c18
 mkdir -p /.devstep/buildpacks/php/heroku-buildpack-php
 curl -sL $url | tar xz --strip-components=1 -C /.devstep/buildpacks/php/heroku-buildpack-php
 
+# Replace heroku buildpack configs with our stuff
+for conf in /.devstep/buildpacks/php/heroku-buildpack-php/conf/**/*; do
+  if [ -f $conf ] &&  $(grep -q "/app/.heroku" $conf); then
+    sed -i 's|/app/.heroku|/.devstep|' $conf
+  fi
+done
+
 echo 'DONE'
