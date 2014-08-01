@@ -8,6 +8,7 @@ set -o pipefail   # dont ignore exit codes when piping output
 
 # First, make sure that cgroups are mounted correctly.
 CGROUP=/sys/fs/cgroup
+: {LOG:=stdio}
 
 [ -d $CGROUP ] ||
   sudo mkdir $CGROUP
@@ -18,19 +19,19 @@ sudo mountpoint -q $CGROUP ||
     exit 1
   }
 
-if [ -d /sys/kernel/security ] && ! mountpoint -q /sys/kernel/security
+if [ -d /sys/kernel/security ] && ! sudo mountpoint -q /sys/kernel/security
 then
-  sudo mount -t securityfs none /sys/kernel/security || {
-    echo "Could not mount /sys/kernel/security."
-    echo "AppArmor detection and -privileged mode might break."
-  }
+    sudo mount -t securityfs none /sys/kernel/security || {
+        echo "Could not mount /sys/kernel/security."
+        echo "AppArmor detection and --privileged mode might break."
+    }
 fi
 
 # Mount the cgroup hierarchies exactly as they are in the parent system.
 for SUBSYS in $(cut -d: -f2 /proc/1/cgroup)
 do
   [ -d $CGROUP/$SUBSYS ] || sudo mkdir $CGROUP/$SUBSYS
-  mountpoint -q $CGROUP/$SUBSYS ||
+  sudo mountpoint -q $CGROUP/$SUBSYS ||
     sudo mount -n -t cgroup -o $SUBSYS cgroup $CGROUP/$SUBSYS
 
   # The two following sections address a bug which manifests itself
@@ -71,14 +72,14 @@ grep -qw devices /proc/1/cgroup ||
 pushd /proc/self/fd >/dev/null
 for FD in *
 do
-  case "$FD" in
-      # Keep stdin/stdout/stderr
-      [012])
+	case "$FD" in
+    # Keep stdin/stdout/stderr
+    [012])
       ;;
-      # Nuke everything else
-      *)
+    # Nuke everything else
+    *)
       eval exec "$FD>&-"
-      ;;
-  esac
+		;;
+	esac
 done
 popd >/dev/null

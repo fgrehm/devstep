@@ -18,24 +18,23 @@ if ! [ -x "${DOCKER_CMD}" ]; then
   chmod +x "${DOCKER_CMD}"
 fi
 
-if ! [ -x /sbin/iptables ]; then
-  echo "-----> [docker] Installing iptables"
-  sudo apt-get update -q && sudo apt-get install iptables -y --force-yes -q
+if ! [ -x /sbin/iptables ] || ! [ -x /sbin/apparmor_parser ]; then
+  echo "-----> [docker] Installing iptables and apparmor"
+  sudo apt-get update -q && sudo apt-get install iptables apparmor -y --force-yes -q
 fi
+
+echo "-----> [docker] Installed $(/.devstep/bin/docker --version)"
 
 addon_basedir="$( cd -P "$( dirname "$0" )" && pwd )"
 
-cp ${addon_basedir}/wrapdocker "/etc/my_init.d/000-wrapdocker.sh"
-chmod +x "/etc/my_init.d/000-wrapdocker.sh"
+cp ${addon_basedir}/wrapdocker "/etc/my_init.d/00-wrapdocker.sh"
+chmod +x "/etc/my_init.d/00-wrapdocker.sh"
 ${addon_basedir}/wrapdocker
 
-echo "-----> [docker] Installed $(docker --version)"
-
-mkdir -p /etc/service/docker
-cp $addon_basedir/start-daemon /etc/my_init.d/001-start-docker.sh
-chmod +x /etc/my_init.d/001-start-docker.sh
+cp $addon_basedir/start-daemon /etc/my_init.d/01-start-docker.sh
+chmod +x /etc/my_init.d/01-start-docker.sh
 
 echo "-----> [docker] Starting daemon"
-/etc/my_init.d/001-start-docker.sh &>/dev/null || true
+/etc/my_init.d/01-start-docker.sh &>/dev/null || true
 
 echo "-----> [docker] Finished configuration!"
