@@ -123,8 +123,10 @@ If the issue persists, please contact support."
             if [[ $runtime_name == "php" ]]; then
                 PHP_VERSION="$runtime_result"
             elif [[ $runtime_name == "hhvm" ]]; then
-                HHVM_VERSION="$runtime_result"
-                engine=hhvm
+                # TODO: Figure out how can we get libmysqlclient16 on Ubuntu 14.04
+                error "HHVM is not supported yet!"
+                #HHVM_VERSION="$runtime_result"
+                #engine=hhvm
             fi
         else
             error "Could not resolve $runtime_source requirement for ${runtime_name^^} $runtime_constraint,
@@ -158,9 +160,13 @@ if [[ "${PHP_VERSION}" ]]; then
     echo $PHP_VERSION > $CACHE_DIR/php_version
 fi
 if [[ "${HHVM_VERSION}" ]]; then
-    HHVM_DIST_URL="$S3_URL/hhvm-$HHVM_VERSION.tar.gz"
+    TARBALL="hhvm-${HHVM_VERSION}.tar.gz"
+    HHVM_DIST_URL="$S3_URL/$TARBALL"
     echo "- HHVM $HHVM_VERSION" | indent
-    curl --silent --location "$HHVM_DIST_URL" | tar xz -C $PHP_DIR
+    if ! [ -f $CACHE_DIR/$TARBALL ]; then
+        curl --silent --location "$HHVM_DIST_URL" > $CACHE_DIR/$TARBALL
+    fi
+    tar xzf $CACHE_DIR/$TARBALL -C $PHP_DIR
     echo $HHVM_VERSION > $CACHE_DIR/hhvm_version
     # make HHVM accessible
     export PATH=$PATH:$PHP_DIR/usr/bin
