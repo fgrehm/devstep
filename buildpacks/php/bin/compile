@@ -34,12 +34,14 @@ STACK='cedar' # Anvil has none
 BUILD_DIR="$1"
 CACHE_DIR="${2}/php"
 
+mkdir -p $CACHE_DIR
+
 bp_basedir="$( cd -P "$( dirname "$0" )" && cd .. && pwd )"
 bp_basedir=$(readlink -f $bp_basedir)
 
-BP_DIR="${bp_basedir}/heroku-buildpack-php/bin"
-BP_DIR=$(readlink -f $basedir)
-export HEROKU_PHP_BUILDPACK=$basedir
+BP_DIR="${bp_basedir}/heroku-buildpack-php"
+BP_DIR=$(readlink -f $BP_DIR)
+export HEROKU_PHP_BUILDPACK=$BP_DIR
 
 # convenience functions
 source $BP_DIR/bin/common.sh
