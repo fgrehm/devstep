@@ -321,7 +321,11 @@ relbin=$(python -c "import os.path; print os.path.relpath('$hbpdir', '$composer_
 relbins=$(cat $BP_DIR/composer.json | python -c 'from __future__ import print_function; import sys, json; { print(sys.argv[1]+"/"+bin) for bin in json.load(sys.stdin)["bin"] }' $relbin)
 # link to bins
 cd $BUILD_DIR/$composer_bindir
-ln -s $relbins .
+for bin in $relbins; do
+  if ! [ -L ./$(basename $bin) ]; then
+    ln -s $bin .
+  fi
+done
 cd $BUILD_DIR
 
 # Update the PATH
@@ -371,11 +375,13 @@ if ! [ -L /app/.heroku/php ]; then
   ln -s $PHP_DIR /app/.heroku/php
 fi
 
-if [[ ! -f "Procfile" ]]; then
-    bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
-    echo "web: $bindir/heroku-$engine-apache2" > Procfile
-    notice_inline "No Procfile, defaulting to 'web: $bindir/heroku-$engine-apache2'"
-fi
+# if [[ ! -f "Procfile" ]]; then
+#     bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
+#     echo "web: $bindir/heroku-$engine-apache2" > Procfile
+#     notice_inline "No Procfile, defaulting to 'web: $bindir/heroku-$engine-apache2'"
+# fi
+bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
+notice_inline "To start the server run '$bindir/heroku-$engine-apache2'!"
 
 # cleanup
 # re-enable newrelic in case we installed but disabled it for the duration of the build
