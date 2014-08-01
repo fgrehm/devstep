@@ -15,17 +15,22 @@ BREAKING CHANGES:
 
 FEATURES:
 
-  - Added `reload-env` alias to the base image to make things easier after
-    bootstrapping.
+  - Added `reload-env` shortcut alias to the base image to make things easier
+    after bootstrapping.
+  - Install bash completion.
 
 IMPROVEMENTS:
 
-  - Switch to a custom ruby buildpack based on Heroku's [[GH-58]]
-  - Improved environment changes detection after builds.
+  - Switch to a custom ruby buildpack based on Heroku's one [[GH-58]]
   - PostgreSQL addon now installs 9.3
 
 [GH-58]: https://github.com/fgrehm/devstep/issues/58
 
+BUG FIXES:
+
+  - Fix Docker addon [[GH-49]]
+
+[GH-49]: https://github.com/fgrehm/devstep/issues/49
 
 ## 0.0.1 (June 29, 2014)
 
