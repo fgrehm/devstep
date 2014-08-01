@@ -141,9 +141,13 @@ status "Installing system packages..."
 export PATH=${PHP_DIR}/bin:$PATH
 
 if [[ "${PHP_VERSION}" ]]; then
-    PHP_DIST_URL="$S3_URL/php-$PHP_VERSION.tar.gz"
+    TARBALL="php-${PHP_VERSION}.tar.gz"
+    PHP_DIST_URL="$S3_URL/$TARBALL"
     echo "- PHP $PHP_VERSION" | indent
-    curl --silent --location "$PHP_DIST_URL" | tar xz -C $PHP_DIR
+    if ! [ -f $CACHE_DIR/$TARBALL ]; then
+        curl --silent --location "$PHP_DIST_URL" > $CACHE_DIR/$TARBALL
+    fi
+    tar xzf "${CACHE_DIR}/${TARBALL}" -C $PHP_DIR
     PHP_EXT_DIR=$(php-config --extension-dir)
     # update config files
     mkdir -p $PHP_DIR/etc/php
@@ -166,18 +170,27 @@ if [[ "${HHVM_VERSION}" ]]; then
 fi
 
 APACHE_VERSION="2.4.10"
-APACHE_DIST_URL="$S3_URL/apache-$APACHE_VERSION.tar.gz"
+TARBALL="apache-${APACHE_VERSION}.tar.gz"
+APACHE_DIST_URL="$S3_URL/$TARBALL"
 echo "- Apache $APACHE_VERSION" | indent
-curl --silent --location "$APACHE_DIST_URL" | tar xz -C $PHP_DIR
+if ! [ -f $CACHE_DIR/$TARBALL ]; then
+  curl --silent --location "$APACHE_DIST_URL" > $CACHE_DIR/$TARBALL
+fi
+tar xzf $CACHE_DIR/$TARBALL -C $PHP_DIR
+
 # Apache; copy in our config
 cp $BP_DIR/conf/apache2/httpd.conf.default $PHP_DIR/etc/apache2/httpd.conf
 # remember the version for future upgrade handling
 echo $APACHE_VERSION > $HOME/apache2_version
 
 NGINX_VERSION="1.6.0"
-NGINX_DIST_URL="$S3_URL/nginx-$NGINX_VERSION.tar.gz"
+TARBALL="nginx-${NGINX_VERSION}.tar.gz"
+NGINX_DIST_URL="$S3_URL/$TARBALL"
 echo "- Nginx $NGINX_VERSION" | indent
-curl --silent --location "$NGINX_DIST_URL" | tar xz -C $PHP_DIR
+if ! [ -f $CACHE_DIR/$TARBALL ]; then
+  curl --silent --location "$NGINX_DIST_URL" > $CACHE_DIR/$TARBALL
+fi
+tar xzf $CACHE_DIR/$TARBALL -C $PHP_DIR
 # nginx; copy in our config
 cp $BP_DIR/conf/nginx/nginx.conf.default $PHP_DIR/etc/nginx/nginx.conf
 # remember the version for future upgrade handling
