@@ -76,7 +76,7 @@ fi
 PHP_DIR="${HOME}/php"
 mkdir -p "${PHP_DIR}"
 
-export COMPOSER_HOME=$CACHE_DIR/.composer
+export COMPOSER_HOME=$HOME/.composer
 mkdir -p $COMPOSER_HOME
 
 PHP_VERSION=
