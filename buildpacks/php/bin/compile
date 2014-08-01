@@ -137,7 +137,7 @@ fi
 status "Installing system packages..."
 
 # we need to run things in here, set it up!
-ln -s $BUILD_DIR/.heroku /app/.heroku
+# ln -s $BUILD_DIR/.heroku /app/.heroku
 export PATH=${PHP_DIR}/bin:$PATH
 
 if [[ "${PHP_VERSION}" ]]; then
@@ -186,20 +186,22 @@ echo $NGINX_VERSION > $CACHE_DIR/nginx_version
 # handle extensions for PHP
 if [[ "${PHP_VERSION}" ]]; then
     status "Installing PHP extensions..."
-    install_ext "opcache" "automatic"
+    # install_ext "opcache" "automatic"
     exts=
     if [[ -f "composer.json" ]]; then
         exts=$(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key[4:]) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)
     fi
 #    newrelic_installed=false
-#    if [[ -n "$exts" ]]; then
-#        while read -r ext; do
-#            if [[ "$ext" == "newrelic" ]]; then
-#                newrelic_installed=true
-#            fi
-#            install_ext "$ext" "composer.json"
-#        done <<< "$exts"
-#    fi
+    if [[ -n "$exts" ]]; then
+        while read -r ext; do
+            #if [[ "$ext" == "newrelic" ]]; then
+            #    newrelic_installed=true
+            #fi
+            if [[ "$ext" != "newrelic" ]]; then
+                install_ext "$ext" "composer.json"
+            fi
+        done <<< "$exts"
+    fi
 #    # special treatment for New Relic; we enable it if we detect a license key for it
 #    # otherwise users would have to have it in their require section, which is annoying in development environments
 #    NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY:-}
@@ -239,14 +241,14 @@ fi
 composer --version 2> /dev/null | tail -n 1 | indent
 
 # throw a notice if people have added their vendor dir to Git; that's bad practice and makes everything slow and cluttered
-if [[ -e "$(composer config vendor-dir)" ]]; then
-    warning "You have put Composer's vendor directory under version control.
-That directory should not be in your Git repository; only composer.json
-and composer.lock should be added, with Composer handling installation.
-Please 'git rm --cached $(composer config vendor-dir)/' to remove the folder from your index,
-then add '/$(composer config vendor-dir)/' to your '.gitignore' list to remove this notice.
-For more information, refer to the Composer FAQ: http://bit.ly/1rlCSZU"
-fi
+#if [[ -e "$(composer config vendor-dir)" ]]; then
+#    warning "You have put Composer's vendor directory under version control.
+#That directory should not be in your Git repository; only composer.json
+#and composer.lock should be added, with Composer handling installation.
+#Please 'git rm --cached $(composer config vendor-dir)/' to remove the folder from your index,
+#then add '/$(composer config vendor-dir)/' to your '.gitignore' list to remove this notice.
+#For more information, refer to the Composer FAQ: http://bit.ly/1rlCSZU"
+#fi
 
 # handle custom oauth keys
 COMPOSER_GITHUB_OAUTH_TOKEN=${COMPOSER_GITHUB_OAUTH_TOKEN:-}
@@ -271,7 +273,8 @@ fi
 unset COMPOSER_GITHUB_OAUTH_TOKEN
 
 # install dependencies
-composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction | indent
+#composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction | indent
+composer install --prefer-dist --optimize-autoloader --no-interaction | indent
 
 composer show --installed heroku/heroku-buildpack-php &> /dev/null && error "Your composer.json requires package 'heroku/heroku-buildpack-php'.
 This package may only be used as a dev dependency (in 'require-dev')!"
