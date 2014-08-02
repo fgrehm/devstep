@@ -220,13 +220,13 @@ you'll lose them when you `docker rm` it._**
 ## Available buildpacks
 -----------------------
 
-* [Bats](https://github.com/fgrehm/devstep/tree/master/buildpacks/bats)
-* [Golang](https://github.com/fgrehm/devstep/tree/master/buildpacks/golang)
-* [Inline](https://github.com/fgrehm/devstep/tree/master/buildpacks/inline)
-* [NodeJS](https://github.com/fgrehm/devstep/tree/master/buildpacks/nodejs)
-* [PHP](https://github.com/fgrehm/devstep/tree/master/buildpacks/php)
-* [Python](https://github.com/fgrehm/devstep/tree/master/buildpacks/python)
-* [Ruby](https://github.com/fgrehm/devstep/tree/master/buildpacks/ruby)
+* [Bats](buildpacks/bats)
+* [Go](buildpacks/golang)
+* [Inline](buildpacks/inline)
+* [NodeJS](buildpacks/nodejs)
+* [PHP](buildpacks/php)
+* [Python](buildpacks/python)
+* [Ruby](buildpacks/ruby)
 
 
 ## More information
