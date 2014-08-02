@@ -18,9 +18,3 @@ Runtime options include:
 - pypy-1.9 (experimental)
 
 Other [unsupported runtimes](https://github.com/heroku/heroku-buildpack-python/tree/master/builds/runtimes) are available as well.
-
-## Demo
-
-```
-ASCIICAST WITH SOME CLI APP
-```
