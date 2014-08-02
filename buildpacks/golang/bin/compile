@@ -67,34 +67,38 @@ ver=${ver:-go${GOVERSION:-1.3}}
 file=${GOFILE:-$ver.$(uname|tr A-Z a-z)-amd64.tar.gz}
 url=${GOURL:-$(urlfor $ver $file)}
 
-mkdir -p $cache/$ver
-cd $cache/$ver
-if test -f $cache/$ver/$file; then
-  echo "-----> Using $ver"
+if [ -d /.devstep/go ]; then
+  echo "-----> Using $(/.devstep/go/bin/go version)"
 else
-  echo "-----> Downloading ${ver}..."
-  curl -sLO $url
-  echo "done"
+  mkdir -p $cache/$ver
+  cd $cache/$ver
+  if test -f $cache/$ver/$file; then
+    echo "-----> Using $ver"
+  else
+    echo "-----> Downloading ${ver}..."
+    curl -sLO $url
+    echo "done"
+  fi
+  tar zxf $file -C /.devstep
+
+  GOROOT=/.devstep/go export GOROOT
+  PATH=$GOROOT/bin:$PATH export PATH
+
+  GOPATH=/.devstep/gocode export GOPATH
+  GOBIN=$GOPATH/bin export GOBIN
+  PATH=$GOBIN:$PATH export PATH
+
+  mkdir -p $GOBIN
+  mkdir -p $GOPATH
+
+  echo "-----> Configuring ${ver}..."
+  echo "export GOPATH=$GOPATH" > /.devstep/.profile.d/go.sh
+  echo "export GOROOT=$GOROOT" >> /.devstep/.profile.d/go.sh
+  echo "export GOBIN=$GOBIN" >> /.devstep/.profile.d/go.sh
+  echo 'export PATH=$PATH:$GOROOT/bin' >> /.devstep/.profile.d/go.sh
+  echo 'export PATH=$PATH:$GOBIN' >> /.devstep/.profile.d/go.sh
+  echo 'done'
 fi
-tar zxf $file -C /.devstep
-
-GOROOT=/.devstep/go export GOROOT
-PATH=$GOROOT/bin:$PATH export PATH
-
-GOPATH=/.devstep/gocode export GOPATH
-GOBIN=$GOPATH/bin export GOBIN
-PATH=$GOBIN:$PATH export PATH
-
-mkdir -p $GOBIN
-mkdir -p $GOPATH
-
-echo "-----> Configuring ${ver}..."
-echo "export GOPATH=$GOPATH" > /.devstep/.profile.d/go.sh
-echo "export GOROOT=$GOROOT" >> /.devstep/.profile.d/go.sh
-echo "export GOBIN=$GOBIN" >> /.devstep/.profile.d/go.sh
-echo 'export PATH=$PATH:$GOROOT/bin' >> /.devstep/.profile.d/go.sh
-echo 'export PATH=$PATH:$GOBIN' >> /.devstep/.profile.d/go.sh
-echo 'done'
 
 if [ -z "${name}" ] && [ -n "${GO_PROJECT_NAME}" ]; then
   name=$GO_PROJECT_NAME
