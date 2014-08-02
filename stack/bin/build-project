@@ -36,6 +36,11 @@ project_root=${1:-`pwd`}
 cache_root=${2:-/.devstep/cache}
 buildpack_root=/.devstep/buildpacks
 
+if [ "${project_root}" = '/' ]; then
+  echo "Can't build root dir!"
+  exit 1
+fi
+
 mkdir -p $project_root
 mkdir -p $cache_root
 mkdir -p $buildpack_root
