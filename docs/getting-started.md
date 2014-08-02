@@ -114,7 +114,7 @@ cd $HOME/projects # or whatever directory you keep your projects
 devstep bootstrap -w my_app
 
 build-project -b ruby
-source $HOME/load-env.sh
+reload-env
 gem install rails
 rails new my_app
 
