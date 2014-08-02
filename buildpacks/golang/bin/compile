@@ -80,17 +80,31 @@ else
     echo "done"
   fi
   tar zxf $file -C /.devstep
+fi
 
-  GOROOT=/.devstep/go export GOROOT
-  PATH=$GOROOT/bin:$PATH export PATH
+GOROOT=/.devstep/go export GOROOT
+PATH=$GOROOT/bin:$PATH export PATH
 
-  GOPATH=/.devstep/gocode export GOPATH
-  GOBIN=$GOPATH/bin export GOBIN
-  PATH=$GOBIN:$PATH export PATH
+GOPATH=/.devstep/gocode export GOPATH
+GOBIN=$GOPATH/bin export GOBIN
+PATH=$GOBIN:$PATH export PATH
 
+if [ -d $GOPATH ]; then
+  sudo chown developer:developer $GOPATH
+  if [ -d $GOPATH/src ]; then
+    for dir in $GOPATH/src/*; do
+      sudo chown developer:developer $dir
+    done
+    for dir in $GOPATH/src/**/*; do
+      sudo chown developer:developer $dir
+    done
+  fi
+else
   mkdir -p $GOBIN
   mkdir -p $GOPATH
+fi
 
+if ! [ -f /.devstep/.profile.d/go.sh ]; then
   echo "-----> Configuring ${ver}..."
   echo "export GOPATH=$GOPATH" > /.devstep/.profile.d/go.sh
   echo "export GOROOT=$GOROOT" >> /.devstep/.profile.d/go.sh
