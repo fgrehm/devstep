@@ -1,3 +1,0 @@
-#!/bin/sh
-# Usage: bin/release <build-dir>
-exec "$1"/bin/release "$@"
