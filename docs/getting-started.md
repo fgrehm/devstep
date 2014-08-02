@@ -4,7 +4,7 @@
 Devstep comes in two flavors, you can either use the provided CLI or you can build
 on top of the provided images from `Dockerfile`s.
 
-Regardless of the flavor you choose, it is a good idea to `docker pull fgrehm/devstep:v0.0.1`
+Regardless of the flavor you choose, it is a good idea to `docker pull fgrehm/devstep:v0.1.0`
 before creating your first container / image for a better "user experience".
 Docker will download that image as needed but by pulling it first you'll reduce
 the waiting time when interacting with Devstep for the first time.
@@ -40,7 +40,7 @@ line to your `~/.devsteprc`.
 To install the CLI, you can run the one liner below and read on for more:
 
 ```sh
-L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep/raw/master/devstep > $L && chmod +x $L
+L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep/raw/v0.1.0/devstep > $L && chmod +x $L
 ```
 
 _The snippet above assumes `$HOME/bin` is on your PATH, please change `$HOME/bin`
@@ -179,7 +179,7 @@ The `fgrehm/devstep` image is the base image used for Devstep environments and
 requires you to manually trigger the build:
 
 ```Dockerfile
-FROM fgrehm/devstep:v0.0.1
+FROM fgrehm/devstep:v0.1.0
 
 # Add project to the image and build it
 ADD . /workspace
@@ -187,19 +187,19 @@ WORKDIR /workspace
 RUN CLEANUP=1 /.devstep/bin/build-project /workspace
 ```
 
-To make things easier, there's also a `fgrehm/devstep-ab:v0.0.1` image that
+To make things easier, there's also a `fgrehm/devstep-ab:v0.1.0` image that
 does the same steps as outlined above automatically for you by leveraging `ONBUILD`
 instructions, trimming down your `Dockerfile` to a single line:
 
 ```Dockerfile
-FROM fgrehm/devstep-ab:v0.0.1
+FROM fgrehm/devstep-ab:v0.1.0
 ```
 
 And in case you want to run extra services (like a DB) within the same container
 of your project, you can use the `fgrehm/devstep-sa` image:
 
 ```Dockerfile
-FROM fgrehm/devstep-sa:v0.0.1
+FROM fgrehm/devstep-sa:v0.1.0
 
 # Add project to the image and build it
 ADD . /workspace
