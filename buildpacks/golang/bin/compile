@@ -59,7 +59,7 @@ elif test -f $build/.godir; then
 elif test -d $build/.git ; then
   pushd $build &> /dev/null
   # REFACTOR: I'm pretty sure this can be cleaned up
-  name=$(git config --get-regexp '^remote.+\.url' | grep github | head -n1 | cut -f2 -d' ' | sed 's/^\(git\|https\):\/\///' | sed 's/\.git$//')
+  name=$(git config --get-regexp '^remote.+\.url' | grep github | head -n1 | cut -f2 -d' ' | sed 's/^\(git\|https\):\/\///' | sed 's/^\w\+@//' | sed 's/:/\//' | sed 's/\.git$//')
   popd &> /dev/null
 fi
 ver=${ver:-go${GOVERSION:-1.3}}
