@@ -32,7 +32,7 @@ done
 
 export FORCED_BUILDPACKS
 
-project_root=${1:-/workspace}
+project_root=${1:-`pwd`}
 cache_root=${2:-/.devstep/cache}
 buildpack_root=/.devstep/buildpacks
 
