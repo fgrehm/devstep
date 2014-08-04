@@ -92,6 +92,7 @@ PATH=$GOBIN:$PATH export PATH
 if [ -d $GOPATH ]; then
   sudo chown developer:developer $GOPATH
   if [ -d $GOPATH/src ]; then
+    sudo chown developer:developer $GOPATH/src
     for dir in $GOPATH/src/*; do
       sudo chown developer:developer $dir
     done

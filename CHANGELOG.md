@@ -31,7 +31,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
   - addons/docker: Make it work again [[GH-49]]
-  - buildpacks/golang: Fix ownership of bind mounted `GODIR`s during build [[GH-56]]
+  - buildpacks/golang: Fix ownership of bind mounted dirs under `GOPATH`s during build [[GH-56]]
   - buildpacks/golang: Fix check for whether go is installed [[GH-55]]
   - buildpacks/golang: Fix `GOCODE` symlinking when the remote URL begins with a
     username (like `git@`) [[GH-52]]
