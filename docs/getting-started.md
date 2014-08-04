@@ -16,14 +16,14 @@ This project is being developed and tested on an Ubuntu 14.04 host with Docker
 1.0.0+, while it is likely to work on other distros / Docker versions /
 [boot2docker](http://boot2docker.io/), I'm not sure how it will behave on the wild.
 
-## Using the CLI
-----------------
+## Getting started with the CLI
+-------------------------------
 
 Before you try out the CLI, make sure you have Docker installed and that your
 user is capable to run `docker` commands [without `sudo`](http://docs.docker.io/installation/ubuntulinux/#giving-non-root-access).
 
-> **IMPORTANT**: The `developer` user that is used by Devstep assumes your user
-and group ids are equal to `1000` when using the CLI or the container's init
+> **IMPORTANT**: A `developer` user will be used by Devstep and it assumes your
+user and group ids are equal to `1000` when using the CLI or the container's init
 process will be aborted. This is to guarantee that files created within Docker
 containers have the appropriate permissions so that you can manipulate them
 on the host without the need to use `sudo`. This is currently a Devstep limitation
@@ -46,66 +46,94 @@ L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep/raw/v0.1.0/dev
 _The snippet above assumes `$HOME/bin` is on your PATH, please change `$HOME/bin`
 to an appropriate path in case your system is not configured like that._
 
-### `devstep hack`
+### Doing a quick hack on a project
 
-This is the easiest way to get started with Devstep. By running the command
-from your project's root, Devstep will:
+With the CLI and Docker in place, just `cd` into your project and run `devstep hack`,
+it should be all you need to start working on your project. Devstep will create
+a Docker container, will install your project dependencies in it and at the end
+you'll be dropped on a `bash` session inside the container with project sources
+available at `/workspace`.
 
-1. Create a Docker container based on `fgrehm/devstep` with project sources bind
-   mounted at `/workspace`.
-2. Detect and install project's dependencies on the new container using the
-   available buildpacks.
-3. Start a `bash` session with everything in place for you to do your work.
+From inside the container, you can do your work as you would on your own machine.
+For example, you can use `rake test` to run your Ruby tests or `go build` to
+compile Golang apps while editing files from your machine using your favorite IDE.
 
-Once you `exit` the `bash` session, the container will be garbage collected
-(aka `docker rm`ed).
+When you are done hacking, just `exit` the container and it will be "garbage
+collected" (aka `docker rm`ed) and no project specific dependencies will be kept
+on your machine.
 
-In case you need to provide additional parameters to the underlying `docker run`
-command you can use the `-r` flag. For example, `devstep hack -r "-p 80:8080"` will
-redirect the `8080` port on your host to the port `80` within the container.
+### Taking snapshot of the environment to reduce startup time
 
-### `devstep build`
+Building an environment from scratch all the time you need to work on a project
+is not very productive. To alleviate that pain you can use the `devstep build`
+command which will create a Docker image with all dependencies required to hack
+on your project so that further `devstep hack`s have a reduced startup time.
 
-By running the command from your project's root, Devstep will:
+When your project dependencies are changed (like when a new RubyGem is needed
+for a Ruby app for example), you can run `devstep build` and it will reuse the
+previously built image as a starting point for building the new environment
+instead of starting from scratch, so use it for projects that you are likely
+to hack on every day.
 
-1. Create a Docker container based on `fgrehm/devstep` with project sources bind
-   mounted at `/workspace`.
-2. Detect and install project's dependencies on the new container using the
-   available buildpacks.
-3. `docker commit` the container to a `devstep/<PROJECT>:<TIMESTAMP>` image.
-4. `docker tag` the new image as `devstep/<PROJECT>:latest`.
+### Accessing web apps from the host machine
 
-The `devstep/<PROJECT>` images act like snapshots of your project dependencies
-and will be used as the source image for subsequent `devstep` commands instead
-of the `fgrehm/devstep` image.
-
-For example, running a `devstep hack` after building the image will use `devstep/<PROJECT>:latest`
-as the base container for new "hacking sessions" so that you don't have to build
-your project's environment from scratch. The same applies for a new `devstep build`,
-which will build on top of the latest image reducing the overall build time when
-compared to reconfiguring the environment from scratch using
-`Dockerfile`s.
-
-Because the `build` command bind mounts your project sources on the Docker container
-during the configuration process, you'll have to provide the full path to sources
-on the host machine as a Docker volume in order to work on the project.
-`devstep hack` can take care of that for you or you can manually:
+The `devstep hack` command accepts an additional `-r` parameter which will be passed
+on to the underlying `docker run` command. For example, if your app runs on the
+`8080` port, you can start your hacking sessions with:
 
 ```sh
-docker run -ti -v `pwd`:/workspace devstep/<PROJECT>
+devstep hack -r "-p 8080:8080"
 ```
+
+And it will redirect the `8080` port on your host to the `8080` port within the
+container so you can just hit `http://localhost:8080` on your browser to see your
+app running after it is up.
+
+### Using databases or other services from within containers
+
+In order to connect your project to additional services you can either [link containers](http://docs.docker.com/userguide/dockerlinks/#container-linking)
+to the appropriate service if you want to manage it from outside or install and
+configure it by hand inside the container.
+
+Connecting to services that runs from other containers are as simple as passing
+in a `--link` argument to the `-r` parameter available to all `devstep` commands.
+The provided base image is smart enough to detect that a link has been provided
+and will automatically forward a `localhost` port to the external service
+published port.
+
+For example, you can start a PostgreSQL service on the background with:
+
+```sh
+docker run -d --name postgresql fgrehm/postgresql-9.1
+```
+
+And then start your hacking session with:
+
+```sh
+devstep hack -r '--link postgresql:db'
+```
+
+From inside the container you'll be able to access the external PostgreSQL service
+using the local `5432` port that is redirected to the same port [exposed](http://docs.docker.com/reference/builder/#expose)
+by that image.
+
+Installing services inside the container makes sense if, for example, you are
+developing a library that interacts with it. Please note that since the Docker
+image does not run Ubuntu's default init process (we use [runit](http://smarden.org/runit/)
+instead), some additional steps will be required to start the service. Recipes
+for installing some services are available in the form of "addons" so you don't
+have to worry about that.
+
+For example, installing and configuring [memcached](http://memcached.org/) inside
+the container is a matter of running `configure-addons memcached` from there.
 
 ### Bootstrapping a new project (AKA solving the chicken or the egg problem)
 
 Assuming you are willing to use Docker / Devstep to avoid cluttering your machine
 with development tools, there's no point on installing Ruby / Python / ... on your
 computer in order to scaffold a new project. To make that process easier, you can
-use the `devstep bootstrap` command.
-
-That command will start an interactive `bash` session with the current directory
-bind mounted as `/workspace` on the container and you'll be able to manually
-install packages / tools required to scaffold your new project. You can even
-force a specific buildpack to run from there.
+use the `devstep bootstrap` command and manually trigger a buildpack build from
+there using the `build-project` command.
 
 For example, scaffolding a new Rails project means:
 
@@ -121,31 +149,23 @@ rails new my_app
 exit # Or do some extra setup before exiting
 ```
 
-Once you `exit` the container, you should end up with a `devstep/my_app` image
-and a brand new Rails app under `$HOME/projects/my_app` on your machine. To
-abort the bootstrap process, just `exit 1` from within the container and answer
-'No' when asked for confirmation for commiting the image.
-
-As with `devstep build`, subsequent `devstep` commands like `build` and `hack`
-will use `devstep/my_app:latest` as the source image. Project sources
-also won't get stored inside the Docker image and you'll need to provide the
-full path to its sources on the host machine as a Docker volume in order to
-work on the project. `devstep hack` can take care of that for you or you can
-manually:
-
-```sh
-docker run -ti -v `pwd`:/workspace devstep/<PROJECT>
-```
+Once you `exit` the container, you will end up with a `devstep/my_app` image
+and a brand new Rails app under `$HOME/projects/my_app` on the host machine.
 
 To bootstrap projects for other platforms and frameworks you can follow a similar
 approach, replacing the Ruby / Rails specifics with the platform / framework
 of choice.
+
+As with `devstep build`, subsequent `devstep` commands like `build` and `hack`
+will use `devstep/my_app:latest` as the source image so that the environment
+don't have to be rebuilt from scratch.
 
 ### Caching project's dependencies packages on the host
 
 As mentioned on the [introduction](introduction) section, Devstep is also capable
 of reducing disk space and initial configuration times by caching packages on the
 host using a strategy similar to [vagrant-cachier's cache buckets](http://fgrehm.viewdocs.io/vagrant-cachier/how-does-it-work).
+
 This behavior is enabled by default and will be further documented on the future.
 For now you need to know that the `/tmp/devstep/cache` dir on the host will be bind
 mounted to containers created by the CLI under `/.devstep/cache` and most of your
@@ -153,86 +173,12 @@ project's dependencies packages will be downloaded to there. Note that the depen
 themselves are extracted and kept inside the images built by the CLI and you can
 safely clean things up or disable the caching behavior at will.
 
-To disable the caching functionality you can add the `DEVSTEP_CACHE_PATH=""`
-line to your `~/.devsteprc`.
-
-### Other commands
-
-* `clean` -> Remove all images built for the current project
-* `pristine` -> Rebuild current project associated Docker image from scratch
-* `run` -> Run a one off command against the current source image
-* `images` -> Display images available for the current project
-* `ps` -> List all containers associated with the current project
-* `info` -> Show some information about the current project
-
-For the most up-to-date list of supported commands, run `devstep --help`.
-
-
-## Building images using `Dockerfiles`
---------------------------------------
-
-In case your project require additional stuff to work you can use the provided
-`fgrehm/devstep`, `fgrehm/devstep-ab` or `fgrehm/devstep-sa` images as a starting
-point for your `Dockerfile`s.
-
-The `fgrehm/devstep` image is the base image used for Devstep environments and
-requires you to manually trigger the build:
-
-```Dockerfile
-FROM fgrehm/devstep:v0.1.0
-
-# Add project to the image and build it
-ADD . /workspace
-WORKDIR /workspace
-RUN CLEANUP=1 /.devstep/bin/build-project /workspace
-```
-
-To make things easier, there's also a `fgrehm/devstep-ab:v0.1.0` image that
-does the same steps as outlined above automatically for you by leveraging `ONBUILD`
-instructions, trimming down your `Dockerfile` to a single line:
-
-```Dockerfile
-FROM fgrehm/devstep-ab:v0.1.0
-```
-
-And in case you want to run extra services (like a DB) within the same container
-of your project, you can use the `fgrehm/devstep-sa` image:
-
-```Dockerfile
-FROM fgrehm/devstep-sa:v0.1.0
-
-# Add project to the image and build it
-ADD . /workspace
-WORKDIR /workspace
-RUN CLEANUP=1 /.devstep/bin/build-project /workspace
-
-# Configure PostgreSQL and Redis to run on the project's container
-RUN /.devstep/bin/configure-addons postgresql redis
-```
-
-By using a `Dockerfile` to build your images (instead of using `devstep build`)
-you'll be able to skip mounting project's sources on the container when running
-it and a simple `docker run -it <IMAGE-NAME>` should do the trick. **_Keep in mind
-that changes made to project sources will be kept inside the container and
-you'll lose them when you `docker rm` it._**
-
-
-## Available buildpacks
------------------------
-
-* [Bats](buildpacks/bats)
-* [Go](buildpacks/golang)
-* [Inline](buildpacks/inline)
-* [NodeJS](buildpacks/nodejs)
-* [PHP](buildpacks/php)
-* [Python](buildpacks/python)
-* [Ruby](buildpacks/ruby)
-
-
 ## More information
 -------------------
 
 If you reached this point it means you should have a good understanding of how
-Devstep works and what you can do with it. If you are still wondering how you can
-use the tool and / or benefit from it, please create a [new issue](https://github.com/fgrehm/devstep/issues/new)
-so that we can discuss how can we improve the docs :)
+Devstep works and what you can do with it. For more information please check out
+the links on the menu above and if you are still wondering how you can use the
+tool or benefit from it, please create a [new issue](https://github.com/fgrehm/devstep/issues/new)
+or reach out on [Gitter](https://gitter.im/fgrehm/devstep) so that we can have
+a chat :)

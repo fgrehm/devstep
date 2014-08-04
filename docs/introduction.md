@@ -13,10 +13,10 @@ abstraction for automatic detection and installation of project dependencies. Th
 base image comes with a script that that takes your app's source as an input and
 installs everything that is required for hacking on it.
 
-Be it a CLI tool, a plugin for some framework or a web app, I don't care, I just
-want "someone" to do the heavy lifting of preparing an isolated and disposable
-environment using as close to "zero configuration" as possible so that I can
-focus on writing and delivering working software :-)
+Be it a CLI tool, a plugin for some framework or a web app, it doesn't matter,
+Devstep can do the heavy lifting of preparing an isolated and disposable
+environment using as close to "zero configuration" as possible so that we can
+focus on writing and delivering working software.
 
 
 ## Why should I use it?
@@ -46,19 +46,18 @@ or use the provided `devstep hack` command.
 
 ## What's included on the base [Docker image](https://registry.hub.docker.com/u/fgrehm/devstep/)?
 
-We use [`progrium/cedarish`](https://github.com/progrium/cedarish) as the base
-image, so everything that gets installed by it will be available on `fgrehm/devstep`
-images.
+That image is based on [`progrium/cedarish`](https://github.com/progrium/cedarish),
+so everything that gets installed by it will be available for `fgrehm/devstep` images.
 
 On top of `progrium/cedarish`, we:
 
 * Create a `developer` user to avoid using `root` and creating files with wrong permissions during development.
-* Install some extra devel packages (like `libreadline6-dev` and `libyaml-dev`) and
-  "nice to have" packages and utilities (like `vim`, `htop` and [`jq`](http://stedolan.github.io/jq/)).
+* Install some extra devel packages (like `libyaml-dev`) and other "nice to have"
+  packages and utilities (like `vim`, `htop` and [`jq`](http://stedolan.github.io/jq/)).
 * Configure PostgreSQL and MySQL clients.
 * Set the image `ENTRYPOINT` to our own init system and the default command to a `bash` login shell.
-* Configure a couple of startup scripts (like automatic port forwading to linked containers).
-* And add the supported [buildpacks](https://github.com/fgrehm/devstep/tree/master/buildpacks).
+* Configure a couple of startup scripts (like [automatic port forwading]() to linked containers).
+* And add the supported buildpacks.
 
 _For more information please have a look at the [Dockerfile](https://github.com/fgrehm/devstep/blob/master/Dockerfile)._
 
@@ -70,7 +69,7 @@ environments and not all projects are web apps. For example, PHP apps are likely
 to have [opcache](http://www.php.net/manual/en/intro.opcache.php) enabled
 on production to improve app's performance but have it disabled during development
 and it is a good practice to have Ruby on Rails assets precompiled on production.
-But I tried my best to stay as close as possible to the official buildpacks.
+But I did my best to stay as close as possible to the official buildpacks.
 
 --------------------------------------------
 

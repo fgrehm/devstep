@@ -32,5 +32,5 @@ and the [getting started](getting-started) guides.
 This is mostly the result of many different hacks that suits my needs for developing
 Ruby on Rails and Go CLI apps. It has been working fine for my use cases since April /
 March 2014 and it also seems to play really well with other platforms based on my
-[limited testing](https://github.com/fgrehm/devstep-examples). Use at your own risk
-and expect things to break (and if it does break [please let me know!](https://github.com/fgrehm/devstep/issues/new)).
+[testing](https://github.com/fgrehm/devstep-examples). Use at your own risk
+and if things break [please let me know!](https://github.com/fgrehm/devstep/issues/new).
