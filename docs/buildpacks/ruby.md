@@ -1,4 +1,5 @@
 # Ruby buildpack
+----------------
 
 This buildpack is based on the [Ruby Heroku buildpack](https://github.com/heroku/heroku-buildpack-ruby)
 that uses [Bundler](http://bundler.io/) for dependency management. It will

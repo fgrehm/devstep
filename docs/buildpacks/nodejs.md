@@ -1,4 +1,5 @@
 # Node.js buildpack
+-------------------
 
 This buildpack is based on the [official Heroku buildpack](https://github.com/heroku/heroku-buildpack-nodejs)
 and will install [Node.js](http://nodejs.org/) and configure project's dependencies

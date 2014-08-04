@@ -1,4 +1,5 @@
 # Using a custom buildpack
+--------------------------
 
 In order to use a custom buildpack you can build your own images with it, or
 you can bind mount its directory with Devstep containers.

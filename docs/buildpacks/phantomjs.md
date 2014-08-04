@@ -1,4 +1,5 @@
 # PhantomJS buildpack
+---------------------
 
 This buildpack will install the latest release of [PhantomJS](http://phantomjs.org)
 and currently does provide automatic detection.

@@ -1,4 +1,5 @@
 # PHP buildpack
+---------------
 
 This buildpack is based on the [PHP Heroku buildpack](https://github.com/heroku/heroku-buildpack-php)
 and will install [PHP](https://php.net/) if a `index.php` or `composer.json` files

@@ -1,4 +1,5 @@
 # Go buildpack
+--------------
 
 This buildpack is based on the [Go Heroku buildpack](https://github.com/kr/heroku-buildpack-go)
 and will install [Go](http://golang.org/) if a file with the `.go` extension

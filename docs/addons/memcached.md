@@ -1,4 +1,5 @@
-# Memcached addon
+# Memcached Addon
+-----------------
 
 This addon will install the latest Memcached version available for the Ubuntu 14.04
 release and it will set things up in a way that it is automatically started along
