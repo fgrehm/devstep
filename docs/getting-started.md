@@ -173,6 +173,54 @@ project's dependencies packages will be downloaded to there. Note that the depen
 themselves are extracted and kept inside the images built by the CLI and you can
 safely clean things up or disable the caching behavior at will.
 
+## Building images using `Dockerfile`s
+--------------------------------------
+
+In case your project require additional stuff to work you can use the provided
+`fgrehm/devstep`, `fgrehm/devstep-ab` or `fgrehm/devstep-sa` images as a starting
+point for your `Dockerfile`s.
+
+The `fgrehm/devstep` image is the base image used for Devstep environments and
+requires you to manually trigger the build:
+
+```Dockerfile
+FROM fgrehm/devstep:v0.1.0
+
+# Add project to the image and build it
+ADD . /workspace
+WORKDIR /workspace
+RUN CLEANUP=1 /.devstep/bin/build-project /workspace
+```
+
+To make things easier, there's also a `fgrehm/devstep-ab:v0.1.0` image that
+does the same steps as outlined above automatically for you by leveraging `ONBUILD`
+instructions, trimming down your `Dockerfile` to a single line:
+
+```Dockerfile
+FROM fgrehm/devstep-ab:v0.1.0
+```
+
+And in case you want to run extra services (like a DB) within the same container
+of your project, you can use the `fgrehm/devstep-sa` image:
+
+```Dockerfile
+FROM fgrehm/devstep-sa:v0.1.0
+
+# Add project to the image and build it
+ADD . /workspace
+WORKDIR /workspace
+RUN CLEANUP=1 /.devstep/bin/build-project /workspace
+
+# Configure PostgreSQL and Redis to run on the project's container
+RUN /.devstep/bin/configure-addons postgresql redis
+```
+
+By using a `Dockerfile` to build your images (instead of using `devstep build`)
+you'll be able to skip mounting project's sources on the container when running
+it and a simple `docker run -it <IMAGE-NAME>` should do the trick. **_Keep in mind
+that changes made to project sources will be kept inside the container and
+you'll lose them when you `docker rm` it._**
+
 ## More information
 -------------------
 
