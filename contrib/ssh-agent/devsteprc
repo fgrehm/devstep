@@ -1,2 +1,0 @@
-DEVSTEP_HACK_RUN_OPTS="${DEVSTEP_HACK_RUN_OPTS} -v ${HOME}/.ssh:/.devstep/.ssh"
-DEVSTEP_HACK_RUN_OPTS="${DEVSTEP_HACK_RUN_OPTS} -v ${SSH_AUTH_SOCK}:/tmp/ssh-auth-sock -e SSH_AUTH_SOCK=/tmp/ssh-auth-sock"
