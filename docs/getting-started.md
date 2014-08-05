@@ -70,10 +70,9 @@ command which will create a Docker image with all dependencies required to hack
 on your project so that further `devstep hack`s have a reduced startup time.
 
 When your project dependencies are changed (like when a new RubyGem is needed
-for a Ruby app for example), you can run `devstep build` and it will reuse the
-previously built image as a starting point for building the new environment
-instead of starting from scratch, so use it for projects that you are likely
-to hack on every day.
+for a Ruby app), you can run `devstep build` again and it will reuse the previously
+built image as a starting point for building the new environment instead of
+starting from scratch, so use it for projects that you hack on every day.
 
 ### Accessing web apps from the host machine
 
