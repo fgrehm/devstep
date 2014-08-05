@@ -12,7 +12,7 @@ with:
 DEVSTEP_HACK_RUN_OPTS="${DEVSTEP_HACK_RUN_OPTS} -v ${SSH_AUTH_SOCK}:/tmp/ssh-auth-sock -e SSH_AUTH_SOCK=/tmp/ssh-auth-sock"
 ```
 
-Or you can just share you SSH keys with the container:
+Or you can just share your SSH keys with the container:
 
 ```sh
 DEVSTEP_HACK_RUN_OPTS="${DEVSTEP_HACK_RUN_OPTS} -v ${HOME}/.ssh:/.devstep/.ssh"
