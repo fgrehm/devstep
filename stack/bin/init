@@ -1,6 +1,6 @@
 #!/usr/bin/python2 -u
 
-# This is a trimmed out version of https://github.com/phusion/baseimage-docker/blob/master/image/bin/my_init
+# This is a trimmed down version of https://github.com/phusion/baseimage-docker/blob/master/image/bin/my_init
 
 import os, os.path, sys, stat, signal, errno, argparse, time, json, re, posixfile
 
