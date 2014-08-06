@@ -103,13 +103,13 @@ published port.
 For example, you can start a PostgreSQL service on the background with:
 
 ```sh
-docker run -d --name postgresql fgrehm/postgresql-9.1
+docker run -d --name postgres postgres:9.3
 ```
 
 And then start your hacking session with:
 
 ```sh
-devstep hack -r '--link postgresql:db'
+devstep hack -r '--link postgres:db'
 ```
 
 From inside the container you'll be able to access the external PostgreSQL service
