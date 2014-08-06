@@ -41,23 +41,6 @@ install_ruby() {
   return 0
 }
 
-requires_nodejs() {
-  return $(grep -q 'execjs' $1/Gemfile*) || \
-          $(grep -q 'coffee-script' $1/Gemfile*) || \
-          $(grep -q 'uglifier' $1/Gemfile*)
-}
-
-install_nodejs() {
-  version='0.10.26'
-  file="node-v${version}-linux-x64.tar.gz"
-  if ! [ -f $1/$file ]; then
-    wget -P $1 http://nodejs.org/dist/v${version}/$file &>>/tmp/build.log
-  fi
-  mkdir -p /.devstep/nodejs
-  tar xfz $1/$file -C /.devstep/nodejs --strip-components=1 &>>/tmp/build.log
-  echo "export PATH=/.devstep/nodejs/bin:\$PATH" > /.devstep/.profile.d/nodejs.sh
-}
-
 requires_phantomjs() {
   return $(grep -q 'poltergeist' $1/Gemfile*)
 }
@@ -119,16 +102,6 @@ fi
 
 echo "Installing gems using bundler '$(bundle -v | cut -d' ' -f 3)'..."
 (cd $1 && bundle install --jobs=4)
-
-if requires_nodejs $1; then
-  if [ -d /.devstep/nodejs ]; then
-    echo '-----> Nodejs already installed, skipping'
-  else
-    echo '-----> Installing nodejs...'
-    install_nodejs $2
-    source /.devstep/.profile.d/nodejs.sh
-  fi
-fi
 
 if requires_phantomjs $1; then
   if [ -d /.devstep/phantomjs ]; then
