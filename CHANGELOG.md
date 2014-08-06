@@ -3,9 +3,6 @@
 BREAKING CHANGES:
 
   - baseimage: Updated to Ubuntu 14.04 along with latest [progrium/cedarish](https://github.com/progrium/cedarish)
-  - buildpacks/ruby: Temporarily removed support for automatically installing
-    phantomjs for Rails projects that use the `poltergeist` gem (it will come
-    back on a next version)
   - init: Removed workaround for [docker/docker#5510](https://github.com/docker/docker/issues/5510)
     (this will break things on Docker pre 1.0.0) [[GH-48]]
   - init: Removed support for executing `/etc/rc.local` during startup
@@ -23,10 +20,8 @@ IMPROVEMENTS:
 
   - addons/postgresql: Install 9.3
   - builder: Error out in case the root directory is specified to the builder script [[GH-57]]
-  - buildpacks/ruby: Switch to a custom buildpack based on Heroku's one [[GH-58]]
 
 [GH-57]: https://github.com/fgrehm/devstep/issues/57
-[GH-58]: https://github.com/fgrehm/devstep/issues/58
 
 BUG FIXES:
 
