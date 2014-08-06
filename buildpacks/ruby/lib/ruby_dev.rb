@@ -25,6 +25,7 @@ class LanguagePack::RubyDev < LanguagePack::Ruby
     instrument 'ruby_dev.compile' do
       fix_gem_permissions
       ensure_docs_are_not_installed
+      configure_bundler
       # check for new app at the beginning of the compile
       new_app?
       Dir.chdir(build_path)
@@ -85,6 +86,17 @@ private
     instrument 'ruby_dev.ensure_docs_are_not_installed' do
       File.open("#{ENV['HOME']}/.gemrc", "w") do |file|
         file.puts "---\ngem: --no-ri --no-rdoc"
+      end
+    end
+  end
+
+  def configure_bundler
+    return if File.exists?("#{ENV['HOME']}/.bundle/config")
+
+    instrument 'ruby_dev.configure_bundler' do
+      FileUtils.mkdir_p "#{ENV['HOME']}/.bundle"
+      File.open("#{ENV['HOME']}/.bundle/config", "w") do |file|
+        file.puts "---\nBUNDLE_JOBS: 4\nBUNDLE_BIN: #{ENV['HOME']}/ruby-bins"
       end
     end
   end
@@ -249,7 +261,7 @@ private
       set_env_override "GEM_HOME", "#{slug_vendor_base}"
       set_env_override "GEM_PATH", "#{slug_vendor_base}"
       set_env_default  "LANG",     "en_US.UTF-8"
-      set_env_override "PATH",     "#{slug_vendor_base}/bin:$PATH"
+      set_env_override "PATH",     "#{ENV['HOME']}/ruby-bins:#{slug_vendor_base}/bin:$PATH"
 
       if ruby_version.jruby?
         set_env_default "JAVA_OPTS", default_java_opts
@@ -388,7 +400,6 @@ ERROR
       log("bundle") do
         bundle_bin     = "bundle"
         bundle_command = "#{bundle_bin} install"
-        bundle_command << " -j4"
 
         topic("Installing dependencies using #{bundler.version}")
 
@@ -407,7 +418,8 @@ ERROR
           # codon since it uses bundler.
           env_vars       = {
             "BUNDLE_GEMFILE"                => "#{pwd}/Gemfile",
-            "BUNDLE_CONFIG"                 => "#{pwd}/.bundle/config",
+            #"BUNDLE_CONFIG"                 => "#{pwd}/.bundle/config",
+            "BUNDLE_CONFIG"                 => "#{ENV['HOME']}/.bundle/config",
             "CPATH"                         => noshellescape("#{yaml_include}:$CPATH"),
             "CPPATH"                        => noshellescape("#{yaml_include}:$CPPATH"),
             "LIBRARY_PATH"                  => noshellescape("#{yaml_lib}:$LIBRARY_PATH"),
