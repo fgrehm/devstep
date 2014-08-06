@@ -3,7 +3,8 @@
 
 set -eo pipefail
 
-cache=$2
+cache=$2/bats
+mkdir -p $cache
 
 if $(which bats &>/dev/null); then
   echo '-----> Bats already installed, skipping'

@@ -6,8 +6,10 @@ set -o pipefail   # dont ignore exit codes when piping output
 
 # Configure directories
 build_dir=$1
-cache_dir=$2
+cache_dir=$2/node
 env_dir=$3
+
+mkdir -p $cache_dir
 
 bp_dir=$(cd $(dirname $0); cd ..; pwd)
 
@@ -72,7 +74,7 @@ echo "export PATH=\"/.devstep/nodejs/bin:$build_dir/node_modules/.bin:\$PATH\";"
 echo "export NODE_PATH=\"/.devstep/nodejs/lib/node_modules:\";" >> /.devstep/.profile.d/nodejs.sh
 
 # Cache npm packages on host machine
-npm config set cache /.devstep/cache/npm
+npm config set cache $HOME/cache/npm
 
 # Run subsequent node/npm commands from the build path
 cd $build_dir

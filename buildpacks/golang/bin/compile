@@ -22,9 +22,10 @@ urlfor() {
   esac
 }
 
-mkdir -p "$1" "$2"
 build=$1
-cache=$2
+cache=$2/golang
+mkdir -p "$1" "$2"
+
 arch=$(uname -m|tr A-Z a-z)
 if test $arch = x86_64
 then arch=amd64

@@ -13,7 +13,7 @@ set -eo pipefail
 
 # Paths.
 BUILD_DIR=$1
-CACHE_DIR=$2
+CACHE_DIR=$2/python
 ENV_DIR=$3
 
 bp_basedir="$( cd -P "$( dirname "$0" )" && cd .. && pwd )"

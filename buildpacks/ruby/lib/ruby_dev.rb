@@ -9,7 +9,8 @@ class LanguagePack::RubyDev < LanguagePack::Ruby
   def initialize(build_path, cache_path=nil)
     # Prevent metadata object from using the cache by forcing a nil here
     super(build_path, nil)
-    @_cache_path = cache_path
+    @_cache_path = "#{cache_path}/ruby"
+    FileUtils.mkdir_p(@_cache_path)
     # TODO: Find out how can we use the cache for rubies
   end
 
