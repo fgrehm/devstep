@@ -20,6 +20,10 @@ IMPROVEMENTS:
 
   - addons/postgresql: Install 9.3
   - builder: Error out in case the root directory is specified to the builder script [[GH-57]]
+  - buildpacks/ruby: Remove `--binary` flag when installing rubies so that any ruby can be installed.
+  - buildpacks/ruby: Make use of system libraries when installing nokogiri
+  - buildpacks/ruby: Use stable versions of RVM instead of latest master
+  - buildpacks/ruby: Keep a cache of gems tarballs
 
 [GH-57]: https://github.com/fgrehm/devstep/issues/57
 
