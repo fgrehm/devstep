@@ -1,15 +1,17 @@
+SQUID_ROOT="${HOME}/devstep-cache/squid3"
+
 if ! $(docker ps -a | grep -q squid3); then
   echo 'Creating squid container'
   docker run -ti -P -d \
         -h squid3.dev\
-        -v /tmp/squid3/cache:/var/cache/squid3 \
-        -v /tmp/squid3/certs:/etc/squid3/certs \
+        -v $SQUID_ROOT/cache:/var/cache/squid3 \
+        -v $SQUID_ROOT/certs:/etc/squid3/certs \
         --name squid3 \
         fgrehm/squid3-ssl
 else
   if ! $(docker ps | grep -q squid3); then
     echo 'Restarting squid container'
-    sudo mkdir -p /tmp/squid3/{certs,cache}
+    sudo mkdir -p $SQUID_ROOT/{certs,cache}
     docker start squid3 &> /dev/null
   fi
 fi
@@ -27,6 +29,6 @@ popd  > /dev/null
 DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} --link squid3:squid3.dev"
 DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -e http_proxy='http://squid3.dev:3128'"
 DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -e https_proxy='http://squid3.dev:3128'"
-DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -v /tmp/squid3/certs/squid3.dev.crt:/usr/share/ca-certificates/squid3.dev.crt"
+DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -v ${SQUID_ROOT}/certs/squid3.dev.crt:/usr/share/ca-certificates/squid3.dev.crt"
 DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -e HTTPS_PROXY_CERT='squid3.dev.crt'"
 DEVSTEP_RUN_OPTS="${DEVSTEP_RUN_OPTS} -v ${SCRIPT_PATH}/proxy.sh:/etc/my_init.d/proxy.sh"
