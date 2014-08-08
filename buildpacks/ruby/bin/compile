@@ -35,7 +35,7 @@ install_ruby() {
 
   RVM_RUBY_VERSION="ruby-${RVM_RUBY_VERSION}"
   echo "Installing ${RVM_RUBY_VERSION}..."
-  $_rvm install ${RVM_RUBY_VERSION} --binary --ignore-gemsets --default &>>/tmp/build.log
+  $_rvm install ${RVM_RUBY_VERSION} --ignore-gemsets --default &>>/tmp/build.log
 
   mkdir -p /.devstep/.profile.d
   $_rvm env --ignore-gemsets > /.devstep/.profile.d/rvm.sh 2>/dev/null
