@@ -109,6 +109,13 @@ if ! [ -f $GEMFILE_PATH ]; then
   exit 0
 fi
 
+gem_cache="$(gem env gemdir)/cache"
+if ! [ -L $gem_cache ]; then
+  rm -rf $gem_cache
+  mkdir -p "$2/gem-cache"
+  ln -s "$2/gem-cache" $gem_cache
+fi
+
 echo "Installing gems using bundler '$(bundle -v | cut -d' ' -f 3)'..."
 (cd $1 && bundle install --jobs=4)
 
