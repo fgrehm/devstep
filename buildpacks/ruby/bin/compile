@@ -25,7 +25,7 @@ install_ruby() {
   fi
 
   echo 'Installing rvm...'
-  \curl -sSL https://get.rvm.io | bash -s -- --ignore-dotfiles &>>/tmp/build.log
+  \curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles &>>/tmp/build.log
 
   _rvm=/.devstep/.rvm/bin/rvm
 
