@@ -77,6 +77,13 @@ else
 ---
 gem: --no-ri --no-rdoc
 GEMRC
+
+  # Use system libraries when installing nokogiri
+  mkdir -p "${HOME}/.bundle"
+  cat <<-STR > $HOME/.bundle/config
+---
+BUNDLE_BUILD__NOKOGIRI: "--use-system-libraries"
+STR
 fi
 
 source /.devstep/.profile.d/rvm.sh
