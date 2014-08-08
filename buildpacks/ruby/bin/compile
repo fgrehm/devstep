@@ -20,7 +20,9 @@ version_from_gemfile() {
 install_ruby() {
   mkdir -p $1/rvm-cache
   mkdir -p /.devstep/.rvm
-  ln -s $1/rvm-cache /.devstep/.rvm/archives
+  if ! [ -L /.devstep/.rvm/archives ]; then
+    ln -s $1/rvm-cache /.devstep/.rvm/archives
+  fi
 
   echo 'Installing rvm...'
   \curl -sSL https://get.rvm.io | bash -s -- --ignore-dotfiles &>>/tmp/build.log
