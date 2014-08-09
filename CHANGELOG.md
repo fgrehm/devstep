@@ -20,6 +20,7 @@ IMPROVEMENTS:
 
   - addons/postgresql: Install 9.3
   - builder: Error out in case the root directory is specified to the builder script [[GH-57]]
+  - buildpacks/python: Backport recent oficial Heroku buildpack updates
   - buildpacks/ruby: Remove `--binary` flag when installing rubies so that any ruby can be installed.
   - buildpacks/ruby: Make use of system libraries when installing nokogiri
   - buildpacks/ruby: Use stable versions of RVM instead of latest master
@@ -34,11 +35,13 @@ BUG FIXES:
   - buildpacks/golang: Fix check for whether go is installed [[GH-55]]
   - buildpacks/golang: Fix `GOPATH` symlinking when the remote URL begins with a
     username (like `git@`) [[GH-52]]
+  - buildpacks/python: Make it work with python 2.7.5 [[GH-65]]
 
 [GH-49]: https://github.com/fgrehm/devstep/issues/49
 [GH-52]: https://github.com/fgrehm/devstep/issues/52
 [GH-55]: https://github.com/fgrehm/devstep/issues/55
 [GH-56]: https://github.com/fgrehm/devstep/issues/56
+[GH-65]: https://github.com/fgrehm/devstep/issues/65
 
 ## 0.0.1 (June 29, 2014)
 
