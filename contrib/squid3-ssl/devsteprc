@@ -7,7 +7,7 @@ if ! $(docker ps -a | grep -q squid3); then
         -v $SQUID_ROOT/cache:/var/cache/squid3 \
         -v $SQUID_ROOT/certs:/etc/squid3/certs \
         --name squid3 \
-        fgrehm/squid3-ssl
+        fgrehm/squid3-ssl:v20140809
 else
   if ! $(docker ps | grep -q squid3); then
     echo 'Restarting squid container'
