@@ -36,7 +36,7 @@ ROOT_DIR=$basedir
 PROFILE_PATH="/.devstep/.profile.d/python.sh"
 
 DEFAULT_PYTHON_VERSION="python-2.7.8"
-DEFAULT_PYTHON_STACK="cedar"
+DEFAULT_PYTHON_STACK="cedar-14"
 PYTHON_EXE="/.devstep/python/bin/python"
 PIP_VERSION="1.5.6"
 SETUPTOOLS_VERSION="5.4.1"
