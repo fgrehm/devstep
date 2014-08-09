@@ -1,0 +1,18 @@
+set +e
+# Install dependencies with Pip.
+# bpwatch start pip_uninstall
+if [[ -f $HOME/python/requirements-declared.txt ]]; then
+
+  cp $HOME/python/requirements-declared.txt requirements-declared.txt
+
+  pip-diff --stale requirements-declared.txt requirements.txt > $HOME/python/requirements-stale.txt
+
+  rm -fr requirements-declared.txt
+
+  if [[ -s $HOME/python/requirements-stale.txt ]]; then
+    puts-step "Uninstalling stale dependencies"
+    $HOME/python/bin/pip uninstall -r $HOME/python/requirements-stale.txt -y --exists-action=w | cleanup | indent
+  fi
+fi
+# bpwatch stop pip_uninstall
+set -e

@@ -1,0 +1,16 @@
+# Install dependencies with Pip.
+puts-step "Installing dependencies with pip"
+
+# [ ! "$FRESH_PYTHON" ] && bpwatch start pip_install
+# [ "$FRESH_PYTHON" ] && bpwatch start pip_install_first
+
+$HOME/python/bin/pip install -r requirements.txt --exists-action=w --allow-all-external  | cleanup | indent
+
+# Smart Requirements handling
+cp requirements.txt $HOME/python/requirements-declared.txt
+$HOME/python/bin/pip freeze > $HOME/python/requirements-installed.txt
+
+# [ ! "$FRESH_PYTHON" ] && bpwatch stop pip_install
+# [ "$FRESH_PYTHON" ] && bpwatch stop pip_install_first
+
+echo

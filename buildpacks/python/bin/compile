@@ -28,10 +28,6 @@ fi
 BIN_DIR=$basedir/bin
 ROOT_DIR=$basedir
 
-basedir="${basedir}/bin"
-basedir=$(readlink -f $basedir)
-export HEROKU_PHP_BUILDPACK=$basedir
-
 # CACHED_DIRS=".heroku"
 
 # Static configurations for virtualenv caches.
@@ -39,19 +35,25 @@ export HEROKU_PHP_BUILDPACK=$basedir
 # LEGACY_TRIGGER="lib/python2.7"
 PROFILE_PATH="/.devstep/.profile.d/python.sh"
 
-DEFAULT_PYTHON_VERSION="python-2.7.7"
+DEFAULT_PYTHON_VERSION="python-2.7.8"
+DEFAULT_PYTHON_STACK="cedar"
 PYTHON_EXE="/.devstep/python/bin/python"
 PIP_VERSION="1.5.6"
-SETUPTOOLS_VERSION="3.6"
+SETUPTOOLS_VERSION="5.4.1"
 
 # Setup bpwatch
 # export PATH=$PATH:$ROOT_DIR/vendor/bpwatch
-# LOGPLEX_KEY="t.b396af7f-ad75-4643-8b9e-ebb288acc624"
+# LOGPLEX_KEY="t.b90d9d29-5388-4908-9737-b4576af1d4ce"
 # export BPWATCH_STORE_PATH=$CACHE_DIR/bpwatch.json
 BUILDPACK_VERSION=v28
 
+# Setup pip-pop (pip-diff)
+export PATH=$PATH:$ROOT_DIR/vendor/pip-pop
+
 # Support Anvil Build_IDs
+# [ ! "$SLUG_ID" ] && SLUG_ID="defaultslug"
 # [ ! "$REQUEST_ID" ] && REQUEST_ID=$SLUG_ID
+[ ! "$STACK" ] && STACK=$DEFAULT_PYTHON_STACK
 
 # Sanitizing environment variables.
 unset GIT_DIR PYTHONHOME PYTHONPATH LD_LIBRARY_PATH LIBRARY_PATH
@@ -111,8 +113,7 @@ cd $BUILD_DIR
 # bpwatch stop pre_compile
 
 # If no requirements given, assume `setup.py develop`.
-if [ ! -f requirements.txt ] && [ -f setup.py ]; then
-  puts-step "No requirements.txt provided; assuming dist package."
+if [ ! -f requirements.txt ]; then
   echo "-e ." > requirements.txt
 fi
 
@@ -122,11 +123,22 @@ fi
 #   DEFAULT_PYTHON_VERSION=$(cat $CACHE_DIR/.heroku/python-version)
 # fi
 
+# Stack fallback for non-declared caches.
+# if [ -f $CACHE_DIR/.heroku/python-stack ]; then
+#   CACHED_PYTHON_STACK=$(cat $CACHE_DIR/.heroku/python-stack)
+# else
+#   CACHED_PYTHON_STACK=$DEFAULT_PYTHON_STACK
+# fi
+
 # If no runtime given, assume default version.
 if [ ! -f runtime.txt ]; then
   puts-step "No runtime.txt provided; assuming $DEFAULT_PYTHON_VERSION."
   PYTHON_VERSION=$DEFAULT_PYTHON_VERSION
+else
+  PYTHON_VERSION=$(cat runtime.txt)
 fi
+
+export PYTHON_VERSION
 
 # ### The Cache
 mkdir -p $CACHE_DIR
@@ -153,130 +165,48 @@ mkdir -p $CACHE_DIR
 
 mkdir -p $(dirname $PROFILE_PATH)
 
-set +e
-PYTHON_VERSION=${PYTHON_VERSION:-$(cat runtime.txt)}
+# Install Python using our own script.
+source $bp_basedir/bin/steps/python
 
-# Install Python.
-if [ -f /.devstep/python/python-version ]; then
-  if [ ! $(cat /.devstep/python/python-version) = $PYTHON_VERSION ]; then
-    # bpwatch start uninstall_python
-      puts-step "Found $(cat /.devstep/python/python-version), removing."
-      rm -fr /.devstep/python
-    # bpwatch stop uninstall_python
-  else
-    SKIP_INSTALL=1
-  fi
-fi
+# Sanity check for setuptools/distribute.
+source $BIN_DIR/steps/setuptools
 
+# Uninstall removed dependencies with Pip.
+source $bp_basedir/bin/steps/pip-uninstall
 
-if [ ! "$SKIP_INSTALL" ]; then
-  # bpwatch start install_python
-    puts-step "Preparing Python runtime ($PYTHON_VERSION)"
-    if ! [ -f $CACHE_DIR/${PYTHON_VERSION}.tar.gz ]; then
-      curl -s -L http://lang-python.s3.amazonaws.com/runtimes/${PYTHON_VERSION}.tar.gz > ${CACHE_DIR}/${PYTHON_VERSION}.tar.gz
-      if [[ $? != 0 ]] ; then
-        puts-warn "Requested runtime ($PYTHON_VERSION) was not found."
-        puts-warn "Aborting.  More info: https://devcenter.heroku.com/articles/python-support"
-        exit 1
-      fi
-    fi
-    rm -rf /.devstep/python
-    mkdir -p /.devstep/python
-    tar zxf ${CACHE_DIR}/${PYTHON_VERSION}.tar.gz -C /.devstep/python &> /dev/null
-  # bpwatch stop install_python
-
-  # Record for future reference.
-  echo $PYTHON_VERSION > /.devstep/python/python-version
-  FRESH_PYTHON=true
-
-  hash -r
-else
-  puts-step "Using Python runtime ($PYTHON_VERSION)"
-fi
-
-# If Pip isn't up to date:
-if [ "$FRESH_PYTHON" ] || [[ ! $(pip --version) == *$PIP_VERSION* ]]; then
-  WORKING_DIR=$(pwd)
-
-  # bpwatch start prepare_environment
-
-  # bpwatch start install_setuptools
-    # Prepare it for the real world
-    puts-step "Installing Setuptools ($SETUPTOOLS_VERSION)"
-    cd $ROOT_DIR/vendor/
-    tar zxf setuptools-$SETUPTOOLS_VERSION.tar.gz
-    cd $ROOT_DIR/vendor/setuptools-$SETUPTOOLS_VERSION/
-    python setup.py install &> /dev/null
-    cd $WORKING_DIR
-  # bpwatch stop install_setuptoools
-
-  # bpwatch start install_pip
-    puts-step "Installing Pip ($PIP_VERSION)"
-
-    cd $ROOT_DIR/vendor/
-    tar zxf pip-$PIP_VERSION.tar.gz
-    cd $ROOT_DIR/vendor/pip-$PIP_VERSION/
-    python setup.py install &> /dev/null
-    cd $WORKING_DIR
-
-  # bpwatch stop install_pip
-  # bpwatch stop prepare_environment
-fi
-
-set -e
-hash -r
+# Mercurial support.
+# source $BIN_DIR/steps/mercurial
 
 # Pylibmc support.
-# See [`bin/steps/pylibmc`](pylibmc.html).
-# bpwatch start pylibmc_install
-  [ -f requirements.txt ] && source $BIN_DIR/steps/pylibmc
-# bpwatch stop pylibmc_install
+source $bp_basedir/bin/steps/pylibmc
 
-# Install Mercurial if it appears to be required.
-if [ -f requirements.txt ] && (grep -Fiq "hg+" requirements.txt) then
-  # bpwatch start mercurial_install
-    /.devstep/python/bin/pip install  mercurial | cleanup | indent
-  # bpwatch stop mercurial_install
-fi
+# Libffi support.
+source $bp_basedir/bin/steps/cryptography
 
 # Install dependencies with Pip.
-if [ -f requirements.txt ]; then
-  puts-step "Installing dependencies using Pip ($PIP_VERSION)"
-  # [ ! "$FRESH_PYTHON" ] && bpwatch start pip_install
-  # [ "$FRESH_PYTHON" ] && bpwatch start pip_install_first
-
-  /.devstep/python/bin/pip install -r requirements.txt --exists-action=w --allow-all-external  | cleanup | indent
-
-  # [ ! "$FRESH_PYTHON" ] && bpwatch stop pip_install
-  # [ "$FRESH_PYTHON" ] && bpwatch stop pip_install_first
-else
-  puts-step 'No requirements.txt file found, skipping `pip install`'
-fi
-
-
+source $bp_basedir/bin/steps/pip-install
 
 # Django collectstatic support.
-# bpwatch start collectstatic
-  sub-env $BIN_DIR/steps/collectstatic
-# bpwatch stop collectstatic
+# sub-env $BIN_DIR/steps/collectstatic
+
 
 # ### Finalize
 #
 
 # Set context environment variables.
-echo 'export PATH=/.devstep/python/bin:$PATH' > /.devstep/.profile.d/python.sh
-echo 'export PYTHONUNBUFFERED=true' >> /.devstep/.profile.d/python.sh
-echo 'export PYTHONHOME=/.devstep/python' >> /.devstep/.profile.d/python.sh
-echo 'export LIBRARY_PATH=/.devstep/vendor/lib' >> /.devstep/.profile.d/python.sh
-echo 'export LD_LIBRARY_PATH=/.devstep/vendor/lib' >> /.devstep/.profile.d/python.sh
-echo 'export LANG=en_US.UTF-8' >> /.devstep/.profile.d/python.sh
-echo 'export PYTHONHASHSEED=random' >> /.devstep/.profile.d/python.sh
-echo "export PYTHONPATH=$BUILD_DIR" >> /.devstep/.profile.d/python.sh
-source /.devstep/.profile.d/python.sh
+set-env PATH '$HOME/python/bin:$PATH'
+set-env PYTHONUNBUFFERED true
+set-env PYTHONHOME $HOME/python
+set-env LIBRARY_PATH $HOME/vendor/lib:$HOME/python/lib
+set-env LD_LIBRARY_PATH '$HOME/vendor/lib:$HOME/python/lib:$LD_LIBRARY_PATH'
+set-default-env LANG en_US.UTF-8
+set-default-env PYTHONHASHSEED random
+set-default-env PYTHONPATH $BUILD_DIR
+
 
 # Experimental post_compile hook.
 # bpwatch start post_compile
-   source $BIN_DIR/steps/hooks/post_compile
+#   source $BIN_DIR/steps/hooks/post_compile
 # bpwatch stop post_compile
 
 # XXX: Is this needed?
