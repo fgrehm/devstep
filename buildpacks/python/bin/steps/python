@@ -33,6 +33,7 @@ if [ ! "$SKIP_INSTALL" ]; then
     fi
     tar zxf ${CACHE_DIR}/${PYTHON_VERSION}.tar.gz -C $HOME/python &> /dev/null
     if [[ $? != 0 ]] ; then
+      rm ${CACHE_DIR}/${PYTHON_VERSION}.tar.gz
       puts-warn "Requested runtime ($PYTHON_VERSION) was not found."
       puts-warn "Aborting.  More info: https://devcenter.heroku.com/articles/python-support"
       exit 1
