@@ -95,14 +95,14 @@ source $BIN_DIR/utils
 # BUILD_DIR=$APP_DIR
 
 # Prepend proper path buildpack use.
-export PATH=/.devstep/python/bin:/.devstep/vendor/bin:$PATH
+export PATH=/.devstep/python/bin:$PATH
 export PYTHONUNBUFFERED=1
 export LANG=en_US.UTF-8
-export C_INCLUDE_PATH=/.devstep/vendor/include
-export CPLUS_INCLUDE_PATH=/.devstep/vendor/include
-export LIBRARY_PATH=/.devstep/vendor/lib
-export LD_LIBRARY_PATH=/.devstep/vendor/lib
-export PKG_CONFIG_PATH=/.devstep/vendor/lib/pkg-config
+export C_INCLUDE_PATH=/.devstep/python/include
+export CPLUS_INCLUDE_PATH=/.devstep/python/include
+export LIBRARY_PATH=/.devstep/python/lib
+export LD_LIBRARY_PATH=/.devstep/python/lib
+export PKG_CONFIG_PATH=/.devstep/python/lib/pkg-config
 
 # Switch to the repo's context.
 cd $BUILD_DIR
@@ -197,8 +197,8 @@ source $bp_basedir/bin/steps/pip-install
 set-env PATH '$HOME/python/bin:$PATH'
 set-env PYTHONUNBUFFERED true
 set-env PYTHONHOME $HOME/python
-set-env LIBRARY_PATH $HOME/vendor/lib:$HOME/python/lib
-set-env LD_LIBRARY_PATH '$HOME/vendor/lib:$HOME/python/lib:$LD_LIBRARY_PATH'
+set-env LIBRARY_PATH $HOME/python/lib
+set-env LD_LIBRARY_PATH '$HOME/python/lib:$LD_LIBRARY_PATH'
 set-default-env LANG en_US.UTF-8
 set-default-env PYTHONHASHSEED random
 set-default-env PYTHONPATH $BUILD_DIR
