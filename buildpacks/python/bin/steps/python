@@ -28,13 +28,15 @@ if [ ! "$SKIP_INSTALL" ]; then
 
     # Prepare destination directory.
     mkdir -p $HOME/python
-
-    curl http://lang-python.s3.amazonaws.com/$STACK/runtimes/$PYTHON_VERSION.tar.gz -s | tar zxv -C $HOME/python &> /dev/null
-    if [[ $? != 0 ]] ; then
-      puts-warn "Requested runtime ($PYTHON_VERSION) is not available for this stack ($STACK)."
-      puts-warn "Aborting.  More info: https://devcenter.heroku.com/articles/python-support"
-      exit 1
+    if ! [ -f $CACHE_DIR/${PYTHON_VERSION}.tar.gz ]; then
+      curl -s -L http://lang-python.s3.amazonaws.com/runtimes/${PYTHON_VERSION}.tar.gz > ${CACHE_DIR}/${PYTHON_VERSION}.tar.gz
+      if [[ $? != 0 ]] ; then
+        puts-warn "Requested runtime ($PYTHON_VERSION) was not found."
+        puts-warn "Aborting.  More info: https://devcenter.heroku.com/articles/python-support"
+        exit 1
+      fi
     fi
+    tar zxf ${CACHE_DIR}/${PYTHON_VERSION}.tar.gz -C $HOME/python &> /dev/null
 
   # bpwatch stop install_python
 
