@@ -14,8 +14,9 @@ You can also provide arbitrary releases Python with a `runtime.txt` file.
 
 Runtime options include:
 
-- python-2.7.8
+- python-2.7.8 (default)
 - python-3.4.1
 - pypy-1.9 (experimental)
 
-Other [unsupported runtimes](https://github.com/heroku/heroku-buildpack-python/tree/master/builds/runtimes) are available as well.
+Other [unsupported runtimes](https://github.com/heroku/heroku-buildpack-python/tree/master/builds/runtimes)
+are available as well and are not guaranteed to play well with devstep.
