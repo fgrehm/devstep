@@ -30,7 +30,7 @@ set -eu
 # move hidden files too, just in case
 shopt -s dotglob
 
-STACK='cedar' # Anvil has none
+STACK='cedar-14' # Anvil has none
 BUILD_DIR="$1"
 CACHE_DIR="${2}/php"
 
