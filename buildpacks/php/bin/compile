@@ -46,7 +46,7 @@ bp_basedir=$(readlink -f $bp_basedir)
 # ENV_DIR=${3:-} # Anvil has none
 BP_DIR="${bp_basedir}/heroku-buildpack-php"
 BP_DIR=$(readlink -f $BP_DIR)
-BP_DIR=$(cd $(dirname $0); cd ..; pwd)
+# BP_DIR=$(cd $(dirname $0); cd ..; pwd)
 
 # convenience functions
 source $BP_DIR/bin/common.sh
