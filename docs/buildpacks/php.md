@@ -13,5 +13,5 @@ start a server for you app will also be configured.
 For more information on setting things up, please read the [Heroku Docs](https://devcenter.heroku.com/categories/php)
 or ask for help on [Devstep's issue tracker](https://github.com/fgrehm/devstep/issues).
 
-Instructions for running the server (either Apache2 or NGINX depending on your
-configuration) will be provided at the end of the build process.
+Instructions for running the server (either Apache2 or NGINX) will be provided
+at the end of the build process.
