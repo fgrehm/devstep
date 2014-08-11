@@ -74,7 +74,7 @@ echo "export PATH=\"/.devstep/nodejs/bin:$build_dir/node_modules/.bin:\$PATH\";"
 echo "export NODE_PATH=\"/.devstep/nodejs/lib/node_modules:\";" >> /.devstep/.profile.d/nodejs.sh
 
 # Cache npm packages on host machine
-npm config set cache $HOME/cache/npm
+npm config set cache $cache_dir/npm
 
 # Run subsequent node/npm commands from the build path
 cd $build_dir
