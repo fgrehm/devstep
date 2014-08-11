@@ -1,12 +1,16 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+# bin/compile <build-dir> <cache-dir> <env-dir>
 
 install_ext () {
     local ext=$1
     local reason=${2:-}
     local ext_ini="$BP_DIR/conf/php/conf.d/ext-$ext.ini"
+    local ext_so=
     local ext_dir=$(basename $(php-config --extension-dir))
     if [[ -f "$ext_ini" ]]; then
-        if [[ ! -f "$PHP_EXT_DIR/$ext.so" ]]; then
+        ext_so=$(php -r '$ini=parse_ini_file("'$ext_ini'"); echo $ext=$ini["zend_extension"]?:$ini["extension"]; exit((int)empty($ext));') # read .so name from .ini because e.g. opcache.so is named "zend-opcache"
+        if [[ ! -f "$PHP_EXT_DIR/$ext_so" ]]; then
             curl --silent --location "${S3_URL}/extensions/${ext_dir}/${ext}.tar.gz" | tar xz -C $PHP_DIR
             echo "- ${ext} (${reason}; downloaded, using 'ext-${ext}.ini')" | indent
         else
@@ -31,32 +35,33 @@ set -eu
 shopt -s dotglob
 
 STACK='cedar-14' # Anvil has none
-BUILD_DIR="$1"
-CACHE_DIR="${2}/php"
+BUILD_DIR=$1
+CACHE_DIR="$2/php"
 
 mkdir -p $CACHE_DIR
 
 bp_basedir="$( cd -P "$( dirname "$0" )" && cd .. && pwd )"
 bp_basedir=$(readlink -f $bp_basedir)
 
+# ENV_DIR=${3:-} # Anvil has none
 BP_DIR="${bp_basedir}/heroku-buildpack-php"
 BP_DIR=$(readlink -f $BP_DIR)
-export HEROKU_PHP_BUILDPACK=$BP_DIR
+BP_DIR=$(cd $(dirname $0); cd ..; pwd)
 
 # convenience functions
 source $BP_DIR/bin/common.sh
 
 # export_env_dir "$ENV_DIR" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK)$'
 
-#BUILDPACK_URL=${BUILDPACK_URL:-} # Anvil has none
-#BUILDPACK_BRANCH=$(expr "$BUILDPACK_URL" : '^.*/heroku-buildpack-php#\(..*\)$' || expr "$BUILDPACK_URL" : '^.*/heroku-buildpack-php\.git#\(..*\)$' || true)
-#BUILDPACK_BRANCH=${BUILDPACK_BRANCH:-master}
-#BUILDPACK_OWNER=$(expr "$BUILDPACK_URL" : '^.*/\(..*\)/heroku-buildpack-php' || true)
+# BUILDPACK_URL=${BUILDPACK_URL:-} # Anvil has none
+# BUILDPACK_BRANCH=$(expr "$BUILDPACK_URL" : '^.*/heroku-buildpack-php#\(..*\)$' || expr "$BUILDPACK_URL" : '^.*/heroku-buildpack-php\.git#\(..*\)$' || true)
+# BUILDPACK_BRANCH=${BUILDPACK_BRANCH:-master}
+# BUILDPACK_OWNER=$(expr "$BUILDPACK_URL" : '^.*/\(..*\)/heroku-buildpack-php' || true)
 
 S3_URL="master"
-#if [[ "$BUILDPACK_BRANCH" != v* && "$BUILDPACK_BRANCH" != "master" ]]; then
-#    S3_URL="develop"
-#fi
+# if [[ "$BUILDPACK_BRANCH" != v* && "$BUILDPACK_BRANCH" != "master" ]]; then
+#     S3_URL="develop"
+# fi
 S3_URL="https://lang-php.s3.amazonaws.com/dist-${STACK}-${S3_URL}"
 
 cd $BUILD_DIR
@@ -127,10 +132,8 @@ If the issue persists, please contact support."
             if [[ $runtime_name == "php" ]]; then
                 PHP_VERSION="$runtime_result"
             elif [[ $runtime_name == "hhvm" ]]; then
-                # TODO: Figure out how can we get libmysqlclient16 on Ubuntu 14.04
-                error "HHVM is not supported yet!"
-                #HHVM_VERSION="$runtime_result"
-                #engine=hhvm
+                HHVM_VERSION="$runtime_result"
+                engine=hhvm
             fi
         else
             error "Could not resolve $runtime_source requirement for ${runtime_name^^} $runtime_constraint,
@@ -161,7 +164,7 @@ if [[ "${PHP_VERSION}" ]]; then
     cp $BP_DIR/conf/php/php-fpm.conf $PHP_DIR/etc/php
     mkdir -p $PHP_DIR/etc/php/conf.d
     # remember the version for future upgrade handling
-    echo $PHP_VERSION > $CACHE_DIR/php_version
+    echo $PHP_VERSION > $HOME/php_version
 fi
 if [[ "${HHVM_VERSION}" ]]; then
     TARBALL="hhvm-${HHVM_VERSION}.tar.gz"
@@ -171,7 +174,7 @@ if [[ "${HHVM_VERSION}" ]]; then
         curl --silent --location "$HHVM_DIST_URL" > $CACHE_DIR/$TARBALL
     fi
     tar xzf $CACHE_DIR/$TARBALL -C $PHP_DIR
-    echo $HHVM_VERSION > $CACHE_DIR/hhvm_version
+    echo $HHVM_VERSION > $HOME/hhvm_version
     # make HHVM accessible
     export PATH=$PATH:$PHP_DIR/usr/bin
     # so it'll start. remember to use the full path to the binary, or we'll get an infinite loop
@@ -192,9 +195,6 @@ tar xzf $CACHE_DIR/$TARBALL -C $PHP_DIR
 cp $BP_DIR/conf/apache2/httpd.conf.default $PHP_DIR/etc/apache2/httpd.conf
 # remember the version for future upgrade handling
 echo $APACHE_VERSION > $HOME/apache2_version
-if ! [ -L /lib/x86_64-linux-gnu/libpcre.so.1 ]; then
-  sudo ln -s /lib/x86_64-linux-gnu/libpcre.so.3 /lib/x86_64-linux-gnu/libpcre.so.1
-fi
 
 NGINX_VERSION="1.6.0"
 TARBALL="nginx-${NGINX_VERSION}.tar.gz"
@@ -204,45 +204,42 @@ if ! [ -f $CACHE_DIR/$TARBALL ]; then
   curl --silent --location "$NGINX_DIST_URL" > $CACHE_DIR/$TARBALL
 fi
 tar xzf $CACHE_DIR/$TARBALL -C $PHP_DIR
+
 # nginx; copy in our config
 cp $BP_DIR/conf/nginx/nginx.conf.default $PHP_DIR/etc/nginx/nginx.conf
 # remember the version for future upgrade handling
-echo $NGINX_VERSION > $CACHE_DIR/nginx_version
+echo $NGINX_VERSION > $HOME/nginx_version
 
 # handle extensions for PHP
 if [[ "${PHP_VERSION}" ]]; then
     status "Installing PHP extensions..."
-    # install_ext "opcache" "automatic"
-    exts=
+
+#     # the newrelic extension logs to stderr which pollutes our build output on each invocation of PHP, and the daemon it launches will prevent the build from finishing, so we disable it for the duration of this build (write to zzz-ext-newrelic.ini so the file is loaded last and overwrites the regular config). we can do this unconditionally here, no harm done if extension or add-on aren't enabled
+#     echo "newrelic.enabled = 0
+#     newrelic.loglevel = error
+#     newrelic.daemon.dont_launch = 3
+#     newrelic.daemon.loglevel = error" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/zzz-ext-newrelic.ini"
+
+    exts=()
     if [[ -f "composer.json" ]]; then
-        exts=$(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key[4:]) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)
+        exts=($(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key[4:].lower()) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)) # convert to array
     fi
-#    newrelic_installed=false
-    if [[ -n "$exts" ]]; then
-        while read -r ext; do
-            #if [[ "$ext" == "newrelic" ]]; then
-            #    newrelic_installed=true
-            #fi
-            if [[ "$ext" != "newrelic" ]]; then
-                install_ext "$ext" "composer.json"
-            fi
-        done <<< "$exts"
-    fi
-#    # special treatment for New Relic; we enable it if we detect a license key for it
-#    # otherwise users would have to have it in their require section, which is annoying in development environments
-#    NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY:-}
-#    if [[ $newrelic_installed == false && -n "$NEW_RELIC_LICENSE_KEY" ]]; then
-#        newrelic_installed=true
-#        install_ext "newrelic" "add-on detected"
-#    fi
+    for ext in "${!exts[@]}"; do # loop over keys in case the array is empty or else it'll error out
+        install_ext "${exts[$ext]}" "composer.json"
+    done
+
+#     # special treatment for New Relic; we enable it if we detect a license key for it
+#     # otherwise users would have to have it in their require section, which is annoying in development environments
+#     NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY:-}
+#     if [[ ( ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "newrelic" ) && -n "$NEW_RELIC_LICENSE_KEY" ]]; then
+#         install_ext "newrelic" "add-on detected"
+#         exts+=("newrelic")
+#     fi
 #
-#    if [[ $newrelic_installed == true ]]; then
-#        # newrelic logs to stderr, and that mangles our build output and seems to cause calls to Composer to potentially hang, so we disable it for the duration of this build
-#        echo "newrelic.enabled = 0
-#newrelic.loglevel = error
-#newrelic.daemon.dont_launch = 3
-#newrelic.daemon.loglevel = error" > "${PHP_DIR}/etc/php/conf.d/ext-newrelic-off.ini"
-#    fi
+#     if [[ ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "zend-opcache" ]]; then
+#         install_ext "zend-opcache" "automatic"
+#         exts+=("zend-opcache")
+#     fi
 fi
 
 status "Installing dependencies..."
@@ -267,14 +264,14 @@ fi
 composer --version 2> /dev/null | tail -n 1 | indent
 
 # throw a notice if people have added their vendor dir to Git; that's bad practice and makes everything slow and cluttered
-#if [[ -e "$(composer config vendor-dir)" ]]; then
-#    warning "You have put Composer's vendor directory under version control.
-#That directory should not be in your Git repository; only composer.json
-#and composer.lock should be added, with Composer handling installation.
-#Please 'git rm --cached $(composer config vendor-dir)/' to remove the folder from your index,
-#then add '/$(composer config vendor-dir)/' to your '.gitignore' list to remove this notice.
-#For more information, refer to the Composer FAQ: http://bit.ly/1rlCSZU"
-#fi
+# if [[ -e "$(composer config vendor-dir)" ]]; then
+#     warning "You have put Composer's vendor directory under version control.
+# That directory should not be in your Git repository; only composer.json
+# and composer.lock should be added, with Composer handling installation.
+# Please 'git rm --cached $(composer config vendor-dir)/' to remove the folder from your index,
+# then add '/$(composer config vendor-dir)/' to your '.gitignore' list to remove this notice.
+# For more information, refer to the Composer FAQ: http://bit.ly/1rlCSZU"
+# fi
 
 # handle custom oauth keys
 COMPOSER_GITHUB_OAUTH_TOKEN=${COMPOSER_GITHUB_OAUTH_TOKEN:-}
@@ -299,7 +296,7 @@ fi
 unset COMPOSER_GITHUB_OAUTH_TOKEN
 
 # install dependencies
-#composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction | indent
+# composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction | indent
 composer install --prefer-dist --optimize-autoloader --no-interaction | indent
 
 composer show --installed heroku/heroku-buildpack-php &> /dev/null && error "Your composer.json requires package 'heroku/heroku-buildpack-php'.
@@ -367,6 +364,7 @@ fi
 # if [[ -n "$NEW_RELIC_LICENSE_KEY" ]]; then
 #     export NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME:-"PHP Application on Heroku"}
 #     export NEW_RELIC_LOG=${NEW_RELIC_LOG:-"stderr"}
+#     export NEW_RELIC_LOG_LEVEL=${NEW_RELIC_LOG_LEVEL:-"warning"}
 # fi
 # EOF
 
@@ -389,4 +387,4 @@ notice_inline "To start the server run 'PORT=\"<DESIRED_PORT>\" $bindir/heroku-$
 
 # cleanup
 # re-enable newrelic in case we installed but disabled it for the duration of the build
-# rm -f "${PHP_DIR}/etc/php/conf.d/ext-newrelic-off.ini"
+# rm -f "${BUILD_DIR}/.heroku/php/etc/php/conf.d/zzz-ext-newrelic.ini"
