@@ -38,6 +38,8 @@ RUN DEBIAN_FRONTEND=noninteractive && \
 # * Install bash-completion to save us a few keystrokes
 # * Install vim because editing files with plain old vi sucks
 # * Install `htop` because it has a nicer UI than plain old `top`
+# * Install tmux so that we can run lots of shells within the same
+#   bash session (without the need of running through SSH)
 # * Download and install jq as it is being used by a few buildpacks
 #   See http://stedolan.github.io/jq for more info
 
@@ -49,7 +51,7 @@ RUN DEBIAN_FRONTEND=noninteractive && \
     echo "[client]\nprotocol=tcp\nuser=root" >> /.devstep/.my.cnf && \
     echo "export PGHOST=localhost" >> /.devstep/.profile.d/postgresql.sh && \
     echo "export PGUSER=postgres" >> /.devstep/.profile.d/postgresql.sh && \
-    apt-get install -y --force-yes vim htop && \
+    apt-get install -y --force-yes vim htop tmux && \
     apt-get clean && \
     mkdir -p /.devstep/bin && \
     curl -L -s http://stedolan.github.io/jq/download/linux64/jq > /.devstep/bin/jq
