@@ -5,9 +5,9 @@ Devstep comes in two flavors, you can either use the provided CLI or you can bui
 on top of the provided images from `Dockerfile`s.
 
 Regardless of the flavor you choose, it is a good idea to `docker pull fgrehm/devstep:v0.1.0`
-before creating your first container / image for a better "user experience".
-Docker will download that image as needed but by pulling it first you'll reduce
-the waiting time when interacting with Devstep for the first time.
+before creating your first container / image for a better user experience. Docker
+will download that image as needed but by pulling it first you'll reduce the waiting
+time when interacting with Devstep for the first time.
 
 ## Sanity check
 ---------------
@@ -33,9 +33,9 @@ Docker adds support for user namespaces ([#6600](https://github.com/dotcloud/doc
 / [#4572](https://github.com/dotcloud/docker/pull/4572)).
 
 > The `1000` id was chosen because it is the default uid / gid of Ubuntu Desktop users
-that are created during the installation process. To work around this limitation,
-please build your own image using the appropriate ids and add a `DEVSTEP_SOURCE_IMAGE=<YOUR-IMAGE>`
-line to your `~/.devsteprc`.
+that are created during the installation process. To work around this limitation
+you can build your own image with the appropriate ids and add a `DEVSTEP_SOURCE_IMAGE=<YOUR-IMAGE>`
+line to your `~/.devsteprc` so that the image is used as a source for your projects.
 
 To install the CLI, you can run the one liner below and read on for more:
 
@@ -43,8 +43,8 @@ To install the CLI, you can run the one liner below and read on for more:
 L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep/raw/v0.1.0/devstep > $L && chmod +x $L
 ```
 
-_The snippet above assumes `$HOME/bin` is on your PATH, please change `$HOME/bin`
-to an appropriate path in case your system is not configured like that._
+_The snippet above assumes `$HOME/bin` is on your PATH, change `$HOME/bin` to
+an appropriate path in case your system is not configured like that._
 
 ### Doing a quick hack on a project
 
@@ -118,7 +118,7 @@ by that image.
 
 Installing services inside the container makes sense if, for example, you are
 developing a library that interacts with it. Please note that since the Docker
-image does not run Ubuntu's default init process (we use [runit](http://smarden.org/runit/)
+image does not run Ubuntu's default init process (it uses [runit](http://smarden.org/runit/)
 instead), some additional steps will be required to start the service. Recipes
 for installing some services are available in the form of "addons" so you don't
 have to worry about that.
@@ -168,7 +168,7 @@ host using a strategy similar to [vagrant-cachier's cache buckets](http://fgrehm
 This behavior is enabled by default and will be further documented on the future.
 For now you need to know that the `/tmp/devstep/cache` dir on the host will be bind
 mounted to containers created by the CLI under `/.devstep/cache` and most of your
-project's dependencies packages will be downloaded to there. Note that the dependencies
+project's dependencies packages will be downloaded there. Note that the dependencies
 themselves are extracted and kept inside the images built by the CLI and you can
 safely clean things up or disable the caching behavior at will.
 

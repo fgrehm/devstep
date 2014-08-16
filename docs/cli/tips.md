@@ -36,13 +36,13 @@ DEVSTEP_CACHE_PATH="$HOME/devstep-cache"
 
 If you are a RubyGem author, you will want to publish the gem to https://rubygems.org
 at some point. To avoid logging in all the time when you need to do that just
-share the credentials file with the containers using:
+share an existing credentials file with the containers using:
 
 ```sh
 DEVSTEP_HACK_RUN_OPTS="${DEVSTEP_HACK_RUN_OPTS} -v $HOME/.gem/credentials:/.devstep/.gem/credentials"
 ```
 
-## Heroku credentials with containers
+## Sharing Heroku credentials with containers
 
 If you deploy apps to Heroku, you will need to eventually use the Heroku Client
 to interact with it. To avoid logging in all the time when you need to do that

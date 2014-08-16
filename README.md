@@ -1,7 +1,6 @@
 # Devstep
 
-A dead simple, no frills development environment builder that is based around a
-simple goal:
+Dead simple, no frills development environments based around a simple goal:
 
 > I want to `git clone` and run a single command to hack on any software project.
 
