@@ -175,9 +175,8 @@ safely clean things up or disable the caching behavior at will.
 ## Building images using `Dockerfile`s
 --------------------------------------
 
-In case your project require additional stuff to work you can use the provided
-`fgrehm/devstep`, `fgrehm/devstep-ab` or `fgrehm/devstep-sa` images as a starting
-point for your `Dockerfile`s.
+In case your project require additional dependencies to work you can use the provided
+`fgrehm/devstep` or `fgrehm/devstep-ab` images as a starting point for your `Dockerfile`s.
 
 The `fgrehm/devstep` image is the base image used for Devstep environments and
 requires you to manually trigger the build:
@@ -197,21 +196,6 @@ instructions, trimming down your `Dockerfile` to a single line:
 
 ```Dockerfile
 FROM fgrehm/devstep-ab:v0.1.0
-```
-
-And in case you want to run extra services (like a DB) within the same container
-of your project, you can use the `fgrehm/devstep-sa` image:
-
-```Dockerfile
-FROM fgrehm/devstep-sa:v0.1.0
-
-# Add project to the image and build it
-ADD . /workspace
-WORKDIR /workspace
-RUN CLEANUP=1 /.devstep/bin/build-project /workspace
-
-# Configure PostgreSQL and Redis to run on the project's container
-RUN /.devstep/bin/configure-addons postgresql redis
 ```
 
 By using a `Dockerfile` to build your images (instead of using `devstep build`)

@@ -2,6 +2,7 @@
 
 BREAKING CHANGES:
 
+  - Removed support for the the `devstep-sa` image, it will be made available again if there is enough demand
   - baseimage: Updated to Ubuntu 14.04 along with latest [progrium/cedarish](https://github.com/progrium/cedarish)
   - init: Removed workaround for [docker#5510], (this will break things on Docker pre 1.0.0) [[GH-48]]
   - init: Removed support for executing `/etc/rc.local` during startup
