@@ -23,13 +23,13 @@ And before you get the wrong impression, Devstep is not just for the web, it is 
 
 [Sidekiq demo on Vimeo](https://vimeo.com/99487410)
 
-If you are just getting started with Devstep, check out the [introduction](introduction)
-and the [getting started](getting-started) guides.
+If you new to Devstep, check out the [introduction](introduction) and [getting started](getting-started)
+guides.
 
 ## Project status
 
 This is mostly the result of many different hacks that suits my needs for developing
 Ruby on Rails and Golang apps. It has been working fine for my use cases since April /
 March 2014 and it also seems to play really well with other platforms based on my
-[testing](https://github.com/fgrehm/devstep-examples). Use at your own risk
-and if things break [please let me know!](https://github.com/fgrehm/devstep/issues/new).
+[testing](https://github.com/fgrehm/devstep-examples). If things break for you
+[please let me know](https://github.com/fgrehm/devstep/issues/new)!

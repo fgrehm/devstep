@@ -14,8 +14,8 @@ everything that is required for hacking on it.
 
 Be it a CLI tool, a plugin for some framework or a web app, it doesn't matter,
 Devstep can do the heavy lifting of preparing an isolated and disposable
-environment using as close to "zero configuration" as possible so that we can
-**focus on writing and delivering working software**.
+environment using as close to "zero configuration" as possible so that Developers
+can **focus on writing and delivering working software**.
 
 
 ## Benefits
