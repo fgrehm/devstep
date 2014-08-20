@@ -40,6 +40,9 @@ install_ruby() {
   mkdir -p /.devstep/.profile.d
   $_rvm env --ignore-gemsets > /.devstep/.profile.d/rvm.sh 2>/dev/null
 
+  # Remove ruby sources that might have been used on compilation to save on disk space
+  rm -rf /.devstep/.rvm/src/ruby*
+
   return 0
 }
 
