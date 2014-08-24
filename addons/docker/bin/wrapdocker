@@ -49,7 +49,9 @@ do
   # "name=foo". This shouldn't have any adverse effect.
   echo $SUBSYS | grep -q ^name= && {
     NAME=$(echo $SUBSYS | sed s/^name=//)
-    sudo ln -s $SUBSYS $CGROUP/$NAME
+    if ! [ -L $CGROUP/$NAME ]; then
+      sudo ln -s $SUBSYS $CGROUP/$NAME
+    fi
   }
 
   # Likewise, on at least one system, it has been reported that

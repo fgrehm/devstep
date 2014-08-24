@@ -12,7 +12,4 @@ rm -f /.devstep/run/docker.pid
 ! [ -L /var/run/docker.sock ] &&
   sudo ln -s /.devstep/run/docker.sock /var/run/docker.sock
 
-# Fix permissions
-sudo chown -R developer:developer /var/lib/docker
-
 sudo /.devstep/bin/docker -d -p /.devstep/run/docker.pid -G developer -H unix:///.devstep/run/docker.sock &> /.devstep/log/docker.log & &>/dev/null
