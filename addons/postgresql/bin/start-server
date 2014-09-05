@@ -6,10 +6,10 @@ POSTGRESQL_USER=${POSTGRESQL_USER:-"postgres"}
 POSTGRESQL_PASS=${POSTGRESQL_PASS:-"postgres"}
 POSTGRESQL_DB=${POSTGRESQL_DB:-"postgres"}
 POSTGRESQL_TEMPLATE=${POSTGRESQL_TEMPLATE:-"DEFAULT"}
+POSTGRESQL_DATA=${POSTGRESQL_DATA:-"/shared/postgresql"}
 
 POSTGRESQL_BIN=/usr/lib/postgresql/9.3/bin/postgres
 POSTGRESQL_CONFIG_FILE=/etc/postgresql/9.3/main/postgresql.conf
-POSTGRESQL_DATA=/shared/postgresql
 
 if [ ! -d $POSTGRESQL_DATA ] || [ ! -f $POSTGRESQL_DATA/PG_VERSION ]; then
   sudo mkdir -p $POSTGRESQL_DATA
