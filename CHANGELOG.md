@@ -1,4 +1,4 @@
-## [0.1.0](https://github.com/fgrehm/devstep/compare/v0.1.0...master) (unreleased)
+## [0.1.1](https://github.com/fgrehm/devstep/compare/v0.1.0...master) (unreleased)
 
 FEATURES:
 
