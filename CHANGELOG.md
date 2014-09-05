@@ -1,3 +1,11 @@
+## [0.1.0](https://github.com/fgrehm/devstep/compare/v0.1.0...master) (unreleased)
+
+FEATURES:
+
+  - addons/postgresql: Support for configurable data directory with `POSTGRESQL_DATA` [[GH-67]]
+
+[GH-67]: https://github.com/fgrehm/devstep/issues/67
+
 ## [0.1.0](https://github.com/fgrehm/devstep/compare/v0.0.1...v0.1.0) (2014-08-22)
 
 BREAKING CHANGES:
