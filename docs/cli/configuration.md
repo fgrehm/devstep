@@ -1,6 +1,8 @@
 # CLI Configuration
 -------------------
 
+# TODO: Update to reflect the new yaml configs
+
 Devstep's CLI has a simple configuration mechanism in the form of Bash variables
 that can be used to customize its behavior globally or for a specific project.
 

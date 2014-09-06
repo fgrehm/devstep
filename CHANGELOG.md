@@ -1,4 +1,8 @@
-## [0.1.1](https://github.com/fgrehm/devstep/compare/v0.1.0...master) (unreleased)
+## [0.2.0](https://github.com/fgrehm/devstep/compare/v0.1.0...next) (unreleased)
+
+BREAKING CHANGES:
+
+  - [New CLI](http://fgrehm.viewdocs.io/devstep/cli/installation) and [configuration format](http://fgrehm.viewdocs.io/devstep/cli/configuration)
 
 FEATURES:
 

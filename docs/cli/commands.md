@@ -1,6 +1,8 @@
 # CLI Commands
 --------------
 
+# TODO: Update to reflect the new yaml configs
+
 ## `devstep hack`
 
 This is the easiest way to get started with Devstep. By running the command

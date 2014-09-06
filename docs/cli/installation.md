@@ -9,6 +9,7 @@ This one liner can handle it for you assuming that `$HOME/bin` is available
 on your `PATH`:
 
 ```sh
+# TODO: Update to new cli repo
 L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep/raw/v0.1.0/devstep > $L && chmod +x $L
 ```
 
@@ -30,3 +31,5 @@ Docker adds support for user namespaces ([#6600](https://github.com/dotcloud/doc
 that are created during the installation process. To work around this limitation
 you can build your own image with the appropriate ids and add a `DEVSTEP_SOURCE_IMAGE=<YOUR-IMAGE>`
 line to your `~/.devsteprc` so that the image is used as a source for your projects.
+
+# TODO: Update above to reflect the new yaml configs

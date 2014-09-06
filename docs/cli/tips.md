@@ -9,12 +9,14 @@ You can either configure [SSH agent forwarding](https://developer.github.com/gui
 with:
 
 ```sh
+# TODO: Update to reflect the new yaml configs
 DEVSTEP_HACK_RUN_OPTS="${DEVSTEP_HACK_RUN_OPTS} -v ${SSH_AUTH_SOCK}:/tmp/ssh-auth-sock -e SSH_AUTH_SOCK=/tmp/ssh-auth-sock"
 ```
 
 Or you can just share your SSH keys with the container:
 
 ```sh
+# TODO: Update to reflect the new yaml configs
 DEVSTEP_HACK_RUN_OPTS="${DEVSTEP_HACK_RUN_OPTS} -v ${HOME}/.ssh:/.devstep/.ssh"
 ```
 
@@ -29,6 +31,7 @@ For example, you can add the line below to your `$HOME/.devsteprc` to configure
 the cache to be kept on `$HOME/devstep-cache`:
 
 ```sh
+# TODO: Update to reflect the new yaml configs
 DEVSTEP_CACHE_PATH="$HOME/devstep-cache"
 ```
 
@@ -39,6 +42,7 @@ at some point. To avoid logging in all the time when you need to do that just
 share an existing credentials file with the containers using:
 
 ```sh
+# TODO: Update to reflect the new yaml configs
 DEVSTEP_HACK_RUN_OPTS="${DEVSTEP_HACK_RUN_OPTS} -v $HOME/.gem/credentials:/.devstep/.gem/credentials"
 ```
 
@@ -49,5 +53,6 @@ to interact with it. To avoid logging in all the time when you need to do that
 just share the credentials file with the containers using:
 
 ```sh
+# TODO: Update to reflect the new yaml configs
 DEVSTEP_HACK_RUN_OPTS="${DEVSTEP_HACK_RUN_OPTS} -v /home/fabio/.netrc:/.devstep/.netrc"
 ```
