@@ -11,6 +11,12 @@ FEATURES:
 
 [GH-67]: https://github.com/fgrehm/devstep/issues/67
 
+IMPROVEMENTS:
+
+  - buildpacks/golang: Update default installed version to 1.3.1 [[GH-72]]
+
+[GH-72]: https://github.com/fgrehm/devstep/issues/72
+
 ## [0.1.0](https://github.com/fgrehm/devstep/compare/v0.0.1...v0.1.0) (2014-08-22)
 
 BREAKING CHANGES:
