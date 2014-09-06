@@ -1,4 +1,4 @@
-FROM progrium/cedarish
+FROM progrium/cedarish:cedar14
 MAINTAINER Fabio Rehm "fgrehm@gmail.com"
 
 #####################################################################
@@ -59,7 +59,7 @@ RUN DEBIAN_FRONTEND=noninteractive && \
 #####################################################################
 # Bring back apt .deb caching as they'll be either removed on the
 # build process or cached on host machine
-RUN rm /etc/apt/apt.conf.d/no-cache
+RUN rm /etc/apt/apt.conf.d/docker-clean
 
 #####################################################################
 # Devstep buildpacks

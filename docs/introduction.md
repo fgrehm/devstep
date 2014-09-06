@@ -1,6 +1,8 @@
 # Introduction
 --------------
 
+# TODO: Note that we are using cedarish:cedar14
+
 Have you ever deployed an app to a platform like Heroku? How awesome it is to
 `git push` some code and see it running without worrying about the infrastructure
 it is going to run on? Now imagine that idea applied to any type of project,
