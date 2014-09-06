@@ -11,7 +11,7 @@ POSTGRESQL_DATA=${POSTGRESQL_DATA:-"/shared/postgresql"}
 POSTGRESQL_BIN=/usr/lib/postgresql/9.3/bin/postgres
 POSTGRESQL_CONFIG_FILE=/etc/postgresql/9.3/main/postgresql.conf
 
-sed -i 's|\/shared\/postgresql|'$POSTGRESQL_DATA'|g' $POSTGRESQL_CONFIG_FILE
+sudo sed -i 's|\/shared\/postgresql|'$POSTGRESQL_DATA'|g' $POSTGRESQL_CONFIG_FILE
 
 if [ ! -d $POSTGRESQL_DATA ] || [ ! -f $POSTGRESQL_DATA/PG_VERSION ]; then
   sudo mkdir -p $POSTGRESQL_DATA
