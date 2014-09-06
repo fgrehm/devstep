@@ -9,6 +9,9 @@ alias l='ls -CF'
 # shortcut for reloading envs after a build
 alias reload-env="source ${HOME}/load-env.sh"
 
+# shorten PS1 (useful for golang projects)
+export PROMPT_DIRTRIM="2"
+
 export PATH="/.devstep/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 # TODO: Review these paths
