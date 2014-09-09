@@ -1,4 +1,4 @@
-FROM fgrehm/devstep:v0.1.0
+FROM fgrehm/devstep:v0.2.0
 
 #####################################################################
 # Add project to the image and build it
