@@ -3,7 +3,7 @@
 BREAKING CHANGES:
 
   - [New CLI](http://fgrehm.viewdocs.io/devstep/cli/installation) and [configuration format](http://fgrehm.viewdocs.io/devstep/cli/configuration)
-  - Updated the base Docker image to latest [progrium/cedarish:cedar14](https://github.com/progrium/cedarish/tree/cedar14)
+  - Updated the base Docker image to latest [progrium/cedarish:cedar14](https://github.com/progrium/cedarish/tree/cedar14), reducing the image size (from `1.168GB` to `867.3MB`).
 
 FEATURES:
 
