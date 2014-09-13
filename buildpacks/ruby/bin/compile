@@ -18,30 +18,24 @@ version_from_gemfile() {
 }
 
 install_ruby() {
-  mkdir -p $1/rvm-cache
-  mkdir -p /.devstep/.rvm
-  if ! [ -L /.devstep/.rvm/archives ]; then
-    ln -s $1/rvm-cache /.devstep/.rvm/archives
+  mkdir -p $1/rubies
+
+  DEVSTEP_RUBY_VERSION="ruby-${DEVSTEP_RUBY_VERSION}"
+
+  tarball_path=$1/rubies/${DEVSTEP_RUBY_VERSION}.tgz
+  if ! [ -f $tarball_path ]; then
+    echo "Downloading and installing ${DEVSTEP_RUBY_VERSION}..."
+    ruby_url="https://s3-external-1.amazonaws.com/heroku-buildpack-ruby/cedar-14/${DEVSTEP_RUBY_VERSION}.tgz"
+    curl -L -s $ruby_url > $tarball_path
+  else
+    echo "Installing cached ${DEVSTEP_RUBY_VERSION}..."
   fi
 
-  echo 'Installing rvm...'
-  \curl -sSL https://get.rvm.io | bash -s stable --ignore-dotfiles &>>/tmp/build.log
-
-  _rvm=/.devstep/.rvm/bin/rvm
-
-  echo 'export rvm_ignore_gemset_flag=1' >> $HOME/.rvmrc &>>/tmp/build.log
-  export rvm_ignore_gemset_flag=1
-  $_rvm rvmrc warning ignore allGemfiles &>> /tmp/build.log
-
-  RVM_RUBY_VERSION="ruby-${RVM_RUBY_VERSION}"
-  echo "Installing ${RVM_RUBY_VERSION}..."
-  $_rvm install ${RVM_RUBY_VERSION} --ignore-gemsets --default &>>/tmp/build.log
+  mkdir -p $HOME/ruby
+  tar xfz $tarball_path -C $HOME/ruby
 
   mkdir -p /.devstep/.profile.d
-  $_rvm env --ignore-gemsets > /.devstep/.profile.d/rvm.sh 2>/dev/null
-
-  # Remove ruby sources that might have been used on compilation to save on disk space
-  rm -rf /.devstep/.rvm/src/ruby*
+  echo 'export PATH="$HOME/ruby/bin:$PATH"' > $HOME/.profile.d/ruby.sh
 
   return 0
 }
@@ -55,13 +49,13 @@ install_phantomjs() {
 }
 
 # TODO: Look into travis.yml as well
-RVM_RUBY_VERSION=${RVM_RUBY_VERSION:-$(version_from_gemfile)}
-if [ -z "$RVM_RUBY_VERSION" ]; then
-  RVM_RUBY_VERSION='2.1.2'
-  echo "Unable to identify the project ruby version, setting to ${RVM_RUBY_VERSION}"
+DEVSTEP_RUBY_VERSION=${DEVSTEP_RUBY_VERSION:-$(version_from_gemfile)}
+if [ -z "$DEVSTEP_RUBY_VERSION" ]; then
+  DEVSTEP_RUBY_VERSION='2.1.2'
+  echo "Unable to identify the project ruby version, setting to ${DEVSTEP_RUBY_VERSION}"
 fi
 
-if [ -d /.devstep/.rvm/rubies/default ]; then
+if [ -d /.devstep/ruby ]; then
   echo 'Ruby already installed, skipping'
 else
   # Step away from project sources to avoid loading .ruby-version and .ruby-gemset files
@@ -89,22 +83,20 @@ BUNDLE_BUILD__NOKOGIRI: "--use-system-libraries"
 STR
 fi
 
-source /.devstep/.profile.d/rvm.sh
-if $(which bundle &>/dev/null) && $(bundle -v | grep -q '1.5.0'); then
-  echo "Bundler 1.5.0 was detected and it is known to have issues with some projects, upgrading to 1.5.2"
-  gem uninstall bundler --force -aIx &>>/tmp/build.log || {
-    echo 'Error uninstalling bundler!'
-    tail /tmp/build.log
-    exit 1
-  }
-  gem install bundler -v 1.5.2 &>>/tmp/build.log || {
-    echo 'Error upgrading bundler!'
-    tail /tmp/build.log
-    exit 1
-  }
-elif ! $(which bundle &> /dev/null); then
-  echo "Installing latest bundler"
-  gem install bundler &>>/tmp/build.log
+source /.devstep/.profile.d/ruby.sh
+
+DEVSTEP_BUNDLER_VERSION=${DEVSTEP_BUNDLER_VERSION:-'1.7.2'}
+
+if ! $(which bundle &> /dev/null); then
+  tarball_path=$2/rubies/bundler-${DEVSTEP_BUNDLER_VERSION}.gem
+  if ! [ -f $tarball_path ]; then
+    echo "Downloading and installing bundler ${DEVSTEP_BUNDLER_VERSION}..."
+    bundler_url="https://rubygems.org/downloads/bundler-${DEVSTEP_BUNDLER_VERSION}.gem"
+    curl -L -s $bundler_url > $tarball_path
+  else
+    echo "Installing cached bundler ${DEVSTEP_BUNDLER_VERSION}..."
+  fi
+  gem install $tarball_path
 fi
 
 # If there's no Gemfile in place, our work here is done

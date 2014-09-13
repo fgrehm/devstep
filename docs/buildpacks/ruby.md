@@ -1,6 +1,8 @@
 # Ruby buildpack
 ----------------
 
+# TODO: Update as we removed the need for RVM
+
 This buildpack will leverage [RVM](https://rvm.io) to install [Ruby](https://www.ruby-lang.org/en)
 and uses [Bundler](http://bundler.io/) for dependency management. It will be
 used if a `Gemfile` is found.
