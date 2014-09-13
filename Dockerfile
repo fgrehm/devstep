@@ -12,6 +12,7 @@ RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
     apt-get install -y sudo && \
     apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
     mkdir -p /.devstep/cache && \
     mkdir -p /.devstep/.profile.d && \
     mkdir -p /.devstep/bin && \
@@ -26,8 +27,9 @@ RUN DEBIAN_FRONTEND=noninteractive && \
 
 RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y python runit && \
+    apt-get install -y python runit --no-install-recommends && \
     apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
     mkdir -p /etc/my_init.d && \
     mkdir -p /etc/service
 
@@ -45,14 +47,15 @@ RUN DEBIAN_FRONTEND=noninteractive && \
 
 RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y gawk libreadline5 libmcrypt4 libaprutil1 libreadline6-dev libyaml-dev libgdbm-dev libncurses5-dev libffi-dev libicu-dev && \
-    apt-get install -y postgresql-client mysql-client && \
-    apt-get install -y software-properties-common bash-completion && \
+    apt-get install -y gawk libreadline5 libmcrypt4 libaprutil1 libreadline6-dev libyaml-dev libgdbm-dev libncurses5-dev libffi-dev libicu-dev --no-install-recommends && \
+    apt-get install -y postgresql-client mysql-client --no-install-recommends && \
+    apt-get install -y software-properties-common bash-completion --no-install-recommends && \
     echo "[client]\nprotocol=tcp\nuser=root" >> /.devstep/.my.cnf && \
     echo "export PGHOST=localhost" >> /.devstep/.profile.d/postgresql.sh && \
     echo "export PGUSER=postgres" >> /.devstep/.profile.d/postgresql.sh && \
-    apt-get install -y --force-yes vim htop tmux && \
+    apt-get install -y --force-yes vim htop tmux --no-install-recommends && \
     apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
     mkdir -p /.devstep/bin && \
     curl -L -s http://stedolan.github.io/jq/download/linux64/jq > /.devstep/bin/jq
 
