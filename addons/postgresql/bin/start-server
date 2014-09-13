@@ -41,6 +41,6 @@ $POSTGRESQL_SINGLE <<< "drop database template1;" &> /.devstep/log/postgresql.lo
 $POSTGRESQL_SINGLE <<< "create database template1 with template = template0 encoding = 'UTF8';" &>> /.devstep/log/postgresql.log || true
 $POSTGRESQL_SINGLE <<< "update pg_database set datistemplate = TRUE where datname = 'template1';" &>> /.devstep/log/postgresql.log || true
 POSTGRESQL_SINGLE="$POSTGRESQL_BIN --single --config-file=$POSTGRESQL_CONFIG_FILE template1"
-POSTGRESQL_SINGLE <<< "update pg_database set datallowconn = FALSE where datname = 'template0';" &>> /.devstep/log/postgresql.log || true
+$POSTGRESQL_SINGLE <<< "update pg_database set datallowconn = FALSE where datname = 'template0';" &>> /.devstep/log/postgresql.log || true
 
 exec $POSTGRESQL_BIN --config-file=$POSTGRESQL_CONFIG_FILE &>> /.devstep/log/postgresql.log
