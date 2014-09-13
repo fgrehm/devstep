@@ -42,6 +42,8 @@ RUN DEBIAN_FRONTEND=noninteractive && \
 # * Install `htop` because it has a nicer UI than plain old `top`
 # * Install tmux so that we can run lots of shells within the same
 #   bash session (without the need of running through SSH)
+# * Install nodejs for Rails apps, Bazaar and Mecurial for Golang projects
+#   (will be installed on demand by buildpacks on a future release)
 # * Download and install jq as it is being used by a few buildpacks
 #   See http://stedolan.github.io/jq for more info
 
@@ -53,7 +55,7 @@ RUN DEBIAN_FRONTEND=noninteractive && \
     echo "[client]\nprotocol=tcp\nuser=root" >> /.devstep/.my.cnf && \
     echo "export PGHOST=localhost" >> /.devstep/.profile.d/postgresql.sh && \
     echo "export PGUSER=postgres" >> /.devstep/.profile.d/postgresql.sh && \
-    apt-get install -y --force-yes vim htop tmux --no-install-recommends && \
+    apt-get install -y --force-yes vim htop tmux mercurial bzr nodejs --no-install-recommends && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir -p /.devstep/bin && \
