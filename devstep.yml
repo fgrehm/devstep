@@ -1,0 +1,9 @@
+privileged: true
+volumes:
+  # FIXME: This only work on my machine
+  - '{{env "HOME"}}/devstep/development/docker:/var/lib/docker'
+  - '{{env "HOME"}}/projects/oss/devstep-examples:/.devstep/examples'
+  - '{{env "HOME"}}/projects/oss/devstep-cli/build/devstep:/.devstep/bin/devstep'
+commands:
+  make:
+    # No custom options
