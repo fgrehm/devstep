@@ -116,7 +116,7 @@ fi
 
 source /.devstep/.profile.d/ruby.sh
 
-DEVSTEP_BUNDLER_VERSION=${DEVSTEP_BUNDLER_VERSION:-'1.7.2'}
+DEVSTEP_BUNDLER_VERSION=${DEVSTEP_BUNDLER_VERSION:-'1.7.3'}
 
 if ! $(which bundle &> /dev/null); then
   tarball_path=$2/rubies/bundler-${DEVSTEP_BUNDLER_VERSION}.gem
