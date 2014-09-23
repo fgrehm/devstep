@@ -55,7 +55,7 @@ RUN DEBIAN_FRONTEND=noninteractive && \
     echo "[client]\nprotocol=tcp\nuser=root" >> /.devstep/.my.cnf && \
     echo "export PGHOST=localhost" >> /.devstep/.profile.d/postgresql.sh && \
     echo "export PGUSER=postgres" >> /.devstep/.profile.d/postgresql.sh && \
-    apt-get install -y --force-yes vim htop tmux mercurial bzr nodejs --no-install-recommends && \
+    apt-get install -y --force-yes vim htop tmux mercurial bzr nodejs libssl0.9.8 --no-install-recommends && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir -p /.devstep/bin && \

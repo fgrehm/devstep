@@ -17,22 +17,45 @@ version_from_gemfile() {
   fi
 }
 
-install_ruby() {
-  mkdir -p $1/rubies
+download_ruby() {
+  cache=$1
+  stack=$2
+  version="ruby-${3}"
 
-  DEVSTEP_RUBY_VERSION="ruby-${DEVSTEP_RUBY_VERSION}"
+  mkdir -p $cache/rubies
 
-  tarball_path=$1/rubies/${DEVSTEP_RUBY_VERSION}.tgz
+  tarball_path=${cache}/rubies/${version}.tgz
   if ! [ -f $tarball_path ]; then
-    echo "Downloading and installing ${DEVSTEP_RUBY_VERSION}..."
-    ruby_url="https://s3-external-1.amazonaws.com/heroku-buildpack-ruby/cedar-14/${DEVSTEP_RUBY_VERSION}.tgz"
+    echo "       Downloading and installing ${version}..." 1>&2
+    ruby_url="https://s3-external-1.amazonaws.com/heroku-buildpack-ruby/${stack}/${version}.tgz"
     curl -L -s $ruby_url > $tarball_path
   else
-    echo "Installing cached ${DEVSTEP_RUBY_VERSION}..."
+    echo "       Installing previously downloaded ${version}..." 1>&2
   fi
+  echo $tarball_path
+}
+
+install_ruby() {
+  tarball_path=$(download_ruby $1 'cedar-14' $DEVSTEP_RUBY_VERSION)
 
   mkdir -p $HOME/ruby
-  tar xfz $tarball_path -C $HOME/ruby
+  # TODO: Verify if the tarball is a proper tarball, if not, try using the cedar ruby instead of cedar14, but raise a warning
+  #       document the behavior on docs
+  tar xfz $tarball_path -C $HOME/ruby || {
+    rm -f $tarball_path
+
+    # TODO: Some debug logging
+    #echo "Unable to install Ruby $DEVSTEP_RUBY_VERSION from Heroku's Cedar stack"
+    #echo "Trying to use cedar stack"
+
+    tarball_path=$(download_ruby $1 'cedar' $DEVSTEP_RUBY_VERSION) || {
+      rm -f $tarball_path
+      # TODO: Some debug logging
+      #echo "Unable to download $DEVSTEP_RUBY_VERSION"
+      #echo "Failing"
+      return 1
+    }
+  }
 
   mkdir -p /.devstep/.profile.d
   echo 'export PATH="$HOME/ruby/bin:$PATH"' > $HOME/.profile.d/ruby.sh
@@ -94,7 +117,7 @@ if ! $(which bundle &> /dev/null); then
     bundler_url="https://rubygems.org/downloads/bundler-${DEVSTEP_BUNDLER_VERSION}.gem"
     curl -L -s $bundler_url > $tarball_path
   else
-    echo "Installing cached bundler ${DEVSTEP_BUNDLER_VERSION}..."
+    echo "Installing previously downloaded bundler ${DEVSTEP_BUNDLER_VERSION}..."
   fi
   gem install $tarball_path
 fi
