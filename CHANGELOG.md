@@ -3,7 +3,7 @@
 BREAKING CHANGES:
 
   - [New CLI](http://fgrehm.viewdocs.io/devstep/cli/installation) and [configuration format](http://fgrehm.viewdocs.io/devstep/cli/configuration)
-  - Updated the base Docker image to latest [progrium/cedarish:cedar14](https://github.com/progrium/cedarish/tree/cedar14), reducing the image size (from `1.168GB` to `867.3MB`).
+  - Updated the base Docker image to latest [progrium/cedarish:cedar14](https://github.com/progrium/cedarish/tree/cedar14), reducing the image size (from `1.168GB` to `867.7MB`).
 
 FEATURES:
 
@@ -13,7 +13,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
-  - baseimage: Shorten `PS1` [[GH-71]]
+  - baseimage: "Shorten" `PS1` [[GH-71]]
   - buildpacks/golang: Update default installed version to 1.3.1 [[GH-72]]
   - buildpacks/ruby: Bump default Ruby to 2.1.3
   - buildpacks/ruby: Support loading rubies from `.ruby-version` [[GH-41]]
