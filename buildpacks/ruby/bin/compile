@@ -3,6 +3,7 @@
 set -e
 
 GEMFILE_PATH=$1/Gemfile
+RUBY_VERSION_PATH=$1/.ruby-version
 
 # From https://github.com/aripollak/rbenv-bundler-ruby-version/blob/32bd1a63ed57c6fcfbd4f3766fed64fad21b61b0/bin/rbenv-bundler-ruby-version#L24-L33
 version_from_gemfile() {
@@ -14,6 +15,12 @@ version_from_gemfile() {
           -e "s/.*:engine\s*=>\s*['\"]\([^'\"]*\).*:engine_version\s*=>\s*['\"]\([^'\"]*\).*/\1-\2/" \
           -e "s/.*:engine_version\s*=>\s*['\"]\([^'\"]*\).*:engine\s*=>\s*['\"]\([^'\"]*\).*/\2-\1/" \
           -e "s/^\s*ruby\s*['\"]\([^'\"]*\).*/\1/" | head -1
+  fi
+}
+
+version_from_ruby_version() {
+  if [ -f ${RUBY_VERSION_PATH} ]; then
+    cat $RUBY_VERSION_PATH
   fi
 }
 
@@ -73,6 +80,7 @@ install_phantomjs() {
 
 # TODO: Look into travis.yml as well
 DEVSTEP_RUBY_VERSION=${DEVSTEP_RUBY_VERSION:-$(version_from_gemfile)}
+DEVSTEP_RUBY_VERSION=${DEVSTEP_RUBY_VERSION:-$(version_from_ruby_version)}
 if [ -z "$DEVSTEP_RUBY_VERSION" ]; then
   DEVSTEP_RUBY_VERSION='2.1.2'
   echo "Unable to identify the project ruby version, setting to ${DEVSTEP_RUBY_VERSION}"
