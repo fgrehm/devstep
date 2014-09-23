@@ -123,11 +123,13 @@ fi
 if [ -z "${name}" ]; then
   echo -e "-----> Unable to identify project name\nPlease add the full import path to \`.godir\` or set the GO_PROJECT_NAME environmental variable"
   p=$build
-elif ! [ -d $GOPATH/src/$name ]; then
+else
   p=$GOPATH/src/$name
-  mkdir -p $(dirname $p)
-  if ! [ -L $p ]; then
-    ln -s $build $p
+  if ! [ -d $GOPATH/src/$name ]; then
+    mkdir -p $(dirname $p)
+    if ! [ -L $p ]; then
+      ln -s $build $p
+    fi
   fi
 fi
 
