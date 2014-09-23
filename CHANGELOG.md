@@ -15,7 +15,12 @@ IMPROVEMENTS:
 
   - baseimage: Shorten `PS1` [[GH-71]]
   - buildpacks/golang: Update default installed version to 1.3.1 [[GH-72]]
+  - buildpacks/ruby: Bump default Ruby to 2.1.3
+  - buildpacks/ruby: Support loading rubies from `.ruby-version` [[GH-41]]
+  - buildpacks/ruby: Remove dependency on RVM and make use of use Heroku's rubies [[GH-69]]
 
+[GH-41]: https://github.com/fgrehm/devstep/issues/41
+[GH-69]: https://github.com/fgrehm/devstep/issues/69
 [GH-71]: https://github.com/fgrehm/devstep/issues/71
 [GH-72]: https://github.com/fgrehm/devstep/issues/72
 
