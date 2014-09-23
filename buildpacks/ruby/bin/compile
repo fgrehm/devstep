@@ -31,13 +31,13 @@ download_ruby() {
 
   mkdir -p $cache/rubies
 
-  tarball_path=${cache}/rubies/${version}.tgz
+  tarball_path=${cache}/rubies/${stack}-${version}.tgz
   if ! [ -f $tarball_path ]; then
-    echo "       Downloading and installing ${version}..." 1>&2
+    echo "       Downloading and installing ${version} (${stack})..." 1>&2
     ruby_url="https://s3-external-1.amazonaws.com/heroku-buildpack-ruby/${stack}/${version}.tgz"
     curl -L -s $ruby_url > $tarball_path
   else
-    echo "       Installing previously downloaded ${version}..." 1>&2
+    echo "       Installing previously downloaded ${version} (${stack})..." 1>&2
   fi
   echo $tarball_path
 }
@@ -48,14 +48,16 @@ install_ruby() {
   mkdir -p $HOME/ruby
   # TODO: Verify if the tarball is a proper tarball, if not, try using the cedar ruby instead of cedar14, but raise a warning
   #       document the behavior on docs
-  tar xfz $tarball_path -C $HOME/ruby || {
+  tar xfz $tarball_path -C $HOME/ruby &>/dev/null || {
     rm -f $tarball_path
+    echo "WARNING: ${DEVSTEP_RUBY_VERSION} is not available for Heroku's Cedar 14 stack, attempting to use the Cedar stack Ruby." 1>&2
 
     # TODO: Some debug logging
     #echo "Unable to install Ruby $DEVSTEP_RUBY_VERSION from Heroku's Cedar stack"
     #echo "Trying to use cedar stack"
 
-    tarball_path=$(download_ruby $1 'cedar' $DEVSTEP_RUBY_VERSION) || {
+    tarball_path=$(download_ruby $1 'cedar' $DEVSTEP_RUBY_VERSION)
+    tar xfz $tarball_path -C $HOME/ruby &>/dev/null || {
       rm -f $tarball_path
       # TODO: Some debug logging
       #echo "Unable to download $DEVSTEP_RUBY_VERSION"
