@@ -1,56 +1,72 @@
 # CLI Configuration
 -------------------
 
-# TODO: Update to reflect the new yaml configs
+Devstep's CLI has a configuration mechanism in the form of [YAML](http://www.yaml.org/)
+files that can be used to customize its behavior globally or for a specific project.
 
-Devstep's CLI has a simple configuration mechanism in the form of Bash variables
-that can be used to customize its behavior globally or for a specific project.
+The available options are described below:
 
-The available options along with its defaults are:
+```yaml
+# The Docker repository to keep images built by devstep
+# DEFAULT: 'devstep/<CURRENT_DIR_NAME>'
+repository: 'repo/name'
 
-```sh
-# Starting point for project images
-DEVSTEP_SOURCE_IMAGE="fgrehm/devstep:v0.1.0"
+# The image used by devstep when building environments from scratch
+# DEFAULT: 'fgrehm/devstep:v0.2.0'
+source_image: 'source/image:tag'
 
-# Root path to the project being built
-DEVSTEP_WORKSPACE_PATH=`pwd`
+# The host cache dir that gets mounted inside the container at `/.devstep/cache`
+# for speeding up the dependencies installation process.
+# DEFAULT: '/tmp/devstep/cache'
+cache_dir: '{{env "HOME"}}/devstep/cache'
 
-# Name of the project being worked on
-DEVSTEP_WORKSPACE_NAME=$(basename ${DEVSTEP_WORKSPACE_PATH})
+# The directory where project sources should be mounted inside the container.
+# DEFAULT: '/workspace'
+working_dir: '/.devstep/gocode/src/github.com/fgrehm/devstep-cli'
 
-# Name of Docker repository to use for the project
-DEVSTEP_WORKSPACE_REPO="devstep/${DEVSTEP_WORKSPACE_NAME}"
+# Link to other existing containers (like a database for example).
+# Please note that devstep won't start the associated containers automatically
+# and an error will be raised in case the linked container does not exist or
+# if it is not running.
+# DEFAULT: <empty>
+links:
+- "postgres:db"
+- "memcached:mc"
 
-# Host path for keeping devstep cached packages
-DEVSTEP_CACHE_PATH="/tmp/devstep/cache"
+# Additional Docker volumes to share with the container.
+# DEFAULT: <empty>
+volumes:
+- "/path/on/host:/path/on/guest"
 
-# Global options for `docker run`s
-DEVSTEP_RUN_OPTS=
+# Environment variables.
+# DEFAULT: <empty>
+environment:
+  RAILS_ENV: "development"
 
-# `devstep hack` specific options for `docker run`
-DEVSTEP_HACK_RUN_OPTS=
+# Custom command aliases that can be used with `devstep run` to save some
+# typing. It is also used for generating project specific binstubs.
+# DEFAULT: <empty>
+commands:
+  # This can be run with `devstep run server`
+  server:
+    cmd: ["rails", "server"]
+    # Here you can use some of the configs described above
+    publish: ["3000:3000"]
+    volumes:
+    - '{{env "HOME"}}/certs/some-certificate.crt:/.devstep/some-certificate.crt'
+    - '{{env "HOME"}}/projects/some-gem-sources:/.devstep/some-gem-sources'
+    links:
+    - 'redis:redis'
+    environment:
+      RAILS_ENV: "hacking"
+  ruby:
+    # No custom options, used only for generating binstubs
 ```
 
 During a `devstep` command run, the CLI will start by loading global config
-options from `$HOME/.devsteprc` and project specific options from a `.devsteprc`
-file located on the directory where the command is run.
+options from `$HOME/devstep.yml` and project specific options from a `devstep.yml`
+file located on the directory where the command is run and will merge them before
+creating containers.
 
-Please note that to get project specific configs to be "merged" with global options
-for `docker run`s, you need to prepend your project configs with the previously
-defined value that might have been set on the global configuration file.
-
-For example, if you want to configure a project to always link a `devstep hack`
-container with a PostgreSQL database, you can add the following to your project's
-`.devsteprc`:
-
-```sh
-DEVSTEP_HACK_RUN_OPTS="${DEVSTEP_HACK_RUN_OPTS} --link postgresql:db"
-```
-
-To figure out what are the configured values for a specific project, you can run
-`devstep info`.
-
-## Disabling cache
-
-To disable the caching functionality you can set it to a blank string (`DEVSTEP_CACHE_PATH=""`)
-on your `$HOME/.devsteprc`.
+To figure out what are the configured values for a specific project after
+merging settings you can run `devstep info`.

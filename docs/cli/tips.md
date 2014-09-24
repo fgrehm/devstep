@@ -8,16 +8,18 @@ This is a list of tips that can make you more productive on your daily work.
 You can either configure [SSH agent forwarding](https://developer.github.com/guides/using-ssh-agent-forwarding/)
 with:
 
-```sh
-# TODO: Update to reflect the new yaml configs
-DEVSTEP_HACK_RUN_OPTS="${DEVSTEP_HACK_RUN_OPTS} -v ${SSH_AUTH_SOCK}:/tmp/ssh-auth-sock -e SSH_AUTH_SOCK=/tmp/ssh-auth-sock"
+```yaml
+volumes:
+  - '{{env "SSH_AUTH_SOCK"}}:/tmp/ssh-auth-sock'
+environment:
+  SSH_AUTH_SOCK: "/tmp/ssh-auth-sock"
 ```
 
-Or you can just share your SSH keys with the container:
+Or you can just share your SSH keys with the container using:
 
-```sh
-# TODO: Update to reflect the new yaml configs
-DEVSTEP_HACK_RUN_OPTS="${DEVSTEP_HACK_RUN_OPTS} -v ${HOME}/.ssh:/.devstep/.ssh"
+```yaml
+volumes:
+  - '{{env "HOME"}}/.ssh:/.devstep/.ssh'
 ```
 
 ## Making project's dependencies cache persist between host restarts
@@ -27,12 +29,18 @@ it is likely that the OS will have it cleaned when it gets restarted. In order
 to make it persistent, just set it to a folder that doesn't have that behavior
 (like some dir under your `$HOME`).
 
-For example, you can add the line below to your `$HOME/.devsteprc` to configure
-the cache to be kept on `$HOME/devstep-cache`:
+For example, you can add the line below to your `$HOME/devstep.yml` to configure
+cached packages to be kept on `$HOME/devstep-cache`:
 
-```sh
-# TODO: Update to reflect the new yaml configs
-DEVSTEP_CACHE_PATH="$HOME/devstep-cache"
+```yaml
+cache_dir: '{{env "HOME"}}/devstep/cache'
+```
+
+## Reuse Git configurations from inside containers
+
+```yaml
+volumes:
+  - '{{env "HOME"}}/.gitconfig:/.devstep/.gitconfig'
 ```
 
 ## Sharing RubyGems credentials with containers
@@ -41,9 +49,9 @@ If you are a RubyGem author, you will want to publish the gem to https://rubygem
 at some point. To avoid logging in all the time when you need to do that just
 share an existing credentials file with the containers using:
 
-```sh
-# TODO: Update to reflect the new yaml configs
-DEVSTEP_HACK_RUN_OPTS="${DEVSTEP_HACK_RUN_OPTS} -v $HOME/.gem/credentials:/.devstep/.gem/credentials"
+```yaml
+volumes:
+  - '{{env "HOME"}}/.gem/credentials:/.devstep/.gem/credentials'
 ```
 
 ## Sharing Heroku credentials with containers
@@ -52,7 +60,7 @@ If you deploy apps to Heroku, you will need to eventually use the Heroku Client
 to interact with it. To avoid logging in all the time when you need to do that
 just share the credentials file with the containers using:
 
-```sh
-# TODO: Update to reflect the new yaml configs
-DEVSTEP_HACK_RUN_OPTS="${DEVSTEP_HACK_RUN_OPTS} -v /home/fabio/.netrc:/.devstep/.netrc"
+```yaml
+volumes:
+  - '{{env "HOME"}}/.netrc:/.devstep/.netrc'
 ```

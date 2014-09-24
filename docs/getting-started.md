@@ -4,10 +4,9 @@
 Devstep comes in two flavors, you can either use the provided CLI or you can build
 on top of the provided images from `Dockerfile`s.
 
-Regardless of the flavor you choose, it is a good idea to `docker pull fgrehm/devstep:v0.1.0`
+Regardless of the flavor you choose, it is a good idea to `docker pull fgrehm/devstep:v0.2.0`
 before creating your first container / image for a better user experience. Docker
-will download that image as needed but by pulling it first you'll reduce the waiting
-time when interacting with Devstep for the first time.
+will download that image as needed when using `Dockerfile`s but the CLI isn't.
 
 ## Sanity check
 ---------------
@@ -16,11 +15,12 @@ This project is being developed and tested on an Ubuntu 14.04 host with Docker
 1.0.0+, while it is likely to work on other distros / Docker versions /
 [boot2docker](http://boot2docker.io/), I'm not sure how it will behave on the wild.
 
+Please note that the CLI is currently limited to connecting to a local `/var/run/docker.sock`
+socket only and the user that runs `devstep` commands will need [non-root access to it](http://docs.docker.io/installation/ubuntulinux/#giving-non-root-access).
+Support for execution over TCP is likely to be added at some point in the future.
+
 ## Getting started with the CLI
 -------------------------------
-
-Before you try out the CLI, make sure you have Docker installed and that your
-user is capable to run `docker` commands [without `sudo`](http://docs.docker.io/installation/ubuntulinux/#giving-non-root-access).
 
 > **IMPORTANT**: A `developer` user will be used by Devstep and it assumes your
 user and group ids are equal to `1000` when using the CLI or the container's init
@@ -34,13 +34,13 @@ Docker adds support for user namespaces ([#6600](https://github.com/dotcloud/doc
 
 > The `1000` id was chosen because it is the default uid / gid of Ubuntu Desktop users
 that are created during the installation process. To work around this limitation
-you can build your own image with the appropriate ids and add a `DEVSTEP_SOURCE_IMAGE=<YOUR-IMAGE>`
-line to your `~/.devsteprc` so that the image is used as a source for your projects.
+you can build your own image with the appropriate ids and add a `source_image: '<YOUR-IMAGE>:<OPTIONAL-TAG>'`
+line to your `~/devstep.yml` so that the image is used as a source for your projects.
 
 To install the CLI, you can run the one liner below and read on for more:
 
 ```sh
-L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep/raw/v0.1.0/devstep > $L && chmod +x $L
+L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep-cli/raw/v0.1.0/devstep > $L && chmod +x $L
 ```
 
 _The snippet above assumes `$HOME/bin` is on your PATH, change `$HOME/bin` to
@@ -76,12 +76,13 @@ starting from scratch, so use it for projects that you hack on every day.
 
 ### Accessing web apps from the host machine
 
-The `devstep hack` command accepts an additional `-r` parameter which will be passed
-on to the underlying `docker run` command. For example, if your app runs on the
-`8080` port, you can start your hacking sessions with:
+The `devstep hack` command accepts an additional `-p` parameter that accepts ports
+in the same way that the [Docker CLI](https://docs.docker.com/reference/commandline/cli/#run)
+does. For example, if your app runs on the `8080` port, you can start your hacking
+sessions with:
 
 ```sh
-devstep hack -r "-p 8080:8080"
+devstep hack -p 8080:8080
 ```
 
 And it will redirect the `8080` port on your host to the `8080` port within the
@@ -95,10 +96,9 @@ to the appropriate service if you want to manage it from outside or install and
 configure it by hand inside the container.
 
 Connecting to services that runs from other containers are as simple as passing
-in a `--link` argument to the `-r` parameter available to all `devstep` commands.
-The provided base image is smart enough to detect that a link has been provided
-and will automatically forward a `localhost` port to the external service
-published port.
+in a `--link` argument to the `devstep hack` command. The provided base image is
+smart enough to detect that a link has been provided and will automatically forward
+a `localhost` port to the external service published port.
 
 For example, you can start a PostgreSQL service on the background with:
 
@@ -109,7 +109,7 @@ docker run -d --name postgres postgres:9.3
 And then start your hacking session with:
 
 ```sh
-devstep hack -r '--link postgres:db'
+devstep hack --link postgres:db
 ```
 
 From inside the container you'll be able to access the external PostgreSQL service
@@ -126,6 +126,24 @@ have to worry about that.
 For example, installing and configuring [memcached](http://memcached.org/) inside
 the container is a matter of running `configure-addons memcached` from there.
 
+### Binstubs
+
+commands:
+# This can be run with `devstep run server`
+server:
+cmd: ["rails", "server"]
+# Here you can use some of the configs described above
+publish: ["3000:3000"]
+volumes:
+- '{{env "HOME"}}/certs/some-certificate.crt:/.devstep/some-certificate.crt'
+- '{{env "HOME"}}/projects/some-gem-sources:/.devstep/some-gem-sources'
+links:
+- 'redis:redis'
+environment:
+RAILS_ENV: "hacking"
+ruby:
+# No custom options, used only for generating binstubs
+
 ### Bootstrapping a new project (AKA solving the chicken or the egg problem)
 
 Assuming you are willing to use Docker / Devstep to avoid cluttering your machine
@@ -138,7 +156,7 @@ For example, scaffolding a new Rails project means:
 
 ```sh
 cd $HOME/projects # or whatever directory you keep your projects
-devstep bootstrap -w my_app
+devstep bootstrap -r devstep/my_app
 
 build-project -b ruby
 reload-env
@@ -182,7 +200,7 @@ The `fgrehm/devstep` image is the base image used for Devstep environments and
 requires you to manually trigger the build:
 
 ```Dockerfile
-FROM fgrehm/devstep:v0.1.0
+FROM fgrehm/devstep:v0.2.0
 
 # Add project to the image and build it
 ADD . /workspace
@@ -190,12 +208,12 @@ WORKDIR /workspace
 RUN CLEANUP=1 /.devstep/bin/build-project /workspace
 ```
 
-To make things easier, there's also a `fgrehm/devstep-ab:v0.1.0` image that
+To make things easier, there's also a `fgrehm/devstep-ab:v0.2.0` image that
 does the same steps as outlined above automatically for you by leveraging `ONBUILD`
 instructions, trimming down your `Dockerfile` to a single line:
 
 ```Dockerfile
-FROM fgrehm/devstep-ab:v0.1.0
+FROM fgrehm/devstep-ab:v0.2.0
 ```
 
 By using a `Dockerfile` to build your images (instead of using `devstep build`)

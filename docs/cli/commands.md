@@ -1,14 +1,21 @@
 # CLI Commands
 --------------
 
-# TODO: Update to reflect the new yaml configs
+1. [Hack](#user-content-hack)
+1. [Build](#user-content-build)
+1. [Boostrap](#user-content-bootstrap)
+1. [Other commands](#user-content-other-commands)
 
-## `devstep hack`
+--------------
+
+## **Hack**
+
+**Command: `devstep hack [OPTIONS]`**
 
 This is the easiest way to get started with Devstep. By running the command
 from your project's root, Devstep will:
 
-1. Create a Docker container based on `fgrehm/devstep:v0.1.0` with project
+1. Create a Docker container based on `fgrehm/devstep:v0.2.0` with project
    sources bind mounted at `/workspace`.
 2. Detect and install project's dependencies on the new container using the
    available buildpacks.
@@ -17,15 +24,27 @@ from your project's root, Devstep will:
 Once you `exit` the `bash` session, the container will be garbage collected
 (aka `docker rm`ed).
 
-In case you need to provide additional parameters to the underlying `docker run`
-command you can use the `-r` flag. For example, `devstep hack -r "-p 80:8080"` will
-redirect the `8080` port on your host to the port `8080` within the container.
+**Options**
 
-## `devstep build`
+* `-w, --working_dir` - Working directory inside the container
+* `-p, --publish` - Publish a container's port to the host (hostPort:containerPort)
+* `--link` - Add link to another container (name:alias)
+* `-e, --env` - Set environment variables
+* `--privileged` - Give extended privileges to this container
+
+**Example**
+
+```sh
+devstep hack -p 80:8080 --link postgres:db --link memcached:mc -e DEVSTEP_BUNDLER_VERSION='1.6.0'
+```
+
+## **Build**
+
+**Command: `devstep build`**
 
 By running the command from your project's root, Devstep will:
 
-1. Create a Docker container based on `fgrehm/devstep:v0.1.0` with project
+1. Create a Docker container based on `fgrehm/devstep:v0.2.0` with project
    sources bind mounted at `/workspace`.
 2. Detect and install project's dependencies on the new container using the
    available buildpacks.
@@ -34,7 +53,7 @@ By running the command from your project's root, Devstep will:
 
 The `devstep/<PROJECT>` images act like snapshots of your project dependencies
 and will be used as the source image for subsequent `devstep` commands instead
-of the `fgrehm/devstep:v0.1.0` image.
+of the `fgrehm/devstep:v0.2.0` image.
 
 For example, running a `devstep hack` after building the image will use `devstep/<PROJECT>:latest`
 as the base container for new "hacking sessions" so that you don't have to build
@@ -52,7 +71,9 @@ on the host machine as a Docker volume in order to work on the project.
 docker run -ti -v `pwd`:/workspace devstep/<PROJECT>
 ```
 
-## `devstep bootstrap`
+## **Bootstrap**
+
+**Command: `devstep bootstrap [OPTIONS]`**
 
 As you might have guessed, this command can be used bootstrap new projects without
 cluttering your machine with development tools just to scaffold a new project.
@@ -62,11 +83,17 @@ bind mounted as `/workspace` on the container and you'll have to manually config
 the tools required to scaffold your new project. You can even force a specific
 buildpack to run from there.
 
+**Options**
+
+* `-r, --repository` - Repository name used when commiting the Docker image.
+
+**Example**
+
 For example, scaffolding a new Rails project means:
 
 ```sh
 cd $HOME/projects # or whatever directory you keep your projects
-devstep bootstrap -w my_app
+devstep bootstrap -r my_app
 
 build-project -b ruby
 reload-env
@@ -97,13 +124,13 @@ approach, replacing the Ruby / Rails specifics with the platform / framework
 of choice.
 
 
-## Other commands
+## **Other commands**
 
-* `clean` -> Remove all images built for the current project
-* `pristine` -> Rebuild current project associated Docker image from scratch
-* `run` -> Run a one off command against the current source image
-* `images` -> Display images available for the current project
-* `ps` -> List all containers associated with the current project
-* `info` -> Show some information about the current project
+* `info` - Show information about the current environment
+* `run` - Run a one off command against the current base image
+* `binstubs` - Generate binstubs for the commands specified on devstep.yml
+* `clean` - Remove previously built images for the current environment
+* `pristine` - Rebuild project image from scratch
+* `help, h` - Shows a list of commands or help for one command
 
 For the most up-to-date list of supported commands, run `devstep --help`.

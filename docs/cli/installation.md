@@ -1,21 +1,22 @@
 # CLI Installation
 ------------------
 
-The CLI is a simple Bash script that you can download directly from a GitHub
-tagged release, place on a directory available on your `PATH` and make it
-executable.
+The CLI is [written in Golang](https://github.com/fgrehm/devstep-cli) and precompiled
+binaries are available for each GitHub tagged release. Installing it is a matter
+of downloading it from GitHub, placing the binary on a directory available on your
+`PATH` and making it executable.
 
 This one liner can handle it for you assuming that `$HOME/bin` is available
 on your `PATH`:
 
 ```sh
-# TODO: Update to new cli repo
-L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep/raw/v0.1.0/devstep > $L && chmod +x $L
+L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep-cli/raw/v0.1.0/devstep > $L && chmod +x $L
 ```
 
-Please note that the CLI currently interacts with the `docker` command, so make
-sure you have it installed and that your user is capable to run `docker` commands
-[without `sudo`](http://docs.docker.io/installation/ubuntulinux/#giving-non-root-access).
+Please note that the CLI is currently limited to connecting to a local `/var/run/docker.sock`
+socket only and the user that runs `devstep` commands will need [non-root access to it](http://docs.docker.io/installation/ubuntulinux/#giving-non-root-access).
+Support for execution over TCP is likely to be added at some point.
+
 
 > **IMPORTANT**: A `developer` user will be used by Devstep and it assumes your
 user and group ids are equal to `1000` when using the CLI or the container's init
@@ -29,7 +30,13 @@ Docker adds support for user namespaces ([#6600](https://github.com/dotcloud/doc
 
 > The `1000` id was chosen because it is the default uid / gid of Ubuntu Desktop users
 that are created during the installation process. To work around this limitation
-you can build your own image with the appropriate ids and add a `DEVSTEP_SOURCE_IMAGE=<YOUR-IMAGE>`
-line to your `~/.devsteprc` so that the image is used as a source for your projects.
+you can build your own image with the appropriate ids and add a `source_image: '<YOUR-IMAGE>:<OPTIONAL-TAG>'`
+line to your `~/devstep.yml` so that the image is used as a source for your projects.
 
-# TODO: Update above to reflect the new yaml configs
+## Bash autocomplete
+
+An autocompletion script can be installed using the one liner below:
+
+```sh
+curl -sL https://github.com/codegangsta/cli/raw/master/autocomplete/bash_autocomplete | sed 's/$PROG/devstep/' | sudo tee /etc/bash_completion.d/devstep
+```
