@@ -6,7 +6,7 @@ on top of the provided images from `Dockerfile`s.
 
 Regardless of the flavor you choose, it is a good idea to `docker pull fgrehm/devstep:v0.2.0`
 before creating your first container / image for a better user experience. Docker
-will download that image as needed when using `Dockerfile`s but the CLI isn't.
+will download that image as needed when using `Dockerfile`s but the Devstep CLI won't.
 
 ## Sanity check
 ---------------
@@ -40,7 +40,7 @@ line to your `~/devstep.yml` so that the image is used as a source for your proj
 To install the CLI, you can run the one liner below and read on for more:
 
 ```sh
-L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep-cli/raw/v0.1.0/devstep > $L && chmod +x $L
+L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep-cli/releases/download/v0.1.0/devstep > $L && chmod +x $L
 ```
 
 _The snippet above assumes `$HOME/bin` is on your PATH, change `$HOME/bin` to
@@ -62,7 +62,7 @@ When you are done hacking, just `exit` the container and it will be "garbage
 collected" (aka `docker rm`ed) and no project specific dependencies will be kept
 on your machine.
 
-### Taking snapshot of the environment to reduce startup time
+### Taking snapshots of the environment to reduce startup time
 
 Building an environment from scratch all the time you need to work on a project
 is not very productive. To alleviate that pain you can use the `devstep build`
@@ -125,24 +125,6 @@ have to worry about that.
 
 For example, installing and configuring [memcached](http://memcached.org/) inside
 the container is a matter of running `configure-addons memcached` from there.
-
-### Binstubs
-
-commands:
-# This can be run with `devstep run server`
-server:
-cmd: ["rails", "server"]
-# Here you can use some of the configs described above
-publish: ["3000:3000"]
-volumes:
-- '{{env "HOME"}}/certs/some-certificate.crt:/.devstep/some-certificate.crt'
-- '{{env "HOME"}}/projects/some-gem-sources:/.devstep/some-gem-sources'
-links:
-- 'redis:redis'
-environment:
-RAILS_ENV: "hacking"
-ruby:
-# No custom options, used only for generating binstubs
 
 ### Bootstrapping a new project (AKA solving the chicken or the egg problem)
 

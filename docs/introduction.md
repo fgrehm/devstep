@@ -1,8 +1,6 @@
 # Introduction
 --------------
 
-# TODO: Note that we are using cedarish:cedar14
-
 Have you ever deployed an app to a platform like Heroku? How awesome it is to
 `git push` some code and see it running without worrying about the infrastructure
 it is going to run on? Now imagine that idea applied to any type of project,
@@ -38,17 +36,17 @@ extracted inside the container.
 ## Usage
 
 Devstep can be used to build development environments in at least two different
-ways: from the provided Bash CLI or from `Dockerfile`s. To run the images built,
+ways: from the provided Golang CLI or from `Dockerfile`s. To run the images built,
 you can use the provided `devstep hack` command, use other tools (like [Fig](http://orchardup.github.io/fig/))
 or just `docker run` them by hand.
 
 
 ## What's included on the base [Docker image](https://registry.hub.docker.com/u/fgrehm/devstep/)?
 
-That image is based on [`progrium/cedarish`](https://github.com/progrium/cedarish),
+That image is based on [`progrium/cedarish:cedar14`](https://github.com/progrium/cedarish),
 so everything that gets installed by it will be available for `fgrehm/devstep` images.
 
-On top of `progrium/cedarish`, we:
+On top of `progrium/cedarish:cedar14`, we:
 
 * Create a `developer` user to avoid using `root` and creating files with wrong permissions during development.
 * Install some extra devel packages (like `libyaml-dev`) and other "nice to have"

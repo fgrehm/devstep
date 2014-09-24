@@ -13,7 +13,7 @@ that a plugin folder should have a `plugin.js` file.
 
 The current functionality is very rudimentary and is likely to be changed so right
 now it is best explained by the [squid3-ssl proxy](https://github.com/fgrehm/devstep-squid3-ssl)
-plugin source which is currently the plugin available:
+plugin source which is currently the only plugin available:
 
 ```js
 // `_currentPluginPath` is the host path where the JavaScript file is located

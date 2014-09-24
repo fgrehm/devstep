@@ -30,7 +30,7 @@ to make it persistent, just set it to a folder that doesn't have that behavior
 (like some dir under your `$HOME`).
 
 For example, you can add the line below to your `$HOME/devstep.yml` to configure
-cached packages to be kept on `$HOME/devstep-cache`:
+cached packages to be kept on `$HOME/devstep/cache`:
 
 ```yaml
 cache_dir: '{{env "HOME"}}/devstep/cache'
