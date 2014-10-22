@@ -86,7 +86,7 @@ ADD stack/bashrc /home/devstep/.bashrc
 ADD addons /opt/devstep/addons
 
 #####################################################################
-# Fix permissions, set up init and generate locales
+# Fix permissions, set up init
 RUN chown -R developer:developer /home/devstep && \
     chown -R developer:developer /etc/devstep && \
     chown -R developer:developer /opt/devstep && \
@@ -95,8 +95,7 @@ RUN chown -R developer:developer /home/devstep && \
     ln -s /opt/devstep/bin/create-cache-symlinks /etc/devstep/init.d/10-create-cache-symlinks.sh && \
     ln -s /opt/devstep/bin/forward-linked-ports /etc/devstep/init.d/10-forward-linked-ports.sh && \
     chmod +x /opt/devstep/bin/* && \
-    chmod +x /etc/devstep/init.d/* && \
-    locale-gen en_US.UTF-8
+    chmod +x /etc/devstep/init.d/*
 
 #####################################################################
 # Setup locales and default user
