@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-mkdir -p /.devstep/log
+mkdir -p ${HOME}/log
 
-exec /usr/bin/memcached &> /.devstep/log/memcached.log
+exec /usr/bin/memcached &> ${HOME}/log/memcached.log

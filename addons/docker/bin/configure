@@ -4,8 +4,8 @@ set -e            # fail fast
 set -o pipefail   # dont ignore exit codes when piping output
 # set -x          # enable debugging
 
-CACHE_DIR=${2:-'/.devstep/cache'}
-DOCKER_CMD=/.devstep/bin/docker
+CACHE_DIR=${2:-"${HOME}/cache"}
+DOCKER_CMD="${HOME}/bin/docker"
 URL=https://get.docker.io/builds/Linux/x86_64/docker-latest
 
 if ! [ -x "${DOCKER_CMD}" ]; then
@@ -23,7 +23,7 @@ if ! [ -x /sbin/iptables ] || ! [ -x /sbin/apparmor_parser ]; then
   sudo apt-get update -q && sudo apt-get install iptables apparmor -y --force-yes -q
 fi
 
-echo "-----> [docker] Installed $(/.devstep/bin/docker --version)"
+echo "-----> [docker] Installed $(${HOME}/bin/docker --version)"
 
 addon_basedir="$( cd -P "$( dirname "$0" )" && pwd )"
 

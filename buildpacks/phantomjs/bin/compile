@@ -13,7 +13,7 @@ ARCHIVE_NAME=phantomjs-${PHANTOMJS_VERSION}-linux-x86_64
 FILE_NAME=${ARCHIVE_NAME}.tar.bz2
 BUILDPACK_PHANTOMJS_PACKAGE=https://bitbucket.org/ariya/phantomjs/downloads/${FILE_NAME}
 
-if [ -x /.devstep/bin/phantomjs ]; then
+if [ -x ${HOME}/bin/phantomjs ]; then
   echo "-----> PhantomJS already installed"
   exit 0
 fi
@@ -24,8 +24,8 @@ if ! [ -e $CACHE_DIR/$FILE_NAME ]; then
   curl $BUILDPACK_PHANTOMJS_PACKAGE -L -s > $CACHE_DIR/$FILE_NAME
 fi
 
-echo "-----> Extracting PhantomJS ${PHANTOMJS_VERSION} binaries to /.devstep/phantomjs"
+echo "-----> Extracting PhantomJS ${PHANTOMJS_VERSION} binaries to ${HOME}/phantomjs"
 mkdir -p $CACHE_DIR/$ARCHIVE_NAME
 tar jxf $CACHE_DIR/$FILE_NAME -C $CACHE_DIR
-mv $CACHE_DIR/$ARCHIVE_NAME /.devstep/phantomjs
-ln -s /.devstep/phantomjs/bin/phantomjs /.devstep/bin/phantomjs
+mv $CACHE_DIR/$ARCHIVE_NAME ${HOME}/phantomjs
+ln -s ${HOME}/phantomjs/bin/phantomjs ${HOME}/bin/phantomjs

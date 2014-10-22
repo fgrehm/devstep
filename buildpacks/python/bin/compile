@@ -33,11 +33,11 @@ ROOT_DIR=$basedir
 # Static configurations for virtualenv caches.
 # VIRTUALENV_LOC=".heroku/venv"
 # LEGACY_TRIGGER="lib/python2.7"
-PROFILE_PATH="/.devstep/.profile.d/python.sh"
+PROFILE_PATH="${HOME}/.profile.d/python.sh"
 
 DEFAULT_PYTHON_VERSION="python-2.7.8"
 DEFAULT_PYTHON_STACK="cedar-14"
-PYTHON_EXE="/.devstep/python/bin/python"
+PYTHON_EXE="${HOME}/python/bin/python"
 PIP_VERSION="1.5.6"
 SETUPTOOLS_VERSION="5.4.1"
 
@@ -48,7 +48,7 @@ SETUPTOOLS_VERSION="5.4.1"
 BUILDPACK_VERSION=v28
 
 # Setup pip-pop (pip-diff)
-export PATH=$PATH:$ROOT_DIR/vendor/pip-pop
+export PATH="$PATH:$ROOT_DIR/vendor/pip-pop"
 
 # Support Anvil Build_IDs
 # [ ! "$SLUG_ID" ] && SLUG_ID="defaultslug"
@@ -95,14 +95,14 @@ source $BIN_DIR/utils
 # BUILD_DIR=$APP_DIR
 
 # Prepend proper path buildpack use.
-export PATH=/.devstep/python/bin:$PATH
+export PATH="${HOME}/python/bin:$PATH"
 export PYTHONUNBUFFERED=1
 export LANG=en_US.UTF-8
-export C_INCLUDE_PATH=/.devstep/python/include
-export CPLUS_INCLUDE_PATH=/.devstep/python/include
-export LIBRARY_PATH=/.devstep/python/lib
-export LD_LIBRARY_PATH=/.devstep/python/lib
-export PKG_CONFIG_PATH=/.devstep/python/lib/pkg-config
+export C_INCLUDE_PATH="${HOME}/python/include"
+export CPLUS_INCLUDE_PATH="${HOME}/python/include"
+export LIBRARY_PATH="${HOME}/python/lib"
+export LD_LIBRARY_PATH="${HOME}/python/lib"
+export PKG_CONFIG_PATH="${HOME}/python/lib/pkg-config"
 export PIP_DOWNLOAD_CACHE="$CACHE_DIR/pip"
 
 # Switch to the repo's context.

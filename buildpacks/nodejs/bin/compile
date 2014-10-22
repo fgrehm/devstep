@@ -21,7 +21,7 @@ trap cat_npm_debug_log ERR
 
 # Look in package.json's engines.node field for a semver range
 if [ -f $build_dir/package.json ]; then
-  semver_range=$(cat $build_dir/package.json | /.devstep/bin/jq -r .engines.node)
+  semver_range=$(cat $build_dir/package.json | ${DEVSTEP_BIN}/jq -r .engines.node)
 else
   semver_range=
 fi
@@ -63,15 +63,15 @@ else
   node_url="http://s3pository.heroku.com/node/v$node_version/node-v$node_version-linux-x64.tar.gz"
   curl $node_url > $tarball_path
 fi
-mkdir -p /.devstep/nodejs
-tar xzf $tarball_path -C /.devstep/nodejs --strip-components=1
-export PATH="/.devstep/nodejs/bin:$build_dir/node_modules/.bin:$PATH"
-export NODE_PATH="/.devstep/nodejs/lib/node_modules:"
+mkdir -p ${HOME}/nodejs
+tar xzf $tarball_path -C ${HOME}/nodejs --strip-components=1
+export PATH="${HOME}/nodejs/bin:$build_dir/node_modules/.bin:$PATH"
+export NODE_PATH="${HOME}/nodejs/lib/node_modules:"
 
 # Update the PATH
 status "Building runtime environment"
-echo "export PATH=\"/.devstep/nodejs/bin:$build_dir/node_modules/.bin:\$PATH\";" > /.devstep/.profile.d/nodejs.sh
-echo "export NODE_PATH=\"/.devstep/nodejs/lib/node_modules:\";" >> /.devstep/.profile.d/nodejs.sh
+echo "export PATH=\"${HOME}/nodejs/bin:$build_dir/node_modules/.bin:\$PATH\";" > ${HOME}/.profile.d/nodejs.sh
+echo "export NODE_PATH=\"${HOME}/nodejs/lib/node_modules:\";" >> ${HOME}/.profile.d/nodejs.sh
 
 # Cache npm packages on host machine
 npm config set cache $cache_dir/npm

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-mkdir -p /.devstep/log
+mkdir -p ${HOME}/log
 
-exec /usr/bin/redis-server &> /.devstep/log/redis.log
+exec /usr/bin/redis-server &> ${HOME}/log/redis.log

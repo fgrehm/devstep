@@ -6,10 +6,10 @@ set -o pipefail   # dont ignore exit codes when piping output
 
 # If a pidfile is still around (for example after a container restart),
 # delete it so that docker can start.
-mkdir -p /.devstep/run
-rm -f /.devstep/run/docker.pid
+mkdir -p ${HOME}/run
+rm -f ${HOME}/run/docker.pid
 
 ! [ -L /var/run/docker.sock ] &&
-  sudo ln -s /.devstep/run/docker.sock /var/run/docker.sock
+  sudo ln -s ${HOME}/run/docker.sock /var/run/docker.sock
 
-sudo /.devstep/bin/docker -d -p /.devstep/run/docker.pid -G developer -H unix:///.devstep/run/docker.sock &> /.devstep/log/docker.log & &>/dev/null
+sudo ${HOME}/bin/docker -d -p ${HOME}/run/docker.pid -G developer -H unix://${HOME}/run/docker.sock &> ${HOME}/log/docker.log & &>/dev/null

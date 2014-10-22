@@ -33,7 +33,7 @@ fi
 plat=$(uname|tr A-Z a-z)-$arch
 
 heroku_buildpack_bin='https://github.com/kr/heroku-buildpack-go/raw/master/linux-amd64/bin'
-target='/.devstep/bin'
+target="${HOME}/bin"
 if [ -f $build/Godeps ] || [ -d $build/Godeps ]; then
   if ! [ -f ${target}/godep ]; then
     echo "-----> Installing godep to ${target}..."
@@ -68,8 +68,8 @@ ver=${ver:-go${GOVERSION:-1.3.1}}
 file=${GOFILE:-$ver.$(uname|tr A-Z a-z)-amd64.tar.gz}
 url=${GOURL:-$(urlfor $ver $file)}
 
-if [ -d /.devstep/go ]; then
-  echo "-----> Using $(/.devstep/go/bin/go version)"
+if [ -d ${HOME}/go ]; then
+  echo "-----> Using $(${HOME}/go/bin/go version)"
 else
   mkdir -p $cache/$ver
   cd $cache/$ver
@@ -80,13 +80,13 @@ else
     curl -sLO $url
     echo "done"
   fi
-  tar zxf $file -C /.devstep
+  tar zxf $file -C ${HOME}
 fi
 
-GOROOT=/.devstep/go export GOROOT
+GOROOT=${HOME}/go export GOROOT
 PATH=$GOROOT/bin:$PATH export PATH
 
-GOPATH=/.devstep/gocode export GOPATH
+GOPATH=${HOME}/gocode export GOPATH
 GOBIN=$GOPATH/bin export GOBIN
 PATH=$GOBIN:$PATH export PATH
 
@@ -106,13 +106,13 @@ else
   mkdir -p $GOPATH
 fi
 
-if ! [ -f /.devstep/.profile.d/go.sh ]; then
+if ! [ -f ${HOME}/.profile.d/go.sh ]; then
   echo "-----> Configuring ${ver}..."
-  echo "export GOPATH=$GOPATH" > /.devstep/.profile.d/go.sh
-  echo "export GOROOT=$GOROOT" >> /.devstep/.profile.d/go.sh
-  echo "export GOBIN=$GOBIN" >> /.devstep/.profile.d/go.sh
-  echo 'export PATH=$PATH:$GOROOT/bin' >> /.devstep/.profile.d/go.sh
-  echo 'export PATH=$PATH:$GOBIN' >> /.devstep/.profile.d/go.sh
+  echo "export GOPATH=$GOPATH" > ${HOME}/.profile.d/go.sh
+  echo "export GOROOT=$GOROOT" >> ${HOME}/.profile.d/go.sh
+  echo "export GOBIN=$GOBIN" >> ${HOME}/.profile.d/go.sh
+  echo 'export PATH=$PATH:$GOROOT/bin' >> ${HOME}/.profile.d/go.sh
+  echo 'export PATH=$PATH:$GOBIN' >> ${HOME}/.profile.d/go.sh
   echo 'done'
 fi
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-cache_root="/.devstep/cache"
+cache_root="${HOME}/cache"
 
 empty_directory() {
   if [ $(ls -A "${1}" 2>/dev/null | wc -l) = '0' ]; then

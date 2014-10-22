@@ -13,7 +13,7 @@ else
   if ! [ -f $cache/bats.tar.gz ]; then
     curl -sL --insecure http://github.com/sstephenson/bats/tarball/master > $cache/bats.tar.gz
   fi
-  mkdir -p /.devstep/bats
-  tar xfz $cache/bats.tar.gz -C /.devstep/bats --strip-components=1
-  (cd /.devstep/bats && sudo ./install.sh /.devstep)
+  mkdir -p ${HOME}/bats
+  tar xfz $cache/bats.tar.gz -C ${HOME}/bats --strip-components=1
+  (cd ${HOME}/bats && sudo ./install.sh ${HOME})
 fi
