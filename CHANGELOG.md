@@ -5,6 +5,10 @@ BREAKING CHANGES:
   - Switched to the latest progrium/cedarish image which uses an unmodified Heroku
     `cedar14.sh` base stack source. More info [here](https://github.com/progrium/cedarish/commit/71e2a4af8d300c94783720d13eac79d084a35a75)
 
+IMPROVEMENTS:
+
+  - buildpacks/nodejs: Bump default Node to 0.10.32
+
 ## [0.2.0](https://github.com/fgrehm/devstep/compare/v0.1.0...v0.2.0) (2014-09-24)
 
 BREAKING CHANGES:
