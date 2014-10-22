@@ -167,7 +167,7 @@ host using a strategy similar to [vagrant-cachier's cache buckets](http://fgrehm
 
 This behavior is enabled by default and will be further documented on the future.
 For now you need to know that the `/tmp/devstep/cache` dir on the host will be bind
-mounted to containers created by the CLI under `/.devstep/cache` and most of your
+mounted to containers created by the CLI under `/home/devstep/cache` and most of your
 project's dependencies packages will be downloaded there. Note that the dependencies
 themselves are extracted and kept inside the images built by the CLI and you can
 safely clean things up or disable the caching behavior at will.
@@ -187,7 +187,7 @@ FROM fgrehm/devstep:v0.2.0
 # Add project to the image and build it
 ADD . /workspace
 WORKDIR /workspace
-RUN CLEANUP=1 /.devstep/bin/build-project /workspace
+RUN CLEANUP=1 /opt/devstep/bin/build-project /workspace
 ```
 
 To make things easier, there's also a `fgrehm/devstep-ab:v0.2.0` image that

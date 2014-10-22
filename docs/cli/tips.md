@@ -19,7 +19,7 @@ Or you can just share your SSH keys with the container using:
 
 ```yaml
 volumes:
-  - '{{env "HOME"}}/.ssh:/.devstep/.ssh'
+  - '{{env "HOME"}}/.ssh:/home/devstep/.ssh'
 ```
 
 ## Making project's dependencies cache persist between host restarts
@@ -40,7 +40,7 @@ cache_dir: '{{env "HOME"}}/devstep/cache'
 
 ```yaml
 volumes:
-  - '{{env "HOME"}}/.gitconfig:/.devstep/.gitconfig'
+  - '{{env "HOME"}}/.gitconfig:/home/devstep/.gitconfig'
 ```
 
 ## Sharing RubyGems credentials with containers
@@ -51,7 +51,7 @@ share an existing credentials file with the containers using:
 
 ```yaml
 volumes:
-  - '{{env "HOME"}}/.gem/credentials:/.devstep/.gem/credentials'
+  - '{{env "HOME"}}/.gem/credentials:/home/devstep/.gem/credentials'
 ```
 
 ## Sharing Heroku credentials with containers
@@ -62,5 +62,5 @@ just share the credentials file with the containers using:
 
 ```yaml
 volumes:
-  - '{{env "HOME"}}/.netrc:/.devstep/.netrc'
+  - '{{env "HOME"}}/.netrc:/home/devstep/.netrc'
 ```

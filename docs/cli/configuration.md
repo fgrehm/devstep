@@ -15,14 +15,14 @@ repository: 'repo/name'
 # DEFAULT: 'fgrehm/devstep:v0.2.0'
 source_image: 'source/image:tag'
 
-# The host cache dir that gets mounted inside the container at `/.devstep/cache`
+# The host cache dir that gets mounted inside the container at `/home/devstep/cache`
 # for speeding up the dependencies installation process.
 # DEFAULT: '/tmp/devstep/cache'
 cache_dir: '{{env "HOME"}}/devstep/cache'
 
 # The directory where project sources should be mounted inside the container.
 # DEFAULT: '/workspace'
-working_dir: '/.devstep/gocode/src/github.com/fgrehm/devstep-cli'
+working_dir: '/home/devstep/gocode/src/github.com/fgrehm/devstep-cli'
 
 # Link to other existing containers (like a database for example).
 # Please note that devstep won't start the associated containers automatically
@@ -53,8 +53,8 @@ commands:
     # Here you can use some of the configs described above
     publish: ["3000:3000"]
     volumes:
-    - '{{env "HOME"}}/certs/some-certificate.crt:/.devstep/some-certificate.crt'
-    - '{{env "HOME"}}/projects/some-gem-sources:/.devstep/some-gem-sources'
+    - '{{env "HOME"}}/certs/some-certificate.crt:/home/devstep/some-certificate.crt'
+    - '{{env "HOME"}}/projects/some-gem-sources:/home/devstep/some-gem-sources'
     links:
     - 'redis:redis'
     environment:

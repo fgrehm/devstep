@@ -10,7 +10,7 @@ all Devstep environments:
 
 ```yaml
 volumes:
-  - '{{env "HOME"}}/projects/my-buildpack:/.devstep/buildpacks/my-buildpack'
+  - '{{env "HOME"}}/projects/my-buildpack:/opt/devstep/buildpacks/my-buildpack'
 ```
 
 If you want to use a custom base image, you can add the following line to your
