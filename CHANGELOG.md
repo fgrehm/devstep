@@ -8,6 +8,7 @@ BREAKING CHANGES:
 IMPROVEMENTS:
 
   - buildpacks/nodejs: Bump default Node to 0.10.32
+  - buildpacks/ruby: Bump default Bundler to 1.7.4
 
 ## [0.2.0](https://github.com/fgrehm/devstep/compare/v0.1.0...v0.2.0) (2014-09-24)
 
