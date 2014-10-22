@@ -49,7 +49,7 @@ RUN DEBIAN_FRONTEND=noninteractive && \
 
 RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y gawk libreadline5 libmcrypt4 libaprutil1 libreadline6-dev libyaml-dev libgdbm-dev libncurses5-dev libffi-dev libicu-dev --no-install-recommends && \
+    apt-get install -y gawk libreadline5 libmcrypt4 libaprutil1 libyaml-dev libgdbm-dev libffi-dev libicu-dev --no-install-recommends && \
     apt-get install -y postgresql-client mysql-client --no-install-recommends && \
     apt-get install -y software-properties-common bash-completion --no-install-recommends && \
     echo "[client]\nprotocol=tcp\nuser=root" >> /.devstep/.my.cnf && \
