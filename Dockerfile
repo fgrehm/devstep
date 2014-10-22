@@ -13,11 +13,16 @@ RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get install -y sudo && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
-    mkdir -p /.devstep/cache && \
-    mkdir -p /.devstep/.profile.d && \
-    mkdir -p /.devstep/bin && \
-    mkdir -p /.devstep/log && \
-    echo "developer:x:1000:1000:Developer,,,:/.devstep:/bin/bash" >> /etc/passwd && \
+    mkdir -p /home/devstep/cache && \
+    mkdir -p /home/devstep/.profile.d && \
+    mkdir -p /home/devstep/bin && \
+    mkdir -p /home/devstep/log && \
+    mkdir -p /opt/devstep/bin && \
+    mkdir -p /opt/devstep/buildpacks && \
+    mkdir -p /opt/devstep/addons && \
+    mkdir -p /etc/devstep/service && \
+    mkdir -p /etc/devstep/init.d && \
+    echo "developer:x:1000:1000:Developer,,,:/home/devstep:/bin/bash" >> /etc/passwd && \
     echo "developer:x:1000:" >> /etc/group && \
     echo "developer ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/developer && \
     chmod 0440 /etc/sudoers.d/developer
@@ -29,9 +34,7 @@ RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
     apt-get install -y python runit --no-install-recommends && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    mkdir -p /etc/my_init.d && \
-    mkdir -p /etc/service
+    rm -rf /var/lib/apt/lists/*
 
 #####################################################################
 # * Install dependencies for rubies, php and possibly other programming
@@ -52,14 +55,14 @@ RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get install -y gawk libreadline5 libmcrypt4 libaprutil1 libyaml-dev libgdbm-dev libffi-dev libicu-dev --no-install-recommends && \
     apt-get install -y postgresql-client mysql-client libsqlite3-dev --no-install-recommends && \
     apt-get install -y software-properties-common bash-completion --no-install-recommends && \
-    echo "[client]\nprotocol=tcp\nuser=root" >> /.devstep/.my.cnf && \
-    echo "export PGHOST=localhost" >> /.devstep/.profile.d/postgresql.sh && \
-    echo "export PGUSER=postgres" >> /.devstep/.profile.d/postgresql.sh && \
+    echo "[client]\nprotocol=tcp\nuser=root" >> /home/devstep/.my.cnf && \
+    echo "export PGHOST=localhost" >> /home/devstep/.profile.d/postgresql.sh && \
+    echo "export PGUSER=postgres" >> /home/devstep/.profile.d/postgresql.sh && \
     apt-get install -y --force-yes vim htop tmux mercurial bzr nodejs libssl0.9.8 --no-install-recommends && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
-    mkdir -p /.devstep/bin && \
-    curl -L -s http://stedolan.github.io/jq/download/linux64/jq > /.devstep/bin/jq
+    curl -L -s http://stedolan.github.io/jq/download/linux64/jq > /opt/devstep/bin/jq && \
+    chmod +x /opt/devstep/bin/jq
 
 #####################################################################
 # Bring back apt .deb caching as they'll be either removed on the
@@ -69,30 +72,30 @@ RUN rm /etc/apt/apt.conf.d/docker-clean
 #####################################################################
 # Devstep buildpacks
 
-ADD buildpacks /.devstep/buildpacks
-RUN for script in /.devstep/buildpacks/*/bin/install-dependencies; do \
+ADD buildpacks /opt/devstep/buildpacks
+RUN for script in /opt/devstep/buildpacks/*/bin/install-dependencies; do \
       $script; \
     done
 
 #####################################################################
 # Devstep goodies (ADDed at the end to increase image "cacheability")
 
-ADD stack/bin /.devstep/bin
-ADD stack/bashrc /.devstep/.bashrc
-ADD stack/load-env.sh /.devstep/load-env.sh
-ADD addons /.devstep/addons
+ADD stack/bin /opt/devstep/bin
+ADD stack/load-env.sh /opt/devstep/load-env.sh
+ADD stack/bashrc /home/devstep/.bashrc
+ADD addons /opt/devstep/addons
 
 #####################################################################
 # Fix permissions, set up init and generate locales
-RUN chown -R developer:developer /.devstep && \
-    chown -R developer:developer /etc/my_init.d && \
-    chown -R developer:developer /etc/service && \
+RUN chown -R developer:developer /home/devstep && \
+    chown -R developer:developer /etc/devstep && \
+    chown -R developer:developer /opt/devstep && \
     chmod u+s /usr/bin/sudo && \
-    ln -s /.devstep/bin/fix-permissions /etc/my_init.d/05-fix-permissions.sh && \
-    ln -s /.devstep/bin/create-cache-symlinks /etc/my_init.d/10-create-cache-symlinks.sh && \
-    ln -s /.devstep/bin/forward-linked-ports /etc/my_init.d/10-forward-linked-ports.sh && \
-    chmod +x /.devstep/bin/* && \
-    chmod +x /etc/my_init.d/* && \
+    ln -s /opt/devstep/bin/fix-permissions /etc/devstep/init.d/05-fix-permissions.sh && \
+    ln -s /opt/devstep/bin/create-cache-symlinks /etc/devstep/init.d/10-create-cache-symlinks.sh && \
+    ln -s /opt/devstep/bin/forward-linked-ports /etc/devstep/init.d/10-forward-linked-ports.sh && \
+    chmod +x /opt/devstep/bin/* && \
+    chmod +x /etc/devstep/init.d/* && \
     locale-gen en_US.UTF-8
 
 #####################################################################
@@ -100,14 +103,14 @@ RUN chown -R developer:developer /.devstep && \
 
 USER developer
 ENV USER developer
-ENV HOME /.devstep
+ENV HOME /home/devstep
 ENV LANG en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 ENV LC_CTYPE en_US.UTF-8
 
 #####################################################################
 # Use our init
-ENTRYPOINT ["/.devstep/bin/entrypoint"]
+ENTRYPOINT ["/opt/devstep/bin/entrypoint"]
 
 # Start a bash session by default
 CMD ["/bin/bash"]
