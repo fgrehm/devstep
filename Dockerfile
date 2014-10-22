@@ -99,6 +99,7 @@ RUN chown -R developer:developer /.devstep && \
 # Setup locales and default user
 
 USER developer
+ENV USER developer
 ENV HOME /.devstep
 ENV LANG en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
