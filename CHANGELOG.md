@@ -7,6 +7,7 @@ BREAKING CHANGES:
 
 IMPROVEMENTS:
 
+  - buildpacks/golang: Bump default version to 1.3.3
   - buildpacks/nodejs: Bump default Node to 0.10.32
   - buildpacks/ruby: Bump default Bundler to 1.7.4
 
