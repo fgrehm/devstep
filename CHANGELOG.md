@@ -7,6 +7,8 @@ BREAKING CHANGES:
 
 IMPROVEMENTS:
 
+  - addons/docker: Lock installation to 1.3.0 instead of latest
+  - addons/docker: Support specifying a Docker version to be installed with `DEVSTEP_DOCKER_VERSION` env var
   - buildpacks/golang: Bump default version to 1.3.3
   - buildpacks/nodejs: Bump default Node to 0.10.32
   - buildpacks/ruby: Bump default Bundler to 1.7.4

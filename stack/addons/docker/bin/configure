@@ -6,17 +6,18 @@ set -o pipefail   # dont ignore exit codes when piping output
 
 CACHE_DIR=${2:-"${HOME}/cache/docker"}
 DOCKER_CMD="${HOME}/bin/docker"
-URL=https://get.docker.io/builds/Linux/x86_64/docker-latest
+DEVSTEP_DOCKER_VERSION=${DEVSTEP_DOCKER_VERSION:-"1.3.0"}
+URL=https://get.docker.com/builds/Linux/x86_64/docker-1.3.0
 
 mkdir -p $CACHE_DIR
 
 if ! [ -x "${DOCKER_CMD}" ]; then
-  if ! [ -f "${CACHE_DIR}/docker" ]; then
-    echo "-----> [docker] Downloading latest version from ${URL}"
-    curl -l -s $URL > ${CACHE_DIR}/docker
+  if ! [ -f "${CACHE_DIR}/docker-${DEVSTEP_DOCKER_VERSION}" ]; then
+    echo "-----> [docker] Downloading ${DEVSTEP_DOCKER_VERSION} version from ${URL}"
+    curl -l -s $URL > ${CACHE_DIR}/docker-${DEVSTEP_DOCKER_VERSION}
   fi
 
-  cp ${CACHE_DIR}/docker ${DOCKER_CMD}
+  cp ${CACHE_DIR}/docker-${DEVSTEP_DOCKER_VERSION} ${DOCKER_CMD}
   chmod +x "${DOCKER_CMD}"
 fi
 
