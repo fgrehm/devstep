@@ -4,9 +4,11 @@ set -e            # fail fast
 set -o pipefail   # dont ignore exit codes when piping output
 # set -x          # enable debugging
 
-CACHE_DIR=${2:-"${HOME}/cache"}
+CACHE_DIR=${2:-"${HOME}/cache/docker"}
 DOCKER_CMD="${HOME}/bin/docker"
 URL=https://get.docker.io/builds/Linux/x86_64/docker-latest
+
+mkdir -p $CACHE_DIR
 
 if ! [ -x "${DOCKER_CMD}" ]; then
   if ! [ -f "${CACHE_DIR}/docker" ]; then
@@ -27,14 +29,14 @@ echo "-----> [docker] Installed $(${HOME}/bin/docker --version)"
 
 addon_basedir="$( cd -P "$( dirname "$0" )" && pwd )"
 
-cp ${addon_basedir}/wrapdocker "/etc/my_init.d/00-wrapdocker.sh"
-chmod +x "/etc/my_init.d/00-wrapdocker.sh"
+cp ${addon_basedir}/wrapdocker "$DEVSTEP_CONF/init.d/00-wrapdocker.sh"
+chmod +x "$DEVSTEP_CONF/init.d/00-wrapdocker.sh"
 ${addon_basedir}/wrapdocker
 
-cp $addon_basedir/start-daemon /etc/my_init.d/01-start-docker.sh
-chmod +x /etc/my_init.d/01-start-docker.sh
+cp $addon_basedir/start-daemon $DEVSTEP_CONF/init.d/01-start-docker.sh
+chmod +x $DEVSTEP_CONF/init.d/01-start-docker.sh
 
 echo "-----> [docker] Starting daemon"
-/etc/my_init.d/01-start-docker.sh &>/dev/null || true
+$DEVSTEP_CONF/init.d/01-start-docker.sh &>/dev/null || true
 
 echo "-----> [docker] Finished configuration!"
