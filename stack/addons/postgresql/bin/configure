@@ -18,15 +18,15 @@ fi
 addon_basedir="$( cd -P "$( dirname "$0" )" && pwd )"
 
 echo "-----> [postgres] Enabling autostart"
-mkdir -p /etc/service/postgresql
+mkdir -p ${DEVSTEP_CONF}/service/postgresql
 
 sudo cp $(readlink -f $addon_basedir/../conf/postgresql.conf) /etc/postgresql/9.3/main/postgresql.conf
 sudo cp $(readlink -f $addon_basedir/../conf/pg_hba.conf) /etc/postgresql/9.3/main/pg_hba.conf
 
-cp $addon_basedir/start-server /etc/service/postgresql/run
-chmod +x /etc/service/postgresql/run
+cp $addon_basedir/start-server ${DEVSTEP_CONF}/service/postgresql/run
+chmod +x ${DEVSTEP_CONF}/service/postgresql/run
 
 echo "-----> [postgres] Starting server"
-sv start /etc/service/postgresql &>/dev/null || true
+sv start ${DEVSTEP_CONF}/service/postgresql &>/dev/null || true
 
 echo "-----> [postgres] Finished configuration!"

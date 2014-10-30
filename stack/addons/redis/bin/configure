@@ -16,11 +16,11 @@ fi
 addon_basedir="$( cd -P "$( dirname "$0" )" && pwd )"
 
 echo "-----> [redis] Enabling autostart"
-mkdir -p /etc/service/redis
-cp $addon_basedir/start-server /etc/service/redis/run
-chmod +x /etc/service/redis/run
+mkdir -p ${DEVSTEP_CONF}/service/redis
+cp $addon_basedir/start-server ${DEVSTEP_CONF}/service/redis/run
+chmod +x ${DEVSTEP_CONF}/service/redis/run
 
 echo "-----> [redis] Starting server"
-sv start /etc/service/redis &>/dev/null || true
+sv start ${DEVSTEP_CONF}/service/redis &>/dev/null || true
 
 echo "-----> [redis] Finished configuration!"

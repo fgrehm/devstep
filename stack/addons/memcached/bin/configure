@@ -12,11 +12,11 @@ fi
 addon_basedir="$( cd -P "$( dirname "$0" )" && pwd )"
 
 echo "-----> [memcached] Enabling autostart"
-mkdir -p /etc/service/memcached
-cp $addon_basedir/start-server /etc/service/memcached/run
-chmod +x /etc/service/memcached/run
+mkdir -p ${DEVSTEP_CONF}/service/memcached
+cp $addon_basedir/start-server ${DEVSTEP_CONF}/service/memcached/run
+chmod +x ${DEVSTEP_CONF}/service/memcached/run
 
 echo "-----> [memcached] Starting server"
-sv start /etc/service/memcached &>/dev/null || true
+sv start ${DEVSTEP_CONF}/service/memcached &>/dev/null || true
 
 echo "-----> [memcached] Finished configuration!"
