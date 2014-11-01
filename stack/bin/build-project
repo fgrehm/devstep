@@ -107,7 +107,7 @@ fi
 
 if [[ -n "${selected_buildpacks[@]}" ]]; then
   # TODO: This output is not needed if a single buildpack was detected
-  echo_title "Building project at '${project_root}' with the folllowing buildpacks:"
+  echo_title "Building project at '${project_root}' with the following buildpacks:"
   for bp in "${selected_buildpacks[@]}"; do
     echo "- $bp" | ensure_indent
   done
