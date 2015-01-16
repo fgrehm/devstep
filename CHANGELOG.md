@@ -4,15 +4,27 @@ BREAKING CHANGES:
 
   - Switched to the latest progrium/cedarish image which uses an unmodified Heroku
     `cedar14.sh` base stack source. More info [here](https://github.com/progrium/cedarish/commit/71e2a4af8d300c94783720d13eac79d084a35a75)
+  - Organization of Devstep's "stack" within the Docker image got changed, please see
+    [GH-63] for more information
+
+[GH-63]: https://github.com/fgrehm/devstep/issues/63
+
+FEATURES:
+
+  - [New Oracle Java 8 addon](http://fgrehm.viewdocs.io/devstep/addons/oracle-java)
 
 IMPROVEMENTS:
 
   - addons/docker: Lock installation to 1.3.0 instead of latest
   - addons/docker: Support specifying a Docker version to be installed with `DEVSTEP_DOCKER_VERSION` env var
-  - buildpacks/golang: Bump default version to 1.3.3
-  - buildpacks/nodejs: Bump default Node to 0.10.32
-  - buildpacks/ruby: Bump default Bundler to 1.7.4
-  - buildpacks/ruby: Bump default Ruby to 2.1.4
+  - buildpacks/golang: Bump default version to 1.4.1
+  - buildpacks/nodejs: Bump default Node to 0.10.35
+  - buildpacks/php: Backport recent oficial Heroku buildpack updates
+  - buildpacks/php: Download buildpack dependencies on demand
+  - buildpacks/python: Backport recent oficial Heroku buildpack updates
+  - buildpacks/python: Download buildpack dependencies on demand
+  - buildpacks/ruby: Bump default Bundler to 1.7.12
+  - buildpacks/ruby: Bump default Ruby to 2.2.0
 
 ## [0.2.0](https://github.com/fgrehm/devstep/compare/v0.1.0...v0.2.0) (2014-09-24)
 
