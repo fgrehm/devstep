@@ -63,7 +63,7 @@ elif test -d $build/.git ; then
   name=$(git config --get-regexp '^remote.+\.url' | grep github | head -n1 | cut -f2 -d' ' | sed 's/^\(git\|https\):\/\///' | sed 's/^\w\+@//' | sed 's/:/\//' | sed 's/\.git$//')
   popd &> /dev/null
 fi
-ver=${ver:-go${GOVERSION:-1.3.3}}
+ver=${ver:-go${GOVERSION:-1.4.1}}
 
 file=${GOFILE:-$ver.$(uname|tr A-Z a-z)-amd64.tar.gz}
 url=${GOURL:-$(urlfor $ver $file)}
