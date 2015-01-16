@@ -19,6 +19,13 @@ source $bp_dir/bin/common.sh
 # Output npm debug info on error
 trap cat_npm_debug_log ERR
 
+if [ -d ${HOME}/nodejs ]; then
+  echo 'Node.js already installed, skipping'
+else
+
+# Indentation is intentionally weird here in order to make our lives easier when
+# bringing in updates from the official heroku buildpack
+
 # Look in package.json's engines.node field for a semver range
 if [ -f $build_dir/package.json ]; then
   semver_range=$(cat $build_dir/package.json | ${DEVSTEP_BIN}/jq -r .engines.node)
@@ -65,6 +72,7 @@ else
 fi
 mkdir -p ${HOME}/nodejs
 tar xzf $tarball_path -C ${HOME}/nodejs --strip-components=1
+
 export PATH="${HOME}/nodejs/bin:$build_dir/node_modules/.bin:$PATH"
 export NODE_PATH="${HOME}/nodejs/lib/node_modules:"
 
@@ -72,6 +80,8 @@ export NODE_PATH="${HOME}/nodejs/lib/node_modules:"
 status "Building runtime environment"
 echo "export PATH=\"${HOME}/nodejs/bin:$build_dir/node_modules/.bin:\$PATH\";" > ${HOME}/.profile.d/nodejs.sh
 echo "export NODE_PATH=\"${HOME}/nodejs/lib/node_modules:\";" >> ${HOME}/.profile.d/nodejs.sh
+
+fi
 
 # Cache npm packages on host machine
 npm config set cache $cache_dir/npm

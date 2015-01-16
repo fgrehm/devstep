@@ -26,6 +26,10 @@ IMPROVEMENTS:
   - buildpacks/ruby: Bump default Bundler to 1.7.12
   - buildpacks/ruby: Bump default Ruby to 2.2.0
 
+BUG FIXES:
+
+  - buildpacks/nodejs: Skip Node.js installation if already installed
+
 ## [0.2.0](https://github.com/fgrehm/devstep/compare/v0.1.0...v0.2.0) (2014-09-24)
 
 BREAKING CHANGES:
