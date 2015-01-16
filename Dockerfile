@@ -1,12 +1,12 @@
 FROM progrium/cedarish:cedar14
 MAINTAINER Fabio Rehm "fgrehm@gmail.com"
 
-ENV HOME /home/devstep
-ENV DEVSTEP_PATH /opt/devstep
-ENV DEVSTEP_CONF /etc/devstep
-ENV LANG en_US.UTF-8
-ENV LC_ALL en_US.UTF-8
-ENV LC_CTYPE en_US.UTF-8
+ENV HOME=/home/devstep \
+    DEVSTEP_PATH=/opt/devstep \
+    DEVSTEP_CONF=/etc/devstep \
+    LANG=en_US.UTF-8 \
+    LC_ALL=en_US.UTF-8 \
+    LC_CTYPE=en_US.UTF-8
 
 #####################################################################
 # Create a default user to avoid using the container as root, we set
@@ -42,8 +42,6 @@ RUN DEBIAN_FRONTEND=noninteractive && \
     rm -rf /var/lib/apt/lists/*
 
 #####################################################################
-# * Install dependencies for rubies, php and possibly other programming
-#   language envs as well
 # * Install and configure PostgreSQL and MySQL clients
 # * Install bash-completion to save us a few keystrokes
 # * Install vim because editing files with plain old vi sucks
@@ -57,7 +55,7 @@ RUN DEBIAN_FRONTEND=noninteractive && \
 
 RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y gawk libreadline5 libmcrypt4 libaprutil1 libyaml-dev libgdbm-dev libffi-dev libicu-dev --no-install-recommends && \
+    apt-get install -y libreadline5 libmcrypt4 libffi-dev --no-install-recommends && \
     apt-get install -y postgresql-client mysql-client libsqlite3-dev --no-install-recommends && \
     apt-get install -y --force-yes vim htop tmux mercurial bzr nodejs libssl0.9.8 --no-install-recommends && \
     apt-get install -y software-properties-common bash-completion --no-install-recommends && \
