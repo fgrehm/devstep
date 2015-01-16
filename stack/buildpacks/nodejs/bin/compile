@@ -29,8 +29,8 @@ fi
 # Resolve node version using semver.io
 _node_version() {
   curl --connect-timeout 30 --silent --get --data-urlencode "range=${semver_range}" https://semver.io/node/resolve || {
-    echo '       Unable to fetch node version from semver.io, using latest known (0.10.32)' >&2
-    echo '0.10.32'
+    echo '       Unable to fetch node version from semver.io, using latest known (0.10.35)' >&2
+    echo '0.10.35'
   }
 }
 node_version=$(_node_version)
