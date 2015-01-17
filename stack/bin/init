@@ -261,7 +261,7 @@ if os.getenv('DEVSTEP_LOG', None) != None:
         log_level = LOG_LEVEL_INFO
     elif level == 'error':
         log_level = LOG_LEVEL_ERROR
-    elif level == 'warn':
+    elif level == 'warning':
         log_level = LOG_LEVEL_WARN
 
 if args.skip_runit and len(args.main_command) == 0:

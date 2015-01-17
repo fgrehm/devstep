@@ -2,6 +2,10 @@
 # usage: build-project <build-dir> <cache-dir> -b <buildpack> -b <buildpack>
 set -eo pipefail
 
+if [ "${DEVSTEP_LOG}" = 'debug' ]; then
+  set -x
+fi
+
 usage() {
   cat <<EOF
 Usage:

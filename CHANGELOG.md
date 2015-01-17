@@ -15,6 +15,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+  - Reduced output by default and added support for `DEVSTEP_LOG` for setting the log level
   - addons/docker: Lock installation to 1.3.0 instead of latest
   - addons/docker: Support specifying a Docker version to be installed with `DEVSTEP_DOCKER_VERSION` env var
   - buildpacks/golang: Bump default version to 1.4.1
