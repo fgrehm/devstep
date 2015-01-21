@@ -23,6 +23,7 @@ if [ -d ${HOME}/nodejs ]; then
   echo 'Node.js already installed, skipping'
 else
 
+###############################################################################
 # Indentation is intentionally weird here in order to make our lives easier when
 # bringing in updates from the official heroku buildpack
 
@@ -80,7 +81,7 @@ export NODE_PATH="${HOME}/nodejs/lib/node_modules:"
 status "Building runtime environment"
 echo "export PATH=\"${HOME}/nodejs/bin:$build_dir/node_modules/.bin:\$PATH\";" > ${HOME}/.profile.d/nodejs.sh
 echo "export NODE_PATH=\"${HOME}/nodejs/lib/node_modules:\";" >> ${HOME}/.profile.d/nodejs.sh
-
+###############################################################################
 fi
 
 # Cache npm packages on host machine
