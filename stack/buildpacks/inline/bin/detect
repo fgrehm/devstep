@@ -1,8 +1,16 @@
-#!/bin/sh
+#!/bin/bash
 # Usage: bin/detect <build-dir>
+
+if [ -f $1/devstep.yml ]; then
+  provision_steps=$(ruby -ryaml -e "puts (YAML.load(File.read('$1/devstep.yml'))['provision'] || []).size")
+  echo $provision_steps
+  if [[ $provision_steps -gt 0 ]]; then
+    echo 'devstep' && exit 0
+  fi
+fi
 
 if [ -x $1/bin/compile ]; then
   echo 'inline' && exit 0
-else
-  echo 'no' && exit 1
 fi
+
+exit 1

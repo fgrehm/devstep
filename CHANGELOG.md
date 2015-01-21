@@ -11,6 +11,7 @@ BREAKING CHANGES:
 
 FEATURES:
 
+  - [Inline buildpack now supports reading commands from `devstep.yml`](http://fgrehm.viewdocs.io/devstep/buildpacks/inline)
   - [New Oracle Java 8 addon](http://fgrehm.viewdocs.io/devstep/addons/oracle-java)
   - [New Heroku toolbelt addon](http://fgrehm.viewdocs.io/devstep/addons/heroku-toolbelt)
 

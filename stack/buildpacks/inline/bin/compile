@@ -1,3 +1,14 @@
-#!/bin/sh
+#!/bin/bash
 # Usage: bin/compile <build-dir> <cache-dir> <env-dir>
-exec "$1"/bin/compile "$@"
+
+set -e
+
+if [ -f $1/devstep.yml ]; then
+  provision_steps=$(ruby -ryaml -e "puts (YAML.load(File.read('$1/devstep.yml'))['provision'] || []).size")
+  if [[ $provision_steps -gt 0 ]]; then
+    bp_bin="$( cd -P "$( dirname "$0" )" && pwd )"
+    ${bp_bin}/provision "${1}/devstep.yml"
+  fi
+elif [ -x $1/bin/compile ]; then
+  exec "$1"/bin/compile "$@"
+fi

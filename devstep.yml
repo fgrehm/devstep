@@ -7,3 +7,5 @@ volumes:
 commands:
   make:
     # No custom options
+provision:
+  - ['configure-addons', 'docker']
