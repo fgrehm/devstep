@@ -12,6 +12,7 @@ BREAKING CHANGES:
 FEATURES:
 
   - [New Oracle Java 8 addon](http://fgrehm.viewdocs.io/devstep/addons/oracle-java)
+  - [New Heroku toolbelt addon](http://fgrehm.viewdocs.io/devstep/addons/heroku-toolbelt)
 
 IMPROVEMENTS:
 

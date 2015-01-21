@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -e            # fail fast
+set -o pipefail   # dont ignore exit codes when piping output
+# set -x          # enable debugging
+
+if ! $(which heroku &> /dev/null); then
+  echo "-----> [heroku-toolbelt] Installing Heroku toolbelt..."
+  wget -qO- https://toolbelt.heroku.com/install-ubuntu.sh | sh &>/dev/null
+  echo "-----> [heroku-toolbelt] Finished configuration!"
+fi
