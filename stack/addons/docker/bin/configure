@@ -6,7 +6,7 @@ set -o pipefail   # dont ignore exit codes when piping output
 
 CACHE_DIR=${2:-"${HOME}/cache/docker"}
 DOCKER_CMD="${HOME}/bin/docker"
-DEVSTEP_DOCKER_VERSION=${DEVSTEP_DOCKER_VERSION:-"1.4.1"}
+DEVSTEP_DOCKER_VERSION=${DEVSTEP_DOCKER_VERSION:-"1.5.0"}
 URL=https://get.docker.com/builds/Linux/x86_64/docker-${DEVSTEP_DOCKER_VERSION}
 
 mkdir -p $CACHE_DIR
