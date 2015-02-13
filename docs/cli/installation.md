@@ -10,7 +10,7 @@ This one liner can handle it for you assuming that `$HOME/bin` is available
 on your `PATH`:
 
 ```sh
-L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep-cli/releases/download/v0.3.0/linux_amd64 > $L && chmod +x $LA
+L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep-cli/releases/download/v0.3.0/linux_amd64 > $L && chmod +x $L
 ```
 
 Please note that the CLI is currently limited to connecting to a local `/var/run/docker.sock`
