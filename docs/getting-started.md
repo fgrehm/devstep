@@ -40,7 +40,7 @@ line to your `~/devstep.yml` so that the image is used as a source for your proj
 To install the CLI, you can run the one liner below and read on for more:
 
 ```sh
-L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep-cli/releases/download/v0.1.0/devstep > $L && chmod +x $L
+L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep-cli/releases/download/v0.3.0/linux_amd64 > $L && chmod +x $L
 ```
 
 _The snippet above assumes `$HOME/bin` is on your PATH, change `$HOME/bin` to
