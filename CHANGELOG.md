@@ -1,4 +1,4 @@
-## [0.3.0](https://github.com/fgrehm/devstep/compare/v0.2.0...v0.3.0) (unreleased)
+## [0.3.0](https://github.com/fgrehm/devstep/compare/v0.2.0...v0.3.0) (2015-02-12)
 
 BREAKING CHANGES:
 
