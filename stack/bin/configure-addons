@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-addons_root="/.devstep/addons"
+addons_root="/opt/devstep/addons"
 
 available_addons() {
   for addon in "${addons_root}"/*; do

@@ -145,9 +145,9 @@ def kill_all_processes(time_limit):
 		signal.alarm(0)
 
 def run_startup_files():
-	# Run /etc/my_init.d/*
-	for name in listdir("/etc/my_init.d"):
-		filename = "/etc/my_init.d/" + name
+	# Run /etc/devstep/init.d/*
+	for name in listdir("/etc/devstep/init.d"):
+		filename = "/etc/devstep/init.d/" + name
 		if is_exe(filename):
 			info("Running %s..." % filename)
 			run_command_killable_and_import_envvars(filename)
@@ -155,7 +155,7 @@ def run_startup_files():
 def start_runit():
 	info("Booting runit daemon...")
 	pid = os.spawnl(os.P_NOWAIT, "/usr/bin/runsvdir", "/usr/bin/runsvdir",
-		"-P", "/etc/service", "log: %s" % ('.' * 395))
+		"-P", "/etc/devstep/service", "log: %s" % ('.' * 395))
 	info("Runit started as PID %d" % pid)
 	return pid
 
@@ -166,7 +166,7 @@ def wait_for_runit_or_interrupt(pid):
 	except KeyboardInterrupt:
 		return (False, None)
 
-def get_runit_services(dir = "/etc/service"):
+def get_runit_services(dir = "/etc/devstep/service"):
 	return [name for name in os.listdir(dir)
 		if os.path.isdir(os.path.join(dir, name))]
 
@@ -175,7 +175,7 @@ def shutdown_runit_services():
 		return
 
 	debug("Begin shutting down runit services...")
-	os.system("/usr/bin/sv down /etc/service/*")
+	os.system("/usr/bin/sv down /etc/devstep/service/*")
 
 def wait_for_runit_services():
 	if not get_runit_services():
@@ -184,7 +184,7 @@ def wait_for_runit_services():
 	debug("Waiting for runit services to exit...")
 	done = False
 	while not done:
-		done = os.system("/usr/bin/sv status /etc/service/* | grep -q '^run:'") != 0
+		done = os.system("/usr/bin/sv status /etc/devstep/service/* | grep -q '^run:'") != 0
 		if not done:
 			time.sleep(0.1)
 
@@ -240,7 +240,7 @@ parser.add_argument('main_command', metavar = 'MAIN_COMMAND', type = str, nargs 
 	help = 'The main command to run. (default: runit)')
 parser.add_argument('--skip-startup-files', dest = 'skip_startup_files',
 	action = 'store_const', const = True, default = False,
-	help = 'Skip running /etc/my_init.d/* and /etc/rc.local')
+	help = 'Skip running /etc/devstep/init.d/* and /etc/rc.local')
 parser.add_argument('--skip-runit', dest = 'skip_runit',
 	action = 'store_const', const = True, default = False,
 	help = 'Do not run runit services')
@@ -252,6 +252,17 @@ parser.add_argument('--quiet', dest = 'log_level',
 	help = 'Only print warnings and errors')
 args = parser.parse_args()
 log_level = args.log_level
+
+if os.getenv('DEVSTEP_LOG', None) != None:
+    level = os.environ['DEVSTEP_LOG'].lower()
+    if level == 'debug':
+        log_level = LOG_LEVEL_DEBUG
+    elif level == 'info':
+        log_level = LOG_LEVEL_INFO
+    elif level == 'error':
+        log_level = LOG_LEVEL_ERROR
+    elif level == 'warning':
+        log_level = LOG_LEVEL_WARN
 
 if args.skip_runit and len(args.main_command) == 0:
 	error("When --skip-runit is given, you must also pass a main command.")

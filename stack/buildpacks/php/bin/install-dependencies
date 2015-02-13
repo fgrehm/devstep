@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -e
+
+echo -n '   Installing dependencies for PHP buildpack... '
+
+url='https://github.com/heroku/heroku-buildpack-php/archive/v33.tar.gz'
+mkdir -p /opt/devstep/buildpacks/php/heroku-buildpack-php
+curl -sL $url | tar xz --strip-components=1 -C /opt/devstep/buildpacks/php/heroku-buildpack-php
+
+# Replace heroku buildpack configs with our stuff
+for conf in /opt/devstep/buildpacks/php/heroku-buildpack-php/conf/**/*; do
+  if [ -f $conf ] &&  $(grep -q "/app/.heroku" $conf); then
+    sed -i 's|/app/.heroku|/home/devstep|' $conf
+  fi
+done
+
+echo 'DONE'

@@ -4,7 +4,7 @@
 Devstep comes in two flavors, you can either use the provided CLI or you can build
 on top of the provided images from `Dockerfile`s.
 
-Regardless of the flavor you choose, it is a good idea to `docker pull fgrehm/devstep:v0.2.0`
+Regardless of the flavor you choose, it is a good idea to `docker pull fgrehm/devstep:v0.3.0`
 before creating your first container / image for a better user experience. Docker
 will download that image as needed when using `Dockerfile`s but the Devstep CLI won't.
 
@@ -12,7 +12,7 @@ will download that image as needed when using `Dockerfile`s but the Devstep CLI 
 ---------------
 
 This project is being developed and tested on an Ubuntu 14.04 host with Docker
-1.0.0+, while it is likely to work on other distros / Docker versions /
+1.4.0+, while it is likely to work on other distros / Docker versions /
 [boot2docker](http://boot2docker.io/), I'm not sure how it will behave on the wild.
 
 Please note that the CLI is currently limited to connecting to a local `/var/run/docker.sock`
@@ -167,7 +167,7 @@ host using a strategy similar to [vagrant-cachier's cache buckets](http://fgrehm
 
 This behavior is enabled by default and will be further documented on the future.
 For now you need to know that the `/tmp/devstep/cache` dir on the host will be bind
-mounted to containers created by the CLI under `/.devstep/cache` and most of your
+mounted to containers created by the CLI under `/home/devstep/cache` and most of your
 project's dependencies packages will be downloaded there. Note that the dependencies
 themselves are extracted and kept inside the images built by the CLI and you can
 safely clean things up or disable the caching behavior at will.
@@ -182,20 +182,20 @@ The `fgrehm/devstep` image is the base image used for Devstep environments and
 requires you to manually trigger the build:
 
 ```Dockerfile
-FROM fgrehm/devstep:v0.2.0
+FROM fgrehm/devstep:v0.3.0
 
 # Add project to the image and build it
 ADD . /workspace
 WORKDIR /workspace
-RUN CLEANUP=1 /.devstep/bin/build-project /workspace
+RUN CLEANUP=1 /opt/devstep/bin/build-project /workspace
 ```
 
-To make things easier, there's also a `fgrehm/devstep-ab:v0.2.0` image that
+To make things easier, there's also a `fgrehm/devstep-ab:v0.3.0` image that
 does the same steps as outlined above automatically for you by leveraging `ONBUILD`
 instructions, trimming down your `Dockerfile` to a single line:
 
 ```Dockerfile
-FROM fgrehm/devstep-ab:v0.2.0
+FROM fgrehm/devstep-ab:v0.3.0
 ```
 
 By using a `Dockerfile` to build your images (instead of using `devstep build`)

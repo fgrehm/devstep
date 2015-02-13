@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+mkdir -p ${HOME}/log
+
+exec /usr/bin/memcached &> ${HOME}/log/memcached.log

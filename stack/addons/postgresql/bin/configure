@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+set -e            # fail fast
+set -o pipefail   # dont ignore exit codes when piping output
+# set -x          # enable debugging
+
+if ! [ -f /etc/init.d/postgresql ]; then
+  echo "-----> [postgres] Installing server"
+  (
+    sudo apt-get update -q &&
+    sudo apt-get install postgresql-9.3 postgresql-contrib -y --force-yes -q
+  ) &>> /tmp/configure-pg.log
+
+  echo "export PGHOST=" >> ${HOME}/.profile.d/postgresql.sh
+  source ${HOME}/.profile.d/postgresql.sh
+fi
+
+addon_basedir="$( cd -P "$( dirname "$0" )" && pwd )"
+
+echo "-----> [postgres] Enabling autostart"
+mkdir -p ${DEVSTEP_CONF}/service/postgresql
+
+sudo cp $(readlink -f $addon_basedir/../conf/postgresql.conf) /etc/postgresql/9.3/main/postgresql.conf
+sudo cp $(readlink -f $addon_basedir/../conf/pg_hba.conf) /etc/postgresql/9.3/main/pg_hba.conf
+
+cp $addon_basedir/start-server ${DEVSTEP_CONF}/service/postgresql/run
+chmod +x ${DEVSTEP_CONF}/service/postgresql/run
+
+echo "-----> [postgres] Starting server"
+sv start ${DEVSTEP_CONF}/service/postgresql &>/dev/null || true
+
+echo "-----> [postgres] Finished configuration!"

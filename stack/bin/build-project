@@ -2,6 +2,10 @@
 # usage: build-project <build-dir> <cache-dir> -b <buildpack> -b <buildpack>
 set -eo pipefail
 
+if [ "${DEVSTEP_LOG}" = 'debug' ]; then
+  set -x
+fi
+
 usage() {
   cat <<EOF
 Usage:
@@ -33,8 +37,8 @@ done
 export FORCED_BUILDPACKS
 
 project_root=${1:-`pwd`}
-cache_root=${2:-/.devstep/cache}
-buildpack_root=/.devstep/buildpacks
+cache_root=${2:-"${HOME}/cache"}
+buildpack_root=/opt/devstep/buildpacks
 
 if [ "${project_root}" = '/' ]; then
   echo "Can't build root dir!"
@@ -44,7 +48,7 @@ fi
 mkdir -p $project_root
 mkdir -p $cache_root
 mkdir -p $buildpack_root
-mkdir -p /.devstep/.profile.d
+mkdir -p ${HOME}/.profile.d
 
 function output_redirect() {
 	if [[ "$slug_file" == "-" ]]; then
@@ -85,7 +89,7 @@ export APP_DIR="$project_root"
 
 ## Fix directory permissions
 
-(cd $project_root && /.devstep/bin/fix-permissions)
+(cd $project_root && /opt/devstep/bin/fix-permissions)
 
 ## Buildpack detection
 

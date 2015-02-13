@@ -1,8 +1,0 @@
-#!/bin/sh
-# Usage: bin/detect <build-dir>
-
-if [ -x $1/bin/compile ]; then
-  echo 'inline' && exit 0
-else
-  echo 'no' && exit 1
-fi

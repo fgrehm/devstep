@@ -1,0 +1,234 @@
+#!/usr/bin/env bash
+
+# Usage:
+#
+#     $ bin/compile <build-dir> <cache-dir> <env-path>
+
+# Fail fast and fail hard.
+set -eo pipefail
+
+# XXX: Is this needed?
+# Prepend proper path for virtualenv hackery. This will be deprecated soon.
+# export PATH=:/usr/local/bin:$PATH
+
+# Paths.
+BUILD_DIR=$1
+CACHE_DIR=$2/python
+ENV_DIR=$3
+
+bp_basedir="$( cd -P "$( dirname "$0" )" && cd .. && pwd )"
+bp_basedir=$(readlink -f $bp_basedir)
+
+basedir="${bp_basedir}/heroku-buildpack-python"
+if ! [ -d $basedir ]; then
+  echo 'Unable to find Heroku buildpack for python!'
+  exit 1
+fi
+
+BIN_DIR=$basedir/bin
+ROOT_DIR=$basedir
+
+# CACHED_DIRS=".heroku"
+
+# Static configurations for virtualenv caches.
+# VIRTUALENV_LOC=".heroku/venv"
+# LEGACY_TRIGGER="lib/python2.7"
+PROFILE_PATH="${HOME}/.profile.d/python.sh"
+
+DEFAULT_PYTHON_VERSION="python-2.7.8"
+DEFAULT_PYTHON_STACK="cedar-14"
+PYTHON_EXE="${HOME}/python/bin/python"
+PIP_VERSION="1.5.6"
+SETUPTOOLS_VERSION="5.4.1"
+
+# Setup bpwatch
+# export PATH=$PATH:$ROOT_DIR/vendor/bpwatch
+# LOGPLEX_KEY="t.b90d9d29-5388-4908-9737-b4576af1d4ce"
+# export BPWATCH_STORE_PATH=$CACHE_DIR/bpwatch.json
+BUILDPACK_VERSION=v28
+
+# Setup pip-pop (pip-diff)
+export PATH="$PATH:$ROOT_DIR/vendor/pip-pop"
+
+# Support Anvil Build_IDs
+# [ ! "$SLUG_ID" ] && SLUG_ID="defaultslug"
+# [ ! "$REQUEST_ID" ] && REQUEST_ID=$SLUG_ID
+[ ! "$STACK" ] && STACK=$DEFAULT_PYTHON_STACK
+
+# Sanitizing environment variables.
+unset GIT_DIR PYTHONHOME PYTHONPATH LD_LIBRARY_PATH LIBRARY_PATH
+
+# bpwatch init $LOGPLEX_KEY
+# bpwatch build python $BUILDPACK_VERSION $REQUEST_ID
+# TMP_APP_DIR=$CACHE_DIR/tmp_app_dir
+
+# bpwatch start compile
+
+
+# We'll need to send these statics to other scripts we `source`.
+export BUILD_DIR CACHE_DIR BIN_DIR PROFILE_PATH
+
+# Syntax sugar.
+source $BIN_DIR/utils
+
+# Directory Hacks for path consistiency.
+# APP_DIR='/app'
+# TMP_APP_DIR=$CACHE_DIR/tmp_app_dir
+
+# Copy Anvil app dir to temporary storage...
+# bpwatch start anvil_appdir_stage
+#   if [ "$SLUG_ID" ]; then
+#     mkdir -p $TMP_APP_DIR
+#     deep-mv $APP_DIR $TMP_APP_DIR
+#   else
+#     deep-rm $APP_DIR
+#   fi
+# bpwatch stop anvil_appdir_stage
+
+# Copy Application code in.
+# bpwatch start appdir_stage
+#   deep-mv $BUILD_DIR $APP_DIR
+# bpwatch stop appdir_stage
+
+# Set new context.
+# ORIG_BUILD_DIR=$BUILD_DIR
+# BUILD_DIR=$APP_DIR
+
+# Prepend proper path buildpack use.
+export PATH="${HOME}/python/bin:$PATH"
+export PYTHONUNBUFFERED=1
+export LANG=en_US.UTF-8
+export C_INCLUDE_PATH="${HOME}/python/include"
+export CPLUS_INCLUDE_PATH="${HOME}/python/include"
+export LIBRARY_PATH="${HOME}/python/lib"
+export LD_LIBRARY_PATH="${HOME}/python/lib"
+export PKG_CONFIG_PATH="${HOME}/python/lib/pkg-config"
+export PIP_DOWNLOAD_CACHE="$CACHE_DIR/pip"
+
+# Switch to the repo's context.
+cd $BUILD_DIR
+
+# Experimental pre_compile hook.
+# bpwatch start pre_compile
+  source $BIN_DIR/steps/hooks/pre_compile
+# bpwatch stop pre_compile
+
+# If no requirements given, assume `setup.py develop`.
+if [ ! -f requirements.txt ]; then
+  echo "-e ." > requirements.txt
+fi
+
+# XXX: Is this needed?
+# Sticky runtimes.
+# if [ -f $CACHE_DIR/.heroku/python-version ]; then
+#   DEFAULT_PYTHON_VERSION=$(cat $CACHE_DIR/.heroku/python-version)
+# fi
+
+# Stack fallback for non-declared caches.
+# if [ -f $CACHE_DIR/.heroku/python-stack ]; then
+#   CACHED_PYTHON_STACK=$(cat $CACHE_DIR/.heroku/python-stack)
+# else
+#   CACHED_PYTHON_STACK=$DEFAULT_PYTHON_STACK
+# fi
+
+# If no runtime given, assume default version.
+if [ ! -f runtime.txt ]; then
+  puts-step "No runtime.txt provided; assuming $DEFAULT_PYTHON_VERSION."
+  PYTHON_VERSION=$DEFAULT_PYTHON_VERSION
+else
+  PYTHON_VERSION=$(cat runtime.txt)
+fi
+
+export PYTHON_VERSION
+
+# ### The Cache
+mkdir -p $CACHE_DIR
+
+# XXX: Is this needed?
+# Purge "old-style" virtualenvs.
+# bpwatch start clear_old_venvs
+#   [ -d $CACHE_DIR/$LEGACY_TRIGGER ] && rm -fr $CACHE_DIR/.heroku/bin $CACHE_DIR/.heroku/lib $CACHE_DIR/.heroku/include
+#   [ -d $CACHE_DIR/$VIRTUALENV_LOC ] && rm -fr $CACHE_DIR/.heroku/venv $CACHE_DIR/.heroku/src
+# bpwatch stop clear_old_venvs
+
+# XXX: Is this needed?
+# Restore old artifacts from the cache.
+# bpwatch start restore_cache
+#   for dir in $CACHED_DIRS; do
+#     cp -R $CACHE_DIR/$dir . &> /dev/null || true
+#   done
+# bpwatch stop restore_cache
+
+# set +e
+# Create set-aside `.heroku` folder.
+# mkdir .heroku &> /dev/null
+# set -e
+
+mkdir -p $(dirname $PROFILE_PATH)
+
+# Install Python using our own script.
+source $bp_basedir/bin/steps/python
+
+# Sanity check for setuptools/distribute.
+source $BIN_DIR/steps/setuptools
+
+# Uninstall removed dependencies with Pip.
+source $bp_basedir/bin/steps/pip-uninstall
+
+# Mercurial support.
+# source $BIN_DIR/steps/mercurial
+
+# Pylibmc support.
+source $bp_basedir/bin/steps/pylibmc
+
+# Libffi support.
+source $bp_basedir/bin/steps/cryptography
+
+# Install dependencies with Pip.
+source $bp_basedir/bin/steps/pip-install
+
+# Django collectstatic support.
+# sub-env $BIN_DIR/steps/collectstatic
+
+
+# ### Finalize
+#
+
+# Set context environment variables.
+set-env PATH '$HOME/python/bin:$PATH'
+set-env PYTHONUNBUFFERED true
+set-env PYTHONHOME $HOME/python
+set-env LIBRARY_PATH $HOME/python/lib
+set-env LD_LIBRARY_PATH '$HOME/python/lib:$LD_LIBRARY_PATH'
+set-env PIP_DOWNLOAD_CACHE "$CACHE_DIR/pip"
+set-default-env LANG en_US.UTF-8
+set-default-env PYTHONHASHSEED random
+set-default-env PYTHONPATH $BUILD_DIR
+
+
+# Experimental post_compile hook.
+# bpwatch start post_compile
+#   source $BIN_DIR/steps/hooks/post_compile
+# bpwatch stop post_compile
+
+# XXX: Is this needed?
+# Store new artifacts in cache.
+# bpwatch start dump_cache
+#   for dir in $CACHED_DIRS; do
+#     rm -rf $CACHE_DIR/$dir
+#     cp -R $dir $CACHE_DIR/
+#   done
+# bpwatch stop dump_cache
+
+# ### Fin.
+# bpwatch start appdir_commit
+#  deep-mv $BUILD_DIR $ORIG_BUILD_DIR
+# bpwatch stop appdir_commit
+
+# bpwatch start anvil_appdir_commit
+#   if [ "$SLUG_ID" ]; then
+#     deep-mv $TMP_APP_DIR $APP_DIR
+#   fi
+
+# bpwatch stop anvil_appdir_commit
+# bpwatch stop compile

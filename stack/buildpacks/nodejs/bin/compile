@@ -1,0 +1,169 @@
+#!/usr/bin/env bash
+
+set -e            # fail fast
+set -o pipefail   # dont ignore exit codes when piping output
+# set -x          # enable debugging
+
+# Configure directories
+build_dir=$1
+cache_dir=$2/node
+env_dir=$3
+
+mkdir -p $cache_dir
+
+bp_dir=$(cd $(dirname $0); cd ..; pwd)
+
+# Load some convenience functions like status(), echo(), and indent()
+source $bp_dir/bin/common.sh
+
+# Output npm debug info on error
+trap cat_npm_debug_log ERR
+
+if [ -d ${HOME}/nodejs ]; then
+  echo 'Node.js already installed, skipping'
+else
+
+###############################################################################
+# Indentation is intentionally weird here in order to make our lives easier when
+# bringing in updates from the official heroku buildpack
+
+# Look in package.json's engines.node field for a semver range
+if [ -f $build_dir/package.json ]; then
+  semver_range=$(cat $build_dir/package.json | ${DEVSTEP_BIN}/jq -r .engines.node)
+else
+  semver_range=
+fi
+
+# Resolve node version using semver.io
+_node_version() {
+  curl --connect-timeout 30 --silent --get --data-urlencode "range=${semver_range}" https://semver.io/node/resolve || {
+    echo '       Unable to fetch node version from semver.io, using latest known (0.10.35)' >&2
+    echo '0.10.35'
+  }
+}
+node_version=$(_node_version)
+
+# Recommend using semver ranges in a safe manner
+if [ "$semver_range" == "null" ]; then
+  protip "Specify a node version in package.json"
+  semver_range=""
+elif [ "$semver_range" == "*" ]; then
+  protip "Avoid using semver ranges like '*' in engines.node"
+elif [ ${semver_range:0:1} == ">" ]; then
+  protip "Avoid using semver ranges starting with '>' in engines.node"
+fi
+
+# Output info about requested range and resolved node version
+if [ "$semver_range" == "" ]; then
+  status "Defaulting to latest stable node: $node_version"
+else
+  status "Requested node range:  $semver_range"
+  status "Resolved node version: $node_version"
+fi
+
+# Download node from Heroku's S3 mirror of nodejs.org/dist
+tarball="node-v$node_version-linux-x64.tar.gz"
+tarball_path="$cache_dir/node-v$node_version-linux-x64.tar.gz"
+if [ -f $tarball_path ]; then
+  status "Using cached tarball"
+else
+  status "Downloading and installing node"
+  node_url="http://s3pository.heroku.com/node/v$node_version/node-v$node_version-linux-x64.tar.gz"
+  curl $node_url > $tarball_path
+fi
+mkdir -p ${HOME}/nodejs
+tar xzf $tarball_path -C ${HOME}/nodejs --strip-components=1
+
+export PATH="${HOME}/nodejs/bin:$build_dir/node_modules/.bin:$PATH"
+export NODE_PATH="${HOME}/nodejs/lib/node_modules:"
+
+# Update the PATH
+status "Building runtime environment"
+echo "export PATH=\"${HOME}/nodejs/bin:$build_dir/node_modules/.bin:\$PATH\";" > ${HOME}/.profile.d/nodejs.sh
+echo "export NODE_PATH=\"${HOME}/nodejs/lib/node_modules:\";" >> ${HOME}/.profile.d/nodejs.sh
+###############################################################################
+fi
+
+# Cache npm packages on host machine
+npm config set cache $cache_dir/npm
+
+# Run subsequent node/npm commands from the build path
+cd $build_dir
+
+# XXX: Is this needed?
+# If node_modules directory is checked into source control then
+# rebuild any native deps. Otherwise, restore from the build cache.
+# if test -d $build_dir/node_modules; then
+#   status "Found existing node_modules directory; skipping cache"
+#   status "Rebuilding any native dependencies"
+#   npm rebuild 2>&1 | indent
+# elif test -d $cache_dir/node/node_modules; then
+#   status "Restoring node_modules directory from cache"
+#   cp -r $cache_dir/node/node_modules $build_dir/
+#
+#   status "Pruning cached dependencies not specified in package.json"
+#   npm prune 2>&1 | indent
+#
+#   if test -f $cache_dir/node/.heroku/node-version && [ $(cat $cache_dir/node/.heroku/node-version) != "$node_version" ]; then
+#     status "Node version changed since last build; rebuilding dependencies"
+#     npm rebuild 2>&1 | indent
+#   fi
+#
+# fi
+
+# Handle npm's new cert bug
+# http://blog.npmjs.org/post/78085451721/npms-self-signed-certificate-is-no-more
+# if [ ! -f "$build_dir/.npmrc" ]; then
+#   status "Writing a custom .npmrc to circumvent npm bugs"
+#   echo "ca=" > "$build_dir/.npmrc"
+# fi
+
+if [ -f package.json ]; then
+  status "Installing dependencies"
+  npm install 2>&1 | indent
+fi
+
+if [ -f bower.json ]; then
+  if ! [ -f $build_dir/node_modules/.bin/bower ]; then
+    status "Installing bower"
+    npm install bower 2>&1 | indent
+  fi
+  status "Installing bower dependencies"
+  $build_dir/node_modules/.bin/bower install 2>&1 | indent
+fi
+
+if [ -f Gruntfile.js ]; then
+  if ! [ -f $build_dir/node_modules/.bin/grunt ]; then
+    status "Installing grunt"
+    npm install grunt-cli 2>&1 | indent
+  fi
+fi
+
+# Persist goodies like node-version in the slug
+# \mkdir -p $build_dir/.heroku
+
+# Save resolved node version in the slug for later reference
+# echo $node_version > $build_dir/.heroku/node-version
+
+# XXX: Is this needed?
+# Purge node-related cached content, being careful not to purge the top-level
+# cache, for the sake of heroku-buildpack-multi apps.
+# rm -rf $cache_dir/node_modules # (for apps still on the older caching strategy)
+# rm -rf $cache_dir/node
+# mkdir -p $cache_dir/node
+
+# XXX: Is this needed?
+# If app has a node_modules directory, cache it.
+# if test -d $build_dir/node_modules; then
+#   status "Caching node_modules directory for future builds"
+#   cp -r $build_dir/node_modules $cache_dir/node
+# fi
+
+# XXX: Is this needed?
+# Copy goodies to the cache
+# cp -r $build_dir/.heroku $cache_dir/node
+
+# XXX: Is this needed?
+# status "Cleaning up node-gyp and npm artifacts"
+# rm -rf "$build_dir/.node-gyp"
+# rm -rf "$build_dir/.npm"

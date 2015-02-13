@@ -1,3 +1,38 @@
+## [0.3.0](https://github.com/fgrehm/devstep/compare/v0.2.0...v0.3.0) (2015-02-12)
+
+BREAKING CHANGES:
+
+  - Switched to the latest `progrium/cedarish:cedar14` image which uses an unmodified
+    Heroku `cedar14.sh` base stack source. More info [here](https://github.com/progrium/cedarish/tree/master/cedar14)
+  - Organization of Devstep's "stack" within the Docker image got changed, please see
+    commits associated with [GH-63] for more information
+
+[GH-63]: https://github.com/fgrehm/devstep/issues/63
+
+FEATURES:
+
+  - [Inline buildpack now supports reading commands from `devstep.yml`](http://fgrehm.viewdocs.io/devstep/buildpacks/inline)
+  - [New Oracle Java 8 addon](http://fgrehm.viewdocs.io/devstep/addons/oracle-java)
+  - [New Heroku toolbelt addon](http://fgrehm.viewdocs.io/devstep/addons/heroku-toolbelt)
+
+IMPROVEMENTS:
+
+  - Reduced output by default and added support for `DEVSTEP_LOG` for setting the log level
+  - addons/docker: Lock installation to 1.5.0 instead of latest
+  - addons/docker: Support specifying a Docker version to be installed with `DEVSTEP_DOCKER_VERSION` env var
+  - buildpacks/golang: Bump default version to 1.4.1
+  - buildpacks/nodejs: Bump default Node to 0.10.35
+  - buildpacks/php: Backport recent oficial Heroku buildpack updates
+  - buildpacks/php: Download buildpack dependencies on demand
+  - buildpacks/python: Backport recent oficial Heroku buildpack updates
+  - buildpacks/python: Download buildpack dependencies on demand
+  - buildpacks/ruby: Bump default Bundler to 1.8.0
+  - buildpacks/ruby: Bump default Ruby to 2.2.0
+
+BUG FIXES:
+
+  - buildpacks/nodejs: Skip Node.js installation if already installed
+
 ## [0.2.0](https://github.com/fgrehm/devstep/compare/v0.1.0...v0.2.0) (2014-09-24)
 
 BREAKING CHANGES:

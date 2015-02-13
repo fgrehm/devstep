@@ -23,12 +23,12 @@ else
 fi
 
 
-info=( $(stat -Lc"%U %g %u" /.devstep/cache) )
+info=( $(stat -Lc"%U %g %u" ${HOME}/cache) )
 user=${info[0]}
 gid=${info[1]}
 uid=${info[2]}
 
 if [ $user != 'developer' ]; then
   echo "-----> Changing cache dir owner to 'developer'"
-  sudo chown developer: /.devstep/cache
+  sudo chown developer: ${HOME}/cache
 fi

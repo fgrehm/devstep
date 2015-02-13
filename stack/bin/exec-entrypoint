@@ -1,0 +1,7 @@
+#!/bin/bash -l
+
+# This is the entrypoint for Devstep exec commands that loads the environment
+# before running the commands
+
+source /opt/devstep/load-env.sh
+eval "$@"

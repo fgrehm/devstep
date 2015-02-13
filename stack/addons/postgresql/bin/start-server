@@ -1,0 +1,46 @@
+#!/bin/bash
+set -e
+# set -x
+
+POSTGRESQL_USER=${POSTGRESQL_USER:-"postgres"}
+POSTGRESQL_PASS=${POSTGRESQL_PASS:-"postgres"}
+POSTGRESQL_DB=${POSTGRESQL_DB:-"postgres"}
+POSTGRESQL_TEMPLATE=${POSTGRESQL_TEMPLATE:-"DEFAULT"}
+POSTGRESQL_DATA=${POSTGRESQL_DATA:-"/shared/postgresql"}
+
+POSTGRESQL_BIN=/usr/lib/postgresql/9.3/bin/postgres
+POSTGRESQL_CONFIG_FILE=/etc/postgresql/9.3/main/postgresql.conf
+
+if [ $POSTGRESQL_DATA != '/shared/postgresql' ]; then
+  sudo sed -i 's|\/shared\/postgresql|'$POSTGRESQL_DATA'|g' $POSTGRESQL_CONFIG_FILE
+fi
+
+if [ ! -d $POSTGRESQL_DATA ] || [ ! -f $POSTGRESQL_DATA/PG_VERSION ]; then
+  sudo mkdir -p $POSTGRESQL_DATA
+  sudo chown -R developer:developer $POSTGRESQL_DATA
+  /usr/lib/postgresql/9.3/bin/initdb -D $POSTGRESQL_DATA &>> ${HOME}/log/postgresql.log
+fi
+sudo chown -R developer:developer $POSTGRESQL_DATA
+
+sudo chown -R developer:developer /var/run/postgresql
+sudo chown developer:developer /etc/postgresql/9.3/main/*.conf
+
+mkdir -p ${HOME}/log
+
+POSTGRESQL_SINGLE="$POSTGRESQL_BIN --single --config-file=$POSTGRESQL_CONFIG_FILE postgres"
+$POSTGRESQL_SINGLE <<< "CREATE USER $POSTGRESQL_USER WITH SUPERUSER;" &> ${HOME}/log/postgresql.log || true
+$POSTGRESQL_SINGLE <<< "CREATE DATABASE $POSTGRESQL_DB OWNER $POSTGRESQL_USER TEMPLATE $POSTGRESQL_TEMPLATE;" &>> ${HOME}/log/postgresql.log || true
+$POSTGRESQL_SINGLE <<< "ALTER USER $POSTGRESQL_USER WITH PASSWORD '$POSTGRESQL_PASS';" &>> ${HOME}/log/postgresql.log || true
+
+# Based on https://gist.github.com/ffmike/877447
+POSTGRESQL_SINGLE="$POSTGRESQL_BIN --single --config-file=$POSTGRESQL_CONFIG_FILE postgres"
+$POSTGRESQL_SINGLE <<< "update pg_database set datallowconn = TRUE where datname = 'template0';" &>> ${HOME}/log/postgresql.log || true
+POSTGRESQL_SINGLE="$POSTGRESQL_BIN --single --config-file=$POSTGRESQL_CONFIG_FILE template0"
+$POSTGRESQL_SINGLE <<< "update pg_database set datistemplate = FALSE where datname = 'template1';" &>> ${HOME}/log/postgresql.log || true
+$POSTGRESQL_SINGLE <<< "drop database template1;" &> ${HOME}/log/postgresql.log || true
+$POSTGRESQL_SINGLE <<< "create database template1 with template = template0 encoding = 'UTF8';" &>> ${HOME}/log/postgresql.log || true
+$POSTGRESQL_SINGLE <<< "update pg_database set datistemplate = TRUE where datname = 'template1';" &>> ${HOME}/log/postgresql.log || true
+POSTGRESQL_SINGLE="$POSTGRESQL_BIN --single --config-file=$POSTGRESQL_CONFIG_FILE template1"
+$POSTGRESQL_SINGLE <<< "update pg_database set datallowconn = FALSE where datname = 'template0';" &>> ${HOME}/log/postgresql.log || true
+
+exec $POSTGRESQL_BIN --config-file=$POSTGRESQL_CONFIG_FILE &>> ${HOME}/log/postgresql.log

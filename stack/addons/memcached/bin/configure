@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -e            # fail fast
+set -o pipefail   # dont ignore exit codes when piping output
+# set -x          # enable debugging
+
+if ! $(which memcached &> /dev/null); then
+  echo "-----> [memcached] Installing server..."
+  sudo apt-get update -q && sudo apt-get install memcached -y --force-yes -q
+fi
+
+addon_basedir="$( cd -P "$( dirname "$0" )" && pwd )"
+
+echo "-----> [memcached] Enabling autostart"
+mkdir -p ${DEVSTEP_CONF}/service/memcached
+cp $addon_basedir/start-server ${DEVSTEP_CONF}/service/memcached/run
+chmod +x ${DEVSTEP_CONF}/service/memcached/run
+
+echo "-----> [memcached] Starting server"
+sv start ${DEVSTEP_CONF}/service/memcached &>/dev/null || true
+
+echo "-----> [memcached] Finished configuration!"
