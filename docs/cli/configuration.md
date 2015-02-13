@@ -12,7 +12,7 @@ The available options are described below:
 repository: 'repo/name'
 
 # The image used by devstep when building environments from scratch
-# DEFAULT: 'fgrehm/devstep:v0.2.0'
+# DEFAULT: 'fgrehm/devstep:v0.3.0'
 source_image: 'source/image:tag'
 
 # The host cache dir that gets mounted inside the container at `/home/devstep/cache`

@@ -37,7 +37,7 @@ devstep.on('configLoaded', function(config) {
     .addVolume(squidShared + '/certs/squid3.dev.crt:/usr/share/ca-certificates/squid3.dev.crt')
     .setEnv('HTTPS_PROXY_CERT', 'squid3.dev.crt');
     // Inject the script that will trust the squid container certificate
-    .addVolume(squidRoot + '/proxy.sh:/etc/my_init.d/proxy.sh')
+    .addVolume(squidRoot + '/proxy.sh:/etc/devstep/init.d/proxy.sh')
 
     // Sets environmental variables so that programs make use of the cache
     .setEnv('http_proxy', 'http://squid3.dev:3128')
