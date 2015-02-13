@@ -12,11 +12,11 @@ For example:
 
 ```yaml
 provision:
-  - ['configure-addons', 'oracle-java-8']
+  - ['configure-addons', 'redis']
   - ['configure-addons', 'heroku-toolbelt']
 ```
 
-Will configure the Java 8 and Heroku toolbelt addons.
+Will configure the Redis and Heroku toolbelt addons.
 
 If no `provision` instructions are found, the buildpack will look for an
 executable file under `bin/compile` of the project root and will run the script

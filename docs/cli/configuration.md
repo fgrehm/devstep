@@ -66,7 +66,7 @@ commands:
 # enough. Use it to configure addons or run additional commands during the build.
 # DEFAULT: <empty>
 provision:
-  - ['configure-addons', 'oracle-java-8']
+  - ['configure-addons', 'redis']
 ```
 
 During a `devstep` command run, the CLI will start by loading global config
