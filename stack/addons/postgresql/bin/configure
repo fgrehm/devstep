@@ -4,7 +4,7 @@ set -e            # fail fast
 set -o pipefail   # dont ignore exit codes when piping output
 # set -x          # enable debugging
 
-if ! [ -f /etc/init.d/postgresql ]; then
+if ! [ -f /usr/lib/postgresql/9.3/bin/postgresql ]; then
   echo "-----> [postgres] Installing server"
   (
     sudo apt-get update -q &&
