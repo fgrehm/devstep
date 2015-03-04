@@ -58,7 +58,7 @@ RUN DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
     apt-get install -y libreadline5 libmcrypt4 libffi-dev --no-install-recommends && \
     apt-get install -y postgresql-client mysql-client libsqlite3-dev --no-install-recommends && \
-    apt-get install -y --force-yes vim htop tmux mercurial bzr nodejs libssl0.9.8 --no-install-recommends && \
+    apt-get install -y --force-yes vim htop tmux mercurial bzr nodejs-legacy libssl0.9.8 --no-install-recommends && \
     apt-get install -y software-properties-common bash-completion --no-install-recommends && \
     echo "[client]\nprotocol=tcp\nuser=root" >> $HOME/.my.cnf && \
     echo "export PGHOST=localhost" >> $HOME/.profile.d/postgresql.sh && \
