@@ -5,8 +5,8 @@ BUG FIXES:
   - baseimage: Install `nodejs-legacy` to fix Yeoman usage [[GH-91]]
   - addons/postgres: Fix installation script [[GH-91]]
 
-[GH-91](https://github.com/fgrehm/devstep/pull/91)
-[GH-92](https://github.com/fgrehm/devstep/pull/92)
+[GH-91]: https://github.com/fgrehm/devstep/pull/91
+[GH-92]: https://github.com/fgrehm/devstep/pull/92
 
 ## [0.3.0](https://github.com/fgrehm/devstep/compare/v0.2.0...v0.3.0) (2015-02-12)
 
