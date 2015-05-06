@@ -1,13 +1,12 @@
 FROM heroku/cedar:14
 MAINTAINER Fabio Rehm "fgrehm@gmail.com"
 
-# TODO: Move this to a single ENV line to reduce layers once Docker Hub supports it
-ENV HOME /home/devstep
-ENV DEVSTEP_PATH /opt/devstep
-ENV DEVSTEP_CONF /etc/devstep
-ENV LANG en_US.UTF-8
-ENV LC_ALL en_US.UTF-8
-ENV LC_CTYPE en_US.UTF-8
+ENV HOME=/home/devstep \
+    DEVSTEP_PATH=/opt/devstep \
+    DEVSTEP_CONF=/etc/devstep \
+    LANG=en_US.UTF-8 \
+    LC_ALL=en_US.UTF-8 \
+    LC_CTYPE=en_US.UTF-8
 
 #####################################################################
 # Create a default user to avoid using the container as root, we set
