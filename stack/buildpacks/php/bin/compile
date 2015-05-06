@@ -19,7 +19,8 @@ install_ext () {
         fi
         cp "${ext_ini}" "${BUILD_DIR}/.heroku/php/etc/php/conf.d"
     elif [[ -f "${PHP_EXT_DIR}/${ext}.so" ]]; then
-        echo "extension = ${ext}.so" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/ext-${ext}.ini"
+        # echo "extension = ${ext}.so" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/ext-${ext}.ini"
+        echo "extension = ${ext}.so" > "${PHP_DIR}/etc/php/conf.d/ext-${ext}.ini"
         echo "- ${ext} (${reason}; bundled)" | indent
     elif echo -n ${ext} | php -r 'exit((int)!extension_loaded(file_get_contents("php://stdin")));'; then
         : # echo "- ${ext} (${reason}; enabled by default)" | indent
@@ -242,6 +243,15 @@ if [[ "${HHVM_VERSION}" ]]; then
     export -f hhvm
 fi
 
+if ! [ -d /app/.heroku ]; then
+  sudo mkdir -p /app/.heroku
+  sudo chown -R developer:developer /app/
+fi
+
+if ! [ -L /app/.heroku/php ]; then
+  ln -s $PHP_DIR /app/.heroku/php
+fi
+
 APACHE_VERSION="2.4.10"
 # APACHE_DIST_URL="$S3_URL/apache-$APACHE_VERSION.tar.gz"
 TARBALL="apache-${APACHE_VERSION}.tar.gz"
@@ -453,15 +463,6 @@ fi
 # install_newrelic_userini
 
 # install_blackfire_agent
-
-if ! [ -d /app/.heroku ]; then
-  sudo mkdir -p /app/.heroku
-  sudo chown -R developer:developer /app/
-fi
-
-if ! [ -L /app/.heroku/php ]; then
-  ln -s $PHP_DIR /app/.heroku/php
-fi
 
 # if [[ ! -f "Procfile" ]]; then
 #     bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
