@@ -1,3 +1,6 @@
+## [0.4.0](https://github.com/fgrehm/devstep/compare/v0.3.1...next) (unreleased)
+
+
 ## [0.3.1](https://github.com/fgrehm/devstep/compare/v0.3.0...v0.3.1) (2015-03-04)
 
 BUG FIXES:
