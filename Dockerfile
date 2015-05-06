@@ -1,4 +1,4 @@
-FROM progrium/cedarish:cedar14
+FROM heroku/cedar:14
 MAINTAINER Fabio Rehm "fgrehm@gmail.com"
 
 # TODO: Move this to a single ENV line to reduce layers once Docker Hub supports it
