@@ -18,7 +18,10 @@ RUN /tmp/build/prepare.sh
 
 #####################################################################
 # Devstep goodies (ADDed at the end to increase image "cacheability")
-ADD stack /opt/devstep
+ADD stack $DEVSTEP_PATH
+RUN for script in $DEVSTEP_PATH/buildpacks/*/bin/install-dependencies; do \
+      $script; \
+    done
 
 #####################################################################
 # Fix permissions and set up init
