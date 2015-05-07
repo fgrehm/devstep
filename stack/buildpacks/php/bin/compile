@@ -425,9 +425,9 @@ cd $BUILD_DIR
 mkdir -p $HOME/.profile.d
 # cat > $BUILD_DIR/.profile.d/php.sh <<"EOF"
 # export PATH="$HOME/.heroku/php/bin:$HOME/.heroku/php/sbin:$PATH"
-cat > $HOME/.profile.d/php.sh <<"EOF"
-export PHP_DIR="$HOME/php"
-export PATH="$PHP_DIR/bin:$PHP_DIR/sbin:$PATH"
+cat > $HOME/.profile.d/php.sh <<EOF
+export PHP_DIR="\$HOME/php"
+export PATH="\$PHP_DIR/bin:\$PHP_DIR/sbin:$BUILD_DIR/vendor/bin:\$PATH"
 EOF
 if [[ $engine == "hhvm" ]]; then
 #     cat > $BUILD_DIR/.profile.d/hhvm.sh <<"EOF"
