@@ -3,6 +3,7 @@ MAINTAINER Fabio Rehm "fgrehm@gmail.com"
 
 ENV HOME=/home/devstep \
     DEVSTEP_PATH=/opt/devstep \
+    DEVSTEP_BIN=/opt/devstep/bin \
     DEVSTEP_CONF=/etc/devstep \
     LANG=en_US.UTF-8 \
     LC_ALL=en_US.UTF-8 \

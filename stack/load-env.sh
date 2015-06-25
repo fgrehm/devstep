@@ -12,7 +12,6 @@ alias reload-env="source /opt/devstep/load-env.sh"
 # shorten PS1 (useful for golang projects)
 export PROMPT_DIRTRIM="2"
 
-export DEVSTEP_BIN="/opt/devstep/bin"
 export PATH="${HOME}/bin:${DEVSTEP_BIN}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 # TODO: Review these paths
