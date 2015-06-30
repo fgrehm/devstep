@@ -24,7 +24,7 @@ urlfor() {
 
 build=$1
 cache=$2/golang
-mkdir -p "$1" "$2"
+mkdir -p "$1" "$cache"
 
 arch=$(uname -m|tr A-Z a-z)
 if test $arch = x86_64
@@ -127,6 +127,9 @@ else
   p=$GOPATH/src/$name
   if ! [ -d $GOPATH/src/$name ]; then
     mkdir -p $(dirname $p)
+    if [ -L $p ] && ! [ -e $p ]; then
+      unlink $p
+    fi
     if ! [ -L $p ]; then
       ln -s $build $p
     fi
