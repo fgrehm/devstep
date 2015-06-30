@@ -95,6 +95,10 @@ mkdir -p "${PHP_DIR}"
 export COMPOSER_HOME=$HOME/.composer
 mkdir -p $COMPOSER_HOME
 mkdir -p $CACHE_DIR/composer
+# Check if composer cache link is broken and fix it
+if [ -L $COMPOSER_HOME/cache ] && ! [ -e $COMPOSER_HOME/cache ]; then
+  unlink $COMPOSER_HOME/cache
+fi
 if ! [ -L $COMPOSER_HOME/cache ]; then
   ln -s $CACHE_DIR/composer $COMPOSER_HOME/cache
 fi
