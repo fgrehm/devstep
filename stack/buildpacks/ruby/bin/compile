@@ -139,6 +139,10 @@ fi
 
 mkdir -p "$2/gem-cache"
 gem_cache="$(gem env gemdir)/cache"
+# Check if gem cache link is broken
+if [ -L $gem_cache ] && ! [ -e $gem_cache ]; then
+  unlink $gem_cache
+fi
 if ! [ -L $gem_cache ]; then
   rm -rf $gem_cache
   ln -s "$2/gem-cache" $gem_cache
