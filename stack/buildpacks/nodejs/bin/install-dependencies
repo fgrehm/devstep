@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -e
+
+echo -n '   Installing dependencies for nodejs buildpack... '
+
+url='https://github.com/heroku/heroku-buildpack-nodejs/archive/7e0ef6a885de7a8a4534c9879891db692e063955.tar.gz'
+mkdir -p /opt/devstep/buildpacks/nodejs/heroku-buildpack-nodejs
+curl -sL $url | tar xz --strip-components=1 -C /opt/devstep/buildpacks/nodejs/heroku-buildpack-nodejs
+
+echo 'DONE'
