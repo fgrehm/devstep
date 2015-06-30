@@ -4,8 +4,7 @@ set -e
 
 echo -n '   Installing dependencies for Python buildpack... '
 
-# TODO: Change to a tagged release after a new release is out with this commit
-url='https://github.com/heroku/heroku-buildpack-python/archive/16a07abd516446c09127c352c560eb9cc086f9fb.tar.gz'
+url='https://github.com/heroku/heroku-buildpack-python/archive/3558766ae8d9407a8f08f996b5ac43add3c2efd9.tar.gz'
 mkdir -p /opt/devstep/buildpacks/python/heroku-buildpack-python
 curl -sL $url | tar xz --strip-components=1 -C /opt/devstep/buildpacks/python/heroku-buildpack-python
 

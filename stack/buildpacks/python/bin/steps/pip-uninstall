@@ -5,7 +5,7 @@ if [[ -f $HOME/python/requirements-declared.txt ]]; then
 
   cp $HOME/python/requirements-declared.txt requirements-declared.txt
 
-  pip-diff --stale requirements-declared.txt requirements.txt > $HOME/python/requirements-stale.txt
+  pip-diff --stale requirements-declared.txt requirements.txt --exclude setuptools pip > $HOME/python/requirements-stale.txt
 
   rm -fr requirements-declared.txt
 

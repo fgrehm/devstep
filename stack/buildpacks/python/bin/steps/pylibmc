@@ -22,14 +22,14 @@ source $BIN_DIR/utils
 if (pip-grep -s requirements.txt pylibmc &> /dev/null) then
 
   if [ -d "$HOME/vendor/lib/sasl2" ]; then
-    export LIBMEMCACHED=$(pwd)/vendor
+    export LIBMEMCACHED=$HOME/vendor
   else
     echo "-----> Noticed pylibmc. Bootstrapping libmemcached."
     mkdir -p $HOME/vendor
     # Download and extract libmemcached into target vendor directory.
     curl $VENDORED_MEMCACHED -s | tar zxv -C $HOME/vendor &> /dev/null
 
-    export LIBMEMCACHED=$(pwd)/vendor
+    export LIBMEMCACHED=$HOME/vendor
   fi
 fi
 

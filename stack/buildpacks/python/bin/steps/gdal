@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# This script serves as the Pylibmc build step of the
+# This script serves as the GDAL build step of the
 # [**Python Buildpack**](https://github.com/heroku/heroku-buildpack-python)
 # compiler.
 #
@@ -10,7 +10,7 @@
 # This script is invoked by [`bin/compile`](/).
 
 # The location of the pre-compiled cryptography binary.
-VENDORED_LIBFFI="http://lang-python.s3.amazonaws.com/$STACK/libraries/vendor/libffi.tar.gz"
+VENDORED_GDAL="https://lang-python.s3.amazonaws.com/$STACK/libraries/vendor/gdal.tar.gz"
 
 # PKG_CONFIG_PATH="/app/.heroku/vendor/lib/pkgconfig:$PKG_CONFIG_PATH"
 PKG_CONFIG_PATH="$HOME/vendor/lib/pkgconfig:$PKG_CONFIG_PATH"
@@ -18,21 +18,21 @@ PKG_CONFIG_PATH="$HOME/vendor/lib/pkgconfig:$PKG_CONFIG_PATH"
 # Syntax sugar.
 source $BIN_DIR/utils
 
-# bpwatch start libffi_install
+# bpwatch start gdal_install
 
-# If pylibmc exists within requirements, use vendored cryptography.
-if (pip-grep -s requirements.txt bcrypt cffi cryptography pyOpenSSL PyOpenSSL requests[security] &> /dev/null) then
+# If GDAL exists within requirements, use vendored gdal.
+if (pip-grep -s requirements.txt GDAL &> /dev/null) then
 
-  if [ -d "$HOME/vendor/lib/libffi-3.1.1" ]; then
-    export LIBFFI=$HOME/vendor
+  if [ -f "${HOME}/vendor/bin/gdalserver" ]; then
+    export GDAL=$HOME/vendor
   else
-    echo "-----> Noticed cffi. Bootstrapping libffi."
+    echo "-----> Noticed GDAL. Bootstrapping gdal."
     mkdir -p $HOME/vendor
     # Download and extract cryptography into target vendor directory.
-    curl $VENDORED_LIBFFI -s | tar zxv -C $HOME/vendor &> /dev/null
+    curl $VENDORED_GDAL -s | tar zxv -C $HOME/vendor &> /dev/null
 
-    export LIBFFI=$HOME/vendor
+    export GDAL=$HOME/vendor
   fi
 fi
 
-# bpwatch stop libffi_install
+# bpwatch stop gdal_install
