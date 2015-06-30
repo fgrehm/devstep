@@ -1,37 +1,169 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # usage: bin/compile <build-dir> <cache-dir> <env-dir>
 
 # This is a modified version of https://github.com/kr/heroku-buildpack-go/blob/master/bin/compile
 
 set -eo pipefail
 
+# Go releases for Darwin beginning with 1.2rc1
+# have included more than one build, depending
+# on the specific version of Mac OS X. Try to
+# account for that, but don't try too hard.
+# This doesn't affect Heroku builds, it's only
+# for testing on Darwin systems.
+platext() {
+    case $1 in
+    go1.0*|go1.1beta*|go1.1rc*|go1.1|go1.1.*) return ;;
+    esac
+    case $(uname|tr A-Z a-z) in
+    darwin) printf %s -osx10.8 ;;
+    esac
+}
+
 # Go releases have moved to a new URL scheme
 # starting with Go version 1.2.2. Return the old
 # location for known old versions and the new
 # location otherwise.
 urlfor() {
-  ver=$1
-  file=$2
-  case $ver in
+    ver=$1
+    file=$2
+    case $ver in
     go1.0*|go1.1beta*|go1.1rc*|go1.1|go1.1.*|go1.2beta*|go1.2rc*|go1.2|go1.2.1)
-      echo http://go.googlecode.com/files/$file
-      ;;
+        echo http://go.googlecode.com/files/$file
+        ;;
     *)
-      echo https://storage.googleapis.com/golang/$file
-      ;;
-  esac
+        echo https://storage.googleapis.com/golang/$file
+        ;;
+    esac
 }
 
-build=$1
-cache=$2/golang
-mkdir -p "$1" "$cache"
-
+# mkdir -p "$1" "$2"
+build=$(cd "$1/" && pwd)
+# cache=$(cd "$2/" && pwd)
+cache=$(cd "$2/" && pwd)/golang
+mkdir -p "$build" "$cache"
+# buildpack=$(cd "$(dirname $0)/.." && pwd)
 arch=$(uname -m|tr A-Z a-z)
 if test $arch = x86_64
 then arch=amd64
 fi
 plat=$(uname|tr A-Z a-z)-$arch
 
+# Python
+# venv=$cache/venv
+# mkdir -p $cache/pip
+# python=python2.7
+# PATH=$buildpack/$plat/bin:$venv/bin:$PATH
+
+# virtualenv() {
+#     python "$buildpack/vendor/virtualenv-1.11.6/virtualenv.py" "$@"
+# }
+
+if test -f $build/Godeps
+then
+    name=$(<$build/Godeps jq -r .ImportPath)
+    ver=$(<$build/Godeps jq -r .GoVersion)
+elif test -d $build/Godeps
+then
+    name=$(<$build/Godeps/Godeps.json jq -r .ImportPath)
+    ver=$(<$build/Godeps/Godeps.json jq -r .GoVersion)
+elif test -f $build/.godir
+then
+    name=$(cat $build/.godir)
+    ver=go${GOVERSION:-1.4.2}
+# else
+#     echo >&2 " !     Godeps are required. For instructions:"
+#     echo >&2 " !     https://medium.com/@freeformz/hello-world-with-go-heroku-38295332f07b"
+#     exit 1
+elif test -d $build/.git ; then
+  pushd $build &> /dev/null
+  # REFACTOR: I'm pretty sure this can be cleaned up
+  name=$(git config --get-regexp '^remote.+\.url' | grep github | head -n1 | cut -f2 -d' ' | sed 's/^\(git\|https\):\/\///' | sed 's/^\w\+@//' | sed 's/:/\//' | sed 's/\.git$//')
+  popd &> /dev/null
+fi
+ver=${ver:-go${GOVERSION:-1.4.1}}
+
+file=${GOFILE:-$ver.$(uname|tr A-Z a-z)-amd64$(platext $ver).tar.gz}
+url=${GOURL:-$(urlfor $ver $file)}
+
+# if test -e $build/bin && ! test -d $build/bin
+# then
+#     echo >&2 " !     File bin exists and is not a directory."
+#     exit 1
+# fi
+
+# if test -d $cache/$ver/go
+if test -d $HOME/go
+then
+    # echo "-----> Using $ver"
+    echo "-----> Using $(${HOME}/go/bin/go version)"
+else
+    # rm -rf $cache/* # be sure not to build up cruft
+    mkdir -p $cache/$ver
+    cd $cache/$ver
+    # echo -n "-----> Installing $ver..."
+    # curl -sO $url
+    # tar zxf $file
+    # rm -f $file
+    if test -f $cache/$ver/$file; then
+      echo "-----> Using $ver"
+    else
+      echo "-----> Downloading ${ver}..."
+      curl -sLO $url
+      echo "done"
+    fi
+    tar zxf $file -C ${HOME}
+    echo " done"
+    cd - >/dev/null
+fi
+
+# mkdir -p $build/bin
+# GOBIN=$build/bin export GOBIN
+GOBIN=$GOPATH/bin export GOBIN
+# GOROOT=$cache/$ver/go export GOROOT
+GOROOT=${HOME}/go export GOROOT
+# GOPATH=$build/.heroku/go export GOPATH
+GOPATH=${HOME}/gocode export GOPATH
+# PATH=$GOROOT/bin:$PATH
+PATH=$GOBIN:$GOROOT/bin:$PATH export PATH
+
+# XXX: Not sure this is still needed
+if [ -d $GOPATH ]; then
+  sudo chown developer:developer $GOPATH
+  if [ -d $GOPATH/src ]; then
+    sudo chown developer:developer $GOPATH/src
+    for dir in $GOPATH/src/*; do
+      sudo chown developer:developer $dir
+    done
+    for dir in $GOPATH/src/**/*; do
+      sudo chown developer:developer $dir
+    done
+  fi
+else
+  mkdir -p $GOBIN
+  mkdir -p $GOPATH
+fi
+
+# if ! (test -d $build/Godeps || (which hg >/dev/null && which bzr >/dev/null))
+# then
+#     echo
+#     echo "       Tired of waiting for bzr and hg?"
+#     echo "       Try github.com/kr/godep for faster deploys."
+#     echo
+#
+#     echo -n "       Installing Virtualenv..."
+#     virtualenv --python $python --distribute --never-download --prompt='(venv) ' $venv > /dev/null 2>&1
+#     . $venv/bin/activate > /dev/null 2>&1
+#     echo " done"
+#
+#     echo -n "       Installing Mercurial..."
+#     pip install mercurial > /dev/null 2>&1
+#     echo " done"
+#
+#     echo -n "       Installing Bazaar..."
+#     pip install bzr > /dev/null 2>&1
+#     echo " done"
+# fi
 heroku_buildpack_bin='https://github.com/kr/heroku-buildpack-go/raw/master/linux-amd64/bin'
 target="${HOME}/bin"
 if [ -f $build/Godeps ] || [ -d $build/Godeps ]; then
@@ -49,46 +181,26 @@ if [ -f $build/Godeps ] || [ -d $build/Godeps ]; then
 fi
 PATH=$target:$PATH
 
-if test -f $build/Godeps; then
-  name=$(<$build/Godeps jq -r .ImportPath)
-  ver=$(<$build/Godeps jq -r .GoVersion)
-elif test -d $build/Godeps; then
-  name=$(<$build/Godeps/Godeps.json jq -r .ImportPath)
-  ver=$(<$build/Godeps/Godeps.json jq -r .GoVersion)
-elif test -f $build/.godir; then
-  name=$(cat $build/.godir)
-elif test -d $build/.git ; then
-  pushd $build &> /dev/null
-  # REFACTOR: I'm pretty sure this can be cleaned up
-  name=$(git config --get-regexp '^remote.+\.url' | grep github | head -n1 | cut -f2 -d' ' | sed 's/^\(git\|https\):\/\///' | sed 's/^\w\+@//' | sed 's/:/\//' | sed 's/\.git$//')
-  popd &> /dev/null
-fi
-ver=${ver:-go${GOVERSION:-1.4.1}}
+p=$GOPATH/src/$name
+mkdir -p $p
+cp -R $build/* $p
 
-file=${GOFILE:-$ver.$(uname|tr A-Z a-z)-amd64.tar.gz}
-url=${GOURL:-$(urlfor $ver $file)}
+# Default to $SOURCE_VERSION environment variable
+GO_LINKER_VALUE=${SOURCE_VERSION}
 
-if [ -d ${HOME}/go ]; then
-  echo "-----> Using $(${HOME}/go/bin/go version)"
-else
-  mkdir -p $cache/$ver
-  cd $cache/$ver
-  if test -f $cache/$ver/$file; then
-    echo "-----> Using $ver"
-  else
-    echo "-----> Downloading ${ver}..."
-    curl -sLO $url
-    echo "done"
-  fi
-  tar zxf $file -C ${HOME}
-fi
-
-GOROOT=${HOME}/go export GOROOT
-PATH=$GOROOT/bin:$PATH export PATH
-
-GOPATH=${HOME}/gocode export GOPATH
-GOBIN=$GOPATH/bin export GOBIN
-PATH=$GOBIN:$PATH export PATH
+# allow apps to specify cgo flags and set up /app symlink so things like CGO_CFLAGS=-I/app/... work
+# env_dir="$3"
+# if [ -d "$env_dir" ]
+# then
+#     ln -sfn $build /app/code
+#   for key in CGO_CFLAGS CGO_CPPFLAGS CGO_CXXFLAGS CGO_LDFLAGS GO_LINKER_SYMBOL GO_LINKER_VALUE
+#     do
+#         if [ -f "$env_dir/$key" ]
+#         then
+#             export "$key=$(cat "$env_dir/$key")"
+#         fi
+#     done
+# fi
 
 if [ -d $GOPATH ]; then
   sudo chown developer:developer $GOPATH
@@ -105,7 +217,6 @@ else
   mkdir -p $GOBIN
   mkdir -p $GOPATH
 fi
-
 if ! [ -f ${HOME}/.profile.d/go.sh ]; then
   echo "-----> Configuring ${ver}..."
   echo "export GOPATH=$GOPATH" > ${HOME}/.profile.d/go.sh
@@ -115,11 +226,9 @@ if ! [ -f ${HOME}/.profile.d/go.sh ]; then
   echo 'export PATH=$PATH:$GOBIN' >> ${HOME}/.profile.d/go.sh
   echo 'done'
 fi
-
 if [ -z "${name}" ] && [ -n "${GO_PROJECT_NAME}" ]; then
   name=$GO_PROJECT_NAME
 fi
-
 if [ -z "${name}" ]; then
   echo -e "-----> Unable to identify project name\nPlease add the full import path to \`.godir\` or set the GO_PROJECT_NAME environmental variable"
   p=$build
@@ -136,13 +245,27 @@ else
   fi
 fi
 
+
+# If $GO_LINKER_SYMBOL and GO_LINKER_VALUE are set, tell the linker to DTRT
+# FLAGS=(-tags heroku)
+# if [ -n "$GO_LINKER_SYMBOL" -a -n "$GO_LINKER_VALUE" ]
+# then
+#   FLAGS=(${FLAGS[@]} -ldflags "-X $GO_LINKER_SYMBOL $GO_LINKER_VALUE")
+# fi
+FLAGS=(-t)
+
 unset GIT_DIR # unset git dir or it will mess with goinstall
 cd $p
 if test -e $build/Godeps
 then
-  echo "-----> Running: godep go build -o $(basename $name)"
-  godep go build -o $(basename $name)
+    echo "-----> Running: godep go install ${FLAGS[@]} ./..."
+    godep go install "${FLAGS[@]}" ./...
 else
-  echo "-----> Running: go get -d -v"
-  go get -d -v
+    echo "-----> Running: go get ${FLAGS[@]} ./..."
+    go get "${FLAGS[@]}" ./...
 fi
+
+# rm -rf $build/.heroku
+
+# mkdir -p $build/.profile.d
+# echo 'PATH=$PATH:$HOME/bin' > $build/.profile.d/go.sh
