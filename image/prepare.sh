@@ -22,6 +22,7 @@ apt-get install -y --force-yes --no-install-recommends \
                 libffi-dev \
                 postgresql-client \
                 mysql-client \
+                sqlite3 \
                 libsqlite3-dev \
                 vim \
                 htop \
