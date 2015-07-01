@@ -103,8 +103,12 @@ install_bins() {
   warn_old_npm
 }
 
-header "Installing binaries"
-install_bins | indent
+if [[ -d "$HOME/node" ]]; then
+  header "Node already installed, skipping installation"
+else
+  header "Installing binaries"
+  install_bins | indent
+fi
 
 # restore_cache() {
 #   local cache_status=$(get_cache_status)
