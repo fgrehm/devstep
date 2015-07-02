@@ -117,7 +117,6 @@ if [[ ! -L $BUILD_DIR/vendor ]]; then
   ln -s $HOME/composer-vendor $BUILD_DIR/vendor
   cat <<-STR > $DEVSTEP_CONF/init.d/15-composer-vendor-symlink.sh
 #!/bin/bash
-set -x
 if [[ ! -L $BUILD_DIR/vendor ]] && [[ -d $BUILD_DIR/node_modules ]]; then
   echo "WARNING: Your ${BUILD_DIR}/vendor is a directory"
 fi
