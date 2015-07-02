@@ -137,8 +137,8 @@ fi
 if [ "${CLEANUP}" = '1' ]; then
   echo '-----> Cleaning up...'
 
-  echo "       Running 'rm -rf $cache_root/*'"
-  rm -rf $cache_root/*
+  echo "       Running 'sudo rm -rf $cache_root/*'"
+  sudo rm -rf $cache_root/*
 
   echo "       Running 'sudo rm -rf tmp/*'"
   sudo rm -rf /tmp/*
