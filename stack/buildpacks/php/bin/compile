@@ -103,6 +103,32 @@ if ! [ -L $COMPOSER_HOME/cache ]; then
   ln -s $CACHE_DIR/composer $COMPOSER_HOME/cache
 fi
 
+if [[ ! -L $BUILD_DIR/vendor ]] && [[ -d $BUILD_DIR/vendor ]]; then
+  echo "${BUILD_DIR}/vendor cant be a directory"
+  exit 1
+fi
+
+if [[ -L $BUILD_DIR/vendor ]] && [[ ! -e $BUILD_DIR/vendor ]]; then
+  unlink $BUILD_DIR/vendor
+fi
+
+if [[ ! -L $BUILD_DIR/vendor ]]; then
+  mkdir -p $HOME/composer-vendor
+  ln -s $HOME/composer-vendor $BUILD_DIR/vendor
+  cat <<-STR > $DEVSTEP_CONF/init.d/15-composer-vendor-symlink.sh
+#!/bin/bash
+set -x
+if [[ ! -L $BUILD_DIR/vendor ]] && [[ -d $BUILD_DIR/node_modules ]]; then
+  echo "WARNING: Your ${BUILD_DIR}/vendor is a directory"
+fi
+if [[ ! -L $BUILD_DIR/vendor ]]; then
+  mkdir -p $HOME/composer-vendor
+  ln -s $HOME/composer-vendor $BUILD_DIR/vendor
+fi
+STR
+  chmod +x $DEVSTEP_CONF/init.d/15-composer-vendor-symlink.sh
+fi
+
 PHP_VERSION=
 HHVM_VERSION=
 if [[ "$STACK" == "cedar" ]]; then
