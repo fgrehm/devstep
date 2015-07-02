@@ -24,9 +24,9 @@ BP_DIR=$(readlink -f $BP_DIR)
 
 mkdir -p $CACHE_DIR
 
-mkdir -p "$BUILD_DIR/.heroku/node/"
+# mkdir -p "$BUILD_DIR/.heroku/node/"
 cd $BUILD_DIR
-export PATH="$BUILD_DIR/.heroku/node/bin":$PATH
+# export PATH="$BUILD_DIR/.heroku/node/bin":$PATH
 
 ### Load dependencies
 
@@ -55,7 +55,9 @@ trap 'handle_failure' ERR
 
 ### Failures that should be caught immediately
 
-fail_invalid_package_json "$BUILD_DIR"
+if [[ -f $BUILD_DIR/package.json ]]; then
+  fail_invalid_package_json "$BUILD_DIR"
+fi
 # warn_prebuilt_modules "$BUILD_DIR"
 warn_missing_package_json "$BUILD_DIR"
 
@@ -146,6 +148,32 @@ build_dependencies() {
     install_node_modules "$BUILD_DIR"
   fi
 }
+
+if [[ ! -L $BUILD_DIR/node_modules ]] && [[ -d $BUILD_DIR/node_modules ]]; then
+  echo "${BUILD_DIR}/node_modules cant be a directory"
+  exit 1
+fi
+
+if [[ -L $BUILD_DIR/node_modules ]] && [[ ! -e $BUILD_DIR/node_modules ]]; then
+  unlink $BUILD_DIR/node_modules
+fi
+
+if [[ ! -L $BUILD_DIR/node_modules ]]; then
+  mkdir -p $HOME/node_modules/npm
+  ln -s $HOME/node_modules $BUILD_DIR/node_modules
+  cat <<-STR > $DEVSTEP_CONF/init.d/15-node_modules-symlink.sh
+#!/bin/bash
+set -x
+if [[ ! -L $BUILD_DIR/node_modules ]] && [[ -d $BUILD_DIR/node_modules ]]; then
+  echo "WARNING: Your ${BUILD_DIR}/node_modules is a directory"
+fi
+if [[ ! -L $BUILD_DIR/node_modules ]]; then
+  mkdir -p $HOME/node_modules/npm
+  ln -s $HOME/node_modules $BUILD_DIR/node_modules
+fi
+STR
+  chmod +x $DEVSTEP_CONF/init.d/15-node_modules-symlink.sh
+fi
 
 header "Building dependencies"
 build_dependencies | indent
