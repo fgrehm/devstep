@@ -67,7 +67,7 @@ mkdir -p $DEVSTEP_CONF/init.d
 echo "developer:x:1000:1000:Developer,,,:/home/devstep:/bin/bash" >> /etc/passwd
 echo "developer:x:1000:" >> /etc/group
 echo "developer ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/developer
-echo "[client]\nprotocol=tcp\nuser=root" >> $HOME/.my.cnf
+echo -e "[client]\nprotocol=tcp\nuser=root" >> $HOME/.my.cnf
 echo "export PGHOST=localhost" >> $HOME/.profile.d/postgresql.sh
 echo "export PGUSER=postgres" >> $HOME/.profile.d/postgresql.sh
 chmod 0440 /etc/sudoers.d/developer
