@@ -6,6 +6,6 @@ set -o pipefail   # dont ignore exit codes when piping output
 
 if ! $(which heroku &> /dev/null); then
   echo "-----> [heroku-toolbelt] Installing Heroku toolbelt..."
-  wget -qO- https://toolbelt.heroku.com/install-ubuntu.sh | sh &>/dev/null
+  wget -qO- https://toolbelt.heroku.com/install-ubuntu.sh | sudo sh &>/dev/null
   echo "-----> [heroku-toolbelt] Finished configuration!"
 fi
