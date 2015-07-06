@@ -25,10 +25,11 @@ is not an easy task for many people. Yes, there are plenty of platform specific
 images available for download on [Docker Hub](https://hub.docker.com/) but because
 Devstep's base image provides an environment that is [similar to Heroku's](https://github.com/progrium/cedarish),
 it should be capable of building and running a wide range of applications / tools
-/ libraries from a single image.
+/ libraries from a single image without the need to worry about writing `Dockerfile`s.
 
-Devstep is also capable of reducing the disk space and initial configuration times by
-(optionally) caching packages on the host machine using a strategy similar to [vagrant-cachier's cache buckets](http://fgrehm.viewdocs.io/vagrant-cachier/how-does-it-work),
+With Devstep's CLI, we can also reduce the disk space and initial configuration
+times by (optionally) caching packages on the host machine using a strategy similar
+to [vagrant-cachier's cache buckets](http://fgrehm.viewdocs.io/vagrant-cachier/how-does-it-work),
 where project dependencies packages are kept on the host while its contents are
 extracted inside the container.
 
@@ -36,17 +37,19 @@ extracted inside the container.
 ## Usage
 
 Devstep can be used to build development environments in at least two different
-ways: from the provided Golang CLI or from `Dockerfile`s. To run the images built,
-you can use the provided `devstep hack` command, use other tools (like [docker-compose](http://docs.docker.com/compose/))
+ways: from the provided CLI or from `Dockerfile`s. To run the images built, you
+can use the provided `devstep hack` command, use other tools (like [docker-compose](http://docs.docker.com/compose/))
 or just `docker run` them by hand.
 
 
 ## What's included on the base [Docker image](https://registry.hub.docker.com/u/fgrehm/devstep/)?
 
-That image is based on [`progrium/cedarish:cedar14`](https://github.com/progrium/cedarish),
-so everything that gets installed by it will be available for `fgrehm/devstep` images.
+That image is based on [Heroku's `cedar:14` image](https://registry.hub.docker.com/u/heroku/cedar/)
+which makes up for the [Cedar-14](https://devcenter.heroku.com/articles/cedar)
+stack. So everything that is available to it (and as a consequence, available to
+Heroku apps) will be available for `fgrehm/devstep` environments.
 
-On top of `progrium/cedarish:cedar14`, we:
+On top of `heroku/cedar:14`, we:
 
 * Create a `developer` user to avoid using `root` and creating files with wrong permissions during development.
 * Install some extra devel packages (like `libyaml-dev`) and other "nice to have"

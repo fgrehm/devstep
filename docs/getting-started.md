@@ -4,7 +4,7 @@
 Devstep comes in two flavors, you can either use the provided CLI or you can build
 on top of the provided images from `Dockerfile`s.
 
-Regardless of the flavor you choose, it is a good idea to `docker pull fgrehm/devstep:v0.3.1`
+Regardless of the flavor you choose, it is a good idea to `docker pull fgrehm/devstep:v0.4.0`
 before creating your first container / image for a better user experience. Docker
 will download that image as needed when using `Dockerfile`s but the Devstep CLI won't.
 
@@ -12,7 +12,7 @@ will download that image as needed when using `Dockerfile`s but the Devstep CLI 
 ---------------
 
 This project is being developed and tested on an Ubuntu 14.04 host with Docker
-1.4.0+, while it is likely to work on other distros / Docker versions /
+1.7.0, while it is likely to work on other distros / Docker versions /
 [boot2docker](http://boot2docker.io/), I'm not sure how it will behave on the wild.
 
 Please note that the CLI is currently limited to connecting to a local `/var/run/docker.sock`
@@ -38,10 +38,10 @@ line to your `~/devstep.yml` so that the image is used as a source for your proj
 To install the CLI, you can run the one liner below and read on for more:
 
 ```sh
-L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep-cli/releases/download/v0.3.1/linux_amd64 > $L && chmod +x $L
+L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep-cli/releases/download/v0.4.0/linux_amd64 > $L && chmod +x $L
 ```
 
-_The snippet above assumes `$HOME/bin` is on your PATH, change `$HOME/bin` to
+_The snippet above assumes `$HOME/bin` is on your `PATH`, change `$HOME/bin` to
 an appropriate path in case your system is not configured like that._
 
 ### Doing a quick hack on a project
@@ -180,7 +180,7 @@ The `fgrehm/devstep` image is the base image used for Devstep environments and
 requires you to manually trigger the build:
 
 ```Dockerfile
-FROM fgrehm/devstep:v0.3.1
+FROM fgrehm/devstep:v0.4.0
 
 # Add project to the image and build it
 ADD . /workspace

@@ -15,7 +15,7 @@
 This is the easiest way to get started with Devstep. By running the command
 from your project's root, Devstep will:
 
-1. Create a Docker container based on `fgrehm/devstep:v0.3.1` with project
+1. Create a Docker container based on `fgrehm/devstep:v0.4.0` with project
    sources bind mounted at `/workspace`.
 2. Detect and install project's dependencies on the new container using the
    available buildpacks.
@@ -44,7 +44,7 @@ devstep hack -p 80:8080 --link postgres:db --link memcached:mc -e DEVSTEP_BUNDLE
 
 By running the command from your project's root, Devstep will:
 
-1. Create a Docker container based on `fgrehm/devstep:v0.3.1` with project
+1. Create a Docker container based on `fgrehm/devstep:v0.4.0` with project
    sources bind mounted at `/workspace`.
 2. Detect and install project's dependencies on the new container using the
    available buildpacks.
@@ -53,7 +53,7 @@ By running the command from your project's root, Devstep will:
 
 The `devstep/<PROJECT>` images act like snapshots of your project dependencies
 and will be used as the source image for subsequent `devstep` commands instead
-of the `fgrehm/devstep:v0.3.1` image.
+of the `fgrehm/devstep:v0.4.0` image.
 
 For example, running a `devstep hack` after building the image will use `devstep/<PROJECT>:latest`
 as the base container for new "hacking sessions" so that you don't have to build
@@ -128,6 +128,7 @@ of choice.
 
 * `info` - Show information about the current environment
 * `run` - Run a one off command against the current base image
+* `exec` - Run a one off command against the last container created for the current project
 * `binstubs` - Generate binstubs for the commands specified on devstep.yml
 * `clean` - Remove previously built images for the current environment
 * `pristine` - Rebuild project image from scratch
