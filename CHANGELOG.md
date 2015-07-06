@@ -5,7 +5,9 @@ BREAKING CHANGES:
   - Switched to `heroku/cedar:14` [image](https://registry.hub.docker.com/u/heroku/cedar/)
     since it [has been brought up to speed](https://github.com/heroku/stack-images/pull/15)
     with `progrium/cedarish`.
-  - Inline buildpack uses an array of string commands instead of an array with the command to run....
+  - Autobuild image support has been removed [[GH-93]]
+
+[GH-93]: https://github.com/fgrehm/devstep/issues/93
 
 IMPROVEMENTS:
 
