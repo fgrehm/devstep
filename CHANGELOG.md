@@ -1,5 +1,26 @@
-## [0.4.0](https://github.com/fgrehm/devstep/compare/v0.3.1...next) (unreleased)
+## [0.4.0](https://github.com/fgrehm/devstep/compare/v0.3.1...v0.4.0) (2015-07-06)
 
+BREAKING CHANGES:
+
+  - Switched to `heroku/cedar:14` [image](https://registry.hub.docker.com/u/heroku/cedar/)
+    since it [has been brought up to speed](https://github.com/heroku/stack-images/pull/15)
+    with `progrium/cedarish`.
+  - Inline buildpack uses an array of string commands instead of an array with the command to run....
+
+IMPROVEMENTS:
+
+  - buildpacks/golang: Download test dependencies by default
+  - buildpacks/golang: Backport recent Golang buildpack updates
+  - buildpacks/golang: Bump default Go to 1.4.2
+  - buildpacks/php: Backport recent oficial Heroku buildpack updates
+  - buildpacks/php: Enable support for HHVM
+  - buildpacks/php: Composer's `vendor` dir is now kept inside images instead of the host machine when using the CLI
+  - buildpacks/python: Backport recent oficial Heroku buildpack updates
+  - buildpacks/python: Bump default Python to 2.7.10
+  - buildpacks/nodejs: Backport recent oficial Heroku buildpack updates (including support for iojs)
+  - buildpacks/nodejs: `node_modules` are now kept inside images instead of the host machine when using the CLI
+  - buildpacks/ruby: Bump default Ruby to 2.2.2
+  - buildpacks/ruby: Bump default Bundler to 1.10.5
 
 ## [0.3.1](https://github.com/fgrehm/devstep/compare/v0.3.0...v0.3.1) (2015-03-04)
 

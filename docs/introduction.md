@@ -37,7 +37,7 @@ extracted inside the container.
 
 Devstep can be used to build development environments in at least two different
 ways: from the provided Golang CLI or from `Dockerfile`s. To run the images built,
-you can use the provided `devstep hack` command, use other tools (like [Fig](http://orchardup.github.io/fig/))
+you can use the provided `devstep hack` command, use other tools (like [docker-compose](http://docs.docker.com/compose/))
 or just `docker run` them by hand.
 
 

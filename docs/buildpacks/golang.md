@@ -29,5 +29,5 @@ This buildpack will also fix `$GOPATH/src` ownership so that you can safely
 mount a local checkout of a project dependency into the container without
 running into permission issues.
 
-To install a specific Go version, please use the `GO_VERSION` environmental
+To install a specific Go version, please use the `GOVERSION` environmental
 variable.

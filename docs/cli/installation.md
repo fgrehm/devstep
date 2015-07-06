@@ -10,7 +10,7 @@ This one liner can handle it for you assuming that `$HOME/bin` is available
 on your `PATH`:
 
 ```sh
-L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep-cli/releases/download/v0.3.1/linux_amd64 > $L && chmod +x $L
+L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep-cli/releases/download/v0.4.0/linux_amd64 > $L && chmod +x $L
 ```
 
 Please note that the CLI is currently limited to connecting to a local `/var/run/docker.sock`
@@ -24,9 +24,7 @@ process will be aborted. This is to guarantee that files created within Docker
 containers have the appropriate permissions so that you can manipulate them
 on the host without the need to use `sudo`. This is currently a Devstep limitation
 that will be worked around in case there is enough demand or will be fixed once
-Docker adds support for user namespaces ([#6600](https://github.com/dotcloud/docker/pull/6600)
-/ [#6602](https://github.com/dotcloud/docker/pull/6602) / [#6603](https://github.com/dotcloud/docker/pull/6603)
-/ [#4572](https://github.com/dotcloud/docker/pull/4572)).
+Docker adds support for user namespaces.
 
 > The `1000` id was chosen because it is the default uid / gid of Ubuntu Desktop users
 that are created during the installation process. To work around this limitation

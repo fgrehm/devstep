@@ -28,9 +28,7 @@ process will be aborted. This is to guarantee that files created within Docker
 containers have the appropriate permissions so that you can manipulate them
 on the host without the need to use `sudo`. This is currently a Devstep limitation
 that will be worked around in case there is enough demand or will be fixed once
-Docker adds support for user namespaces ([#6600](https://github.com/dotcloud/docker/pull/6600)
-/ [#6602](https://github.com/dotcloud/docker/pull/6602) / [#6603](https://github.com/dotcloud/docker/pull/6603)
-/ [#4572](https://github.com/dotcloud/docker/pull/4572)).
+Docker adds support for user namespaces.
 
 > The `1000` id was chosen because it is the default uid / gid of Ubuntu Desktop users
 that are created during the installation process. To work around this limitation
@@ -176,7 +174,7 @@ safely clean things up or disable the caching behavior at will.
 --------------------------------------
 
 In case your project require additional dependencies to work you can use the provided
-`fgrehm/devstep` or `fgrehm/devstep-ab` images as a starting point for your `Dockerfile`s.
+`fgrehm/devstep` image as a starting point for your `Dockerfile`s.
 
 The `fgrehm/devstep` image is the base image used for Devstep environments and
 requires you to manually trigger the build:
@@ -188,14 +186,6 @@ FROM fgrehm/devstep:v0.3.1
 ADD . /workspace
 WORKDIR /workspace
 RUN CLEANUP=1 /opt/devstep/bin/build-project /workspace
-```
-
-To make things easier, there's also a `fgrehm/devstep-ab:v0.3.1` image that
-does the same steps as outlined above automatically for you by leveraging `ONBUILD`
-instructions, trimming down your `Dockerfile` to a single line:
-
-```Dockerfile
-FROM fgrehm/devstep-ab:v0.3.1
 ```
 
 By using a `Dockerfile` to build your images (instead of using `devstep build`)
