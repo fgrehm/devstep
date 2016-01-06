@@ -7,6 +7,7 @@ BREAKING CHANGES:
 
 IMPROVEMENTS:
 
+  - buildpacks/golang: Bump default Go to 1.5.2
   - buildpacks/inline: Support strings for the `provision` config on `devstep.yml` files
 
 BUG FIXES:
