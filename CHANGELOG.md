@@ -12,9 +12,11 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+  - buildpacks/golang: Nicely handle blanky `git remote`s [[GH-94]]
   - buildpacks/inline: Improve `devstep.yml` `provision` config handling [[GH-97]]
   - buildpacks/inline: Return the same exit code returned by the `provision` command [[GH-99]]
 
+[GH-94]: https://github.com/fgrehm/devstep/issues/94
 [GH-97]: https://github.com/fgrehm/devstep/issues/97
 [GH-99]: https://github.com/fgrehm/devstep/issues/99
 
