@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-# usage: bin/detect <build-dir>
-
-# For now this buildpack needs to be manually installed
-exit 1

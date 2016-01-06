@@ -3,7 +3,7 @@
 BREAKING CHANGES:
   - baseimage: Removed PostgreSQL and MySQL clients
   - baseimage: Removed tmux
-  - buildpacks: Removed `bats`
+  - buildpacks: Removed `bats` and `phantomjs`
 
 ## [0.4.0](https://github.com/fgrehm/devstep/compare/v0.3.1...v0.4.0) (2015-07-06)
 
