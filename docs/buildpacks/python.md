@@ -14,7 +14,7 @@ You can also provide arbitrary releases Python with a `runtime.txt` file.
 
 Runtime options include:
 
-- python-2.7.10 (default)
+- python-2.7.11 (default)
 - python-3.4.1
 - pypy-1.9 (experimental)
 
