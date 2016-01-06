@@ -5,6 +5,10 @@ BREAKING CHANGES:
   - baseimage: Removed tmux
   - buildpacks: Removed `bats` and `phantomjs`
 
+IMPROVEMENTS:
+
+  - buildpacks/inline: Support strings for the `provision` config on `devstep.yml` files
+
 BUG FIXES:
 
   - buildpacks/inline: Improve `devstep.yml` `provision` config handling [[GH-97]]
