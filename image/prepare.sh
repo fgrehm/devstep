@@ -2,14 +2,10 @@
 
 set -e
 
-
 #####################################################################
-# * Install and configure PostgreSQL and MySQL clients
 # * Install bash-completion to save us a few keystrokes
 # * Install vim because editing files with plain old vi sucks
 # * Install `htop` because it has a nicer UI than plain old `top`
-# * Install tmux so that we can run lots of shells within the same
-#   bash session (without the need of running through SSH)
 # * Install nodejs for Rails apps, Bazaar and Mecurial for Golang projects
 #   (will be installed on demand by buildpacks on a future release)
 # * Python and runit are dependencies for our init script based on
@@ -20,13 +16,10 @@ apt-get install -y --force-yes --no-install-recommends \
                 libreadline5 \
                 libmcrypt4 \
                 libffi-dev \
-                postgresql-client \
-                mysql-client \
                 sqlite3 \
                 libsqlite3-dev \
                 vim \
                 htop \
-                tmux \
                 mercurial \
                 bzr \
                 nodejs-legacy \
