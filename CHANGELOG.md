@@ -8,6 +8,7 @@ BREAKING CHANGES:
 IMPROVEMENTS:
 
   - buildpacks/golang: Bump default Go to 1.5.2
+  - buildpacks/golang: Pass in `-t` to `go get` [[GH-96]]
   - buildpacks/inline: Support strings for the `provision` config on `devstep.yml` files
   - buildpacks/python: Bump default Python to 2.7.11
 
@@ -18,6 +19,7 @@ BUG FIXES:
   - buildpacks/inline: Return the same exit code returned by the `provision` command [[GH-99]]
 
 [GH-94]: https://github.com/fgrehm/devstep/issues/94
+[GH-96]: https://github.com/fgrehm/devstep/issues/96
 [GH-97]: https://github.com/fgrehm/devstep/issues/97
 [GH-99]: https://github.com/fgrehm/devstep/issues/99
 
