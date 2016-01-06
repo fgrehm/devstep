@@ -5,6 +5,14 @@ BREAKING CHANGES:
   - baseimage: Removed tmux
   - buildpacks: Removed `bats` and `phantomjs`
 
+BUG FIXES:
+
+  - buildpacks/inline: Improve `devstep.yml` `provision` config handling [[GH-97]]
+  - buildpacks/inline: Return the same exit code returned by the `provision` command [[GH-99]]
+
+[GH-97]: https://github.com/fgrehm/devstep/issues/97
+[GH-99]: https://github.com/fgrehm/devstep/issues/99
+
 ## [0.4.0](https://github.com/fgrehm/devstep/compare/v0.3.1...v0.4.0) (2015-07-06)
 
 BREAKING CHANGES:
