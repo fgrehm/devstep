@@ -64,7 +64,6 @@ _For more information please have a look at the [Dockerfile](https://github.com/
 
 ## Supported buildpacks
 
-* [Bats](buildpacks/bats)
 * [Golang](buildpacks/golang)
 * [Inline](buildpacks/inline)
 * [Node.js](buildpacks/nodejs)
