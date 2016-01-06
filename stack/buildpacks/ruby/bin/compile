@@ -84,7 +84,7 @@ install_phantomjs() {
 DEVSTEP_RUBY_VERSION=${DEVSTEP_RUBY_VERSION:-$(version_from_ruby_version)}
 DEVSTEP_RUBY_VERSION=${DEVSTEP_RUBY_VERSION:-$(version_from_gemfile)}
 if [ -z "$DEVSTEP_RUBY_VERSION" ]; then
-  DEVSTEP_RUBY_VERSION='2.2.2'
+  DEVSTEP_RUBY_VERSION='2.3.0'
   echo "Unable to identify the project ruby version, setting to ${DEVSTEP_RUBY_VERSION}"
 fi
 
@@ -118,7 +118,7 @@ fi
 
 source ${HOME}/.profile.d/ruby.sh
 
-DEVSTEP_BUNDLER_VERSION=${DEVSTEP_BUNDLER_VERSION:-'1.10.5'}
+DEVSTEP_BUNDLER_VERSION=${DEVSTEP_BUNDLER_VERSION:-'1.11.2'}
 
 if ! $(which bundle &> /dev/null); then
   tarball_path=$2/rubies/bundler-${DEVSTEP_BUNDLER_VERSION}.gem
