@@ -4,7 +4,7 @@
 Devstep comes in two flavors, you can either use the provided CLI or you can build
 on top of the provided images from `Dockerfile`s.
 
-Regardless of the flavor you choose, it is a good idea to `docker pull fgrehm/devstep:v0.4.0`
+Regardless of the flavor you choose, it is a good idea to `docker pull fgrehm/devstep:v1.0.0`
 before creating your first container / image for a better user experience. Docker
 will download that image as needed when using `Dockerfile`s but the Devstep CLI won't.
 
@@ -38,7 +38,7 @@ line to your `~/devstep.yml` so that the image is used as a source for your proj
 To install the CLI, you can run the one liner below and read on for more:
 
 ```sh
-L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep-cli/releases/download/v0.4.0/linux_amd64 > $L && chmod +x $L
+L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep-cli/releases/download/v1.0.0/linux_amd64 > $L && chmod +x $L
 ```
 
 _The snippet above assumes `$HOME/bin` is on your `PATH`, change `$HOME/bin` to
@@ -180,7 +180,7 @@ The `fgrehm/devstep` image is the base image used for Devstep environments and
 requires you to manually trigger the build:
 
 ```Dockerfile
-FROM fgrehm/devstep:v0.4.0
+FROM fgrehm/devstep:v1.0.0
 
 # Add project to the image and build it
 ADD . /workspace
