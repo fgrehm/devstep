@@ -43,25 +43,6 @@ volumes:
 environment:
   RAILS_ENV: "development"
 
-# Custom command aliases that can be used with `devstep run` to save some
-# typing. It is also used for generating project specific binstubs.
-# DEFAULT: <empty>
-commands:
-  # This can be run with `devstep run server`
-  server:
-    cmd: ["rails", "server"]
-    # Here you can use some of the configs described above
-    publish: ["3000:3000"]
-    volumes:
-    - '{{env "HOME"}}/certs/some-certificate.crt:/home/devstep/some-certificate.crt'
-    - '{{env "HOME"}}/projects/some-gem-sources:/home/devstep/some-gem-sources'
-    links:
-    - 'redis:redis'
-    environment:
-      RAILS_ENV: "hacking"
-  ruby:
-    # No custom options, used only for generating binstubs
-
 # Custom provisioning steps that can be used when the available buildpacks are not
 # enough. Use it to configure addons or run additional commands during the build.
 # DEFAULT: <empty>
