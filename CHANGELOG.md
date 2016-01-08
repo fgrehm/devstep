@@ -10,6 +10,7 @@ IMPROVEMENTS:
   - buildpacks/golang: Bump default Go to 1.5.2
   - buildpacks/golang: Pass in `-t` to `go get` [[GH-96]]
   - buildpacks/inline: Support strings for the `provision` config on `devstep.yml` files
+  - buildpacks/inline: Always run inline `provision` commands at the end of the build process, after all of the other buildpacks have kicked in.
   - buildpacks/python: Bump default Python to 2.7.11
 
 BUG FIXES:
