@@ -59,6 +59,7 @@ mkdir -p $DEVSTEP_CONF/init.d
 # directory bind mounted into the container.
 echo "developer:x:1000:1000:Developer,,,:/home/devstep:/bin/bash" >> /etc/passwd
 echo "developer:x:1000:" >> /etc/group
+echo "docker:x:999:developer" >> /etc/group
 echo "developer ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/developer
 echo -e "[client]\nprotocol=tcp\nuser=root" >> $HOME/.my.cnf
 echo "export PGHOST=localhost" >> $HOME/.profile.d/postgresql.sh
