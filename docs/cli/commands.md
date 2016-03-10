@@ -3,7 +3,7 @@
 
 1. [Hack](#user-content-hack)
 1. [Build](#user-content-build)
-1. [Boostrap](#user-content-bootstrap)
+1. [Bootstrap](#user-content-bootstrap)
 1. [Other commands](#user-content-other-commands)
 
 --------------

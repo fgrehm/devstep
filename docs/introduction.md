@@ -52,8 +52,8 @@ Heroku apps) will be available for `fgrehm/devstep` environments.
 On top of `heroku/cedar:14`, we:
 
 * Create a `developer` user to avoid using `root` and creating files with wrong permissions during development.
-* Install some extra devel packages (like `libyaml-dev`) and other "nice to have"
-  packages and utilities (like `tmux` and `vim`).
+* Install some extra devel packages (like `libreadline`) and other "nice to have"
+  packages and utilities (like `vim` and `sqlite3`).
 * Configure PostgreSQL and MySQL clients.
 * Set the image `ENTRYPOINT` to our own init system and the default command to a `bash` login shell.
 * Configure a couple of startup scripts (like automatic port forwading to linked containers).
