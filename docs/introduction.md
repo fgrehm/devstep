@@ -67,7 +67,6 @@ _For more information please have a look at the [Dockerfile](https://github.com/
 * [Golang](buildpacks/golang)
 * [Inline](buildpacks/inline)
 * [Node.js](buildpacks/nodejs)
-* [PhantomJS](buildpacks/phantomjs)
 * [Python](buildpacks/python)
 * [Ruby](buildpacks/ruby)
 

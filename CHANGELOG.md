@@ -1,8 +1,7 @@
-## [1.0.0](https://github.com/fgrehm/devstep/compare/v0.4.0...next) (unreleased)
+## [1.0.0](https://github.com/fgrehm/devstep/compare/v0.4.0...v1.0.0) (2016-03-10)
 
 BREAKING CHANGES:
 
-  - baseimage: Removed PostgreSQL and MySQL clients
   - baseimage: Removed tmux
   - addons: Removed `docker`
   - buildpacks: Removed `bats` and `phantomjs`
