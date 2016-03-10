@@ -129,7 +129,6 @@ of choice.
 * `info` - Show information about the current environment
 * `run` - Run a one off command against the current base image
 * `exec` - Run a one off command against the last container created for the current project
-* `binstubs` - Generate binstubs for the commands specified on devstep.yml
 * `clean` - Remove previously built images for the current environment
 * `pristine` - Rebuild project image from scratch
 * `help, h` - Shows a list of commands or help for one command
