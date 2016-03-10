@@ -23,7 +23,7 @@ user=${info[0]}
 gid=${info[1]}
 uid=${info[2]}
 
-if [ $user != 'developer' ]; then
+if [ $user == 'root' ]; then
   echo "-----> Changing cache dir owner to 'developer'"
   sudo chown developer: ${HOME}/cache
 fi
