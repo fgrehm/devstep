@@ -3,6 +3,7 @@
 set -e
 
 GEMFILE_PATH=$1/Gemfile
+GEMFILE_LOCK_PATH=$1/Gemfile.lock
 RUBY_VERSION_PATH=$1/.ruby-version
 
 # From https://github.com/aripollak/rbenv-bundler-ruby-version/blob/32bd1a63ed57c6fcfbd4f3766fed64fad21b61b0/bin/rbenv-bundler-ruby-version#L24-L33
@@ -21,6 +22,12 @@ version_from_gemfile() {
 version_from_ruby_version() {
   if [ -f ${RUBY_VERSION_PATH} ]; then
     cat $RUBY_VERSION_PATH
+  fi
+}
+
+bundler_version_from_gemfile_lock() {
+  if [ -f ${GEMFILE_LOCK_PATH} ]; then
+    echo $(cat Gemfile.lock | grep "BUNDLED WITH" -A 1 | tail -1)
   fi
 }
 
@@ -118,6 +125,7 @@ fi
 
 source ${HOME}/.profile.d/ruby.sh
 
+DEVSTEP_BUNDLER_VERSION=${DEVSTEP_BUNDLER_VERSION:-$(bundler_version_from_gemfile_lock)}
 DEVSTEP_BUNDLER_VERSION=${DEVSTEP_BUNDLER_VERSION:-'1.10.5'}
 
 if ! $(which bundle &> /dev/null); then
