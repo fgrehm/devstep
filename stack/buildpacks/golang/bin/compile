@@ -77,10 +77,10 @@ elif test -d $build/.git
 then
     pushd $build &> /dev/null
     # REFACTOR: I'm pretty sure this can be cleaned up
-    name=$(git config --get-regexp '^remote.+\.url' | grep github | head -n1 | cut -f2 -d' ' | sed 's/^\(git\|https\):\/\///' | sed 's/^\w\+@//' | sed 's/:/\//' | sed 's/\.git$//')
+    name=$(git config --get-regexp '^remote.+\.url' | grep github | head -n1 | cut -f2 -d' ' | sed 's/^\(git\|https\):\/\///' | sed 's/^\w\+@//' | sed 's/:/\//' | sed 's/\.git$//' || echo -n '')
     popd &> /dev/null
 fi
-ver=${ver:-go${GOVERSION:-1.4.2}}
+ver=${ver:-go${GOVERSION:-1.6}}
 
 file=${GOFILE:-$ver.$(uname|tr A-Z a-z)-amd64$(platext $ver).tar.gz}
 url=${GOURL:-$(urlfor $ver $file)}
@@ -123,9 +123,9 @@ GOROOT=${HOME}/go export GOROOT
 # GOPATH=$build/.heroku/go export GOPATH
 GOPATH=${HOME}/gocode export GOPATH
 # PATH=$GOROOT/bin:$PATH
+GOBIN=$GOPATH/bin export GOBIN
 PATH=$GOBIN:$GOROOT/bin:$PATH export PATH
 
-GOBIN=$GOPATH/bin export GOBIN
 
 # if ! (test -d $build/Godeps || (which hg >/dev/null && which bzr >/dev/null))
 # then
@@ -244,7 +244,7 @@ then
     echo "-----> Running: godep go install ${FLAGS[@]} ./..."
     godep go install "${FLAGS[@]}" ./...
 else
-    FLAGS=(-d -v)
+    FLAGS=(-d -v -t)
     echo "-----> Running: go get ${FLAGS[@]} ./..."
     go get "${FLAGS[@]}" ./...
 fi

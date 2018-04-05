@@ -15,11 +15,6 @@ elif [ "${uid}" = '0' ]; then
     echo "-----> Setting '`pwd`' owner to 'developer'"
     sudo chown -R developer: `pwd`
   fi
-
-else
-  # If the directory has some other uid, there's nothing we can do right now
-  echo "-----> The workspace directory is owned by a different user!"
-  exit 1
 fi
 
 
@@ -28,7 +23,7 @@ user=${info[0]}
 gid=${info[1]}
 uid=${info[2]}
 
-if [ $user != 'developer' ]; then
+if [ $user == 'root' ]; then
   echo "-----> Changing cache dir owner to 'developer'"
   sudo chown developer: ${HOME}/cache
 fi

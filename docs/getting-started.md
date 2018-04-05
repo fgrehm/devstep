@@ -4,7 +4,7 @@
 Devstep comes in two flavors, you can either use the provided CLI or you can build
 on top of the provided images from `Dockerfile`s.
 
-Regardless of the flavor you choose, it is a good idea to `docker pull fgrehm/devstep:v0.4.0`
+Regardless of the flavor you choose, it is a good idea to `docker pull fgrehm/devstep:v1.0.0`
 before creating your first container / image for a better user experience. Docker
 will download that image as needed when using `Dockerfile`s but the Devstep CLI won't.
 
@@ -12,37 +12,44 @@ will download that image as needed when using `Dockerfile`s but the Devstep CLI 
 ---------------
 
 This project is being developed and tested on an Ubuntu 14.04 host with Docker
-1.7.0, while it is likely to work on other distros / Docker versions /
-[boot2docker](http://boot2docker.io/), I'm not sure how it will behave on the wild.
+1.9.0+ and on OSX using [dinghy VMs](https://github.com/codekitchen/dinghy) powered
+by the [xhyve docker-machine driver](https://github.com/zchee/docker-machine-driver-xhyve).
+While it is likely to work on other distros / Docker versions / boot2docker setups,
+I'm not sure how it will behave on the wild.
 
-Please note that the CLI is currently limited to connecting to a local `/var/run/docker.sock`
+Please note that the CLI currently defaults to connecting to a local `/var/run/docker.sock`
 socket only and the user that runs `devstep` commands will need [non-root access to it](http://docs.docker.io/installation/ubuntulinux/#giving-non-root-access).
-Support for execution over TCP is likely to be added at some point in the future.
+On OSX we rely on the environmental variables set by `docker-machine` (like
+`DOCKER_HOST` and `DOCKER_CERT_PATH` for example) and also on the fact that the
+`$HOME` dir is automagically shared with the VM that runs the docker daemon.
 
 ## Getting started with the CLI
 -------------------------------
 
 > **IMPORTANT**: A `developer` user will be used by Devstep and it assumes your
-user and group ids are equal to `1000` when using the CLI or the container's init
-process will be aborted. This is to guarantee that files created within Docker
-containers have the appropriate permissions so that you can manipulate them
-on the host without the need to use `sudo`. This is currently a Devstep limitation
-that will be worked around in case there is enough demand or will be fixed once
-Docker adds support for user namespaces.
+user and group ids are equal to `1000` when using the CLI. This is to guarantee
+that files created within Docker containers have the appropriate permissions so
+that you can manipulate them on the host without the need to use `sudo`. This is
+currently a Devstep limitation that will be handled on a future release.
 
 > The `1000` id was chosen because it is the default uid / gid of Ubuntu Desktop users
 that are created during the installation process. To work around this limitation
 you can build your own image with the appropriate ids and add a `source_image: '<YOUR-IMAGE>:<OPTIONAL-TAG>'`
 line to your `~/devstep.yml` so that the image is used as a source for your projects.
 
-To install the CLI, you can run the one liner below and read on for more:
+> When on OSX using dinghy, this should not be a problem thanks to how it sets up
+NFS shares.
+
+To install the CLI:
 
 ```sh
-L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep-cli/releases/download/v0.4.0/linux_amd64 > $L && chmod +x $L
-```
+# On Linux (assumes `$HOME/bin` is on your `PATH`)
+L=$HOME/bin/devstep && curl -sL https://github.com/fgrehm/devstep-cli/releases/download/v1.0.0/linux_amd64 > $L && chmod +x $L
 
-_The snippet above assumes `$HOME/bin` is on your `PATH`, change `$HOME/bin` to
-an appropriate path in case your system is not configured like that._
+# On OSX
+brew tap fgrehm/devstep
+brew install devstep
+```
 
 ### Doing a quick hack on a project
 
@@ -50,7 +57,8 @@ With the CLI and Docker in place, just `cd` into your project and run `devstep h
 it should be all you need to start working on your project. Devstep will create
 a Docker container, will install your project dependencies in it and at the end
 you'll be dropped on a `bash` session inside the container with project sources
-available at `/workspace`.
+available at `/workspace`. **Don't forget to `eval $(docker-machine env <vm-name>)` /
+`eval $(dinghy env)` in case you are on OSX.**
 
 From inside the container, you can do your work as you would on your own machine.
 For example, you can use `rake test` to run your Ruby tests or `go build` to
@@ -84,8 +92,8 @@ devstep hack -p 8080:8080
 ```
 
 And it will redirect the `8080` port on your host to the `8080` port within the
-container so you can just hit `http://localhost:8080` on your browser to see your
-app running after it is up.
+container so you can just hit `http://localhost:8080` (or `http://DOCKER_HOST:8080`)
+on your browser to see your app running after it is up.
 
 ### Using databases or other services from within containers
 
@@ -180,7 +188,7 @@ The `fgrehm/devstep` image is the base image used for Devstep environments and
 requires you to manually trigger the build:
 
 ```Dockerfile
-FROM fgrehm/devstep:v0.4.0
+FROM fgrehm/devstep:v1.0.0
 
 # Add project to the image and build it
 ADD . /workspace

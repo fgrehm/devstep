@@ -120,10 +120,21 @@ else
   exit 0
 fi
 
+# HACK to "move" inline buildpack to the end of the list (very hacky but works)
+inline_path=
 for bp in "${selected_buildpacks[@]}"; do
+  if $(echo $bp | grep -q 'inline'); then
+    inline_path="$bp"
+    continue
+  fi
   echo_title "Building with $bp"
   $bp/bin/compile "$project_root" "$cache_root" | ensure_indent
 done
+
+if [[ -n "$inline_path" ]]; then
+  echo_title "Building with $inline_path"
+  $inline_path/bin/compile "$project_root" "$cache_root" | ensure_indent
+fi
 
 echo_title "Build finished successfully!"
 

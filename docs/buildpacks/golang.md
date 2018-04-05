@@ -9,9 +9,8 @@ If a `Godep` dir is found, this buildpack will download and install [godep](http
 into your `$PATH` and will parse the `GoVersion` and `ImportPath` attributes
 when setting things up.
 
-Since currently devstep [does not support](https://github.com/fgrehm/devstep/issues/51)
-setting the workspace directory used inside the container, this buildpack will
-attempt to parse your project's import path for you using the following approach:
+This buildpack will attempt to identify your project's import path for you using
+the following priority:
 
 1. `ImportPath` from Godep configs
 2. `.godir` file
@@ -19,9 +18,15 @@ attempt to parse your project's import path for you using the following approach
 4. `GO_PROJECT_NAME` environmental variable
 
 After identifying the import path, the buildpack will symlink your project sources
-into the appropriate path under the `$GOPATH/src` dir.
+into the appropriate path under the `$GOPATH/src` dir. You can also configure
+the `working_dir` to an appropriate path on your [project's `devstep.yml`](cli/configuration):
 
-If godep is configured, the buildpack will attempt a `godep go build` for you,
+```yml
+# The directory where project sources should be mounted inside the container.
+working_dir: '/home/devstep/gocode/src/github.com/fgrehm/devstep-cli'
+```
+
+If godep is configured, the buildpack will attempt a `godep go install` for you,
 otherwise it will download project's dependencies with `go get` so you can
 start hacking right away.
 

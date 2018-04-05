@@ -2,7 +2,7 @@
 
 set -e
 
-tag='v0.4.0'
+tag='v1.0.0'
 
 echo "===> Building fgrehm/devstep:${tag}"
 docker build -t fgrehm/devstep:${tag} .

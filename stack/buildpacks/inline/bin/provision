@@ -4,8 +4,8 @@ require 'yaml'
 
 commands = YAML.load(File.read(ARGV[0]))['provision']
 
-commands.each do |cmd|
-  if !(system *cmd)
+Array(commands).each do |cmd|
+  if !system(Array(cmd).join(' '))
     exit $?.to_i
   end
 end

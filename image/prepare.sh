@@ -2,14 +2,10 @@
 
 set -e
 
-
 #####################################################################
-# * Install and configure PostgreSQL and MySQL clients
 # * Install bash-completion to save us a few keystrokes
 # * Install vim because editing files with plain old vi sucks
 # * Install `htop` because it has a nicer UI than plain old `top`
-# * Install tmux so that we can run lots of shells within the same
-#   bash session (without the need of running through SSH)
 # * Install nodejs for Rails apps, Bazaar and Mecurial for Golang projects
 #   (will be installed on demand by buildpacks on a future release)
 # * Python and runit are dependencies for our init script based on
@@ -20,13 +16,10 @@ apt-get install -y --force-yes --no-install-recommends \
                 libreadline5 \
                 libmcrypt4 \
                 libffi-dev \
-                postgresql-client \
-                mysql-client \
                 sqlite3 \
                 libsqlite3-dev \
                 vim \
                 htop \
-                tmux \
                 mercurial \
                 bzr \
                 nodejs-legacy \
@@ -66,6 +59,7 @@ mkdir -p $DEVSTEP_CONF/init.d
 # directory bind mounted into the container.
 echo "developer:x:1000:1000:Developer,,,:/home/devstep:/bin/bash" >> /etc/passwd
 echo "developer:x:1000:" >> /etc/group
+echo "docker:x:999:developer" >> /etc/group
 echo "developer ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/developer
 echo -e "[client]\nprotocol=tcp\nuser=root" >> $HOME/.my.cnf
 echo "export PGHOST=localhost" >> $HOME/.profile.d/postgresql.sh
