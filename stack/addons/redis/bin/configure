@@ -11,7 +11,7 @@ if ! $(which redis-server &> /dev/null); then
     sudo apt-get update -q &&
     sudo apt-get install redis-server -y --force-yes -q
   ) &>> /tmp/configure-redis.log && \
-    rm /tmp-configure-redis.log
+    rm /tmp/configure-redis.log
 fi
 
 addon_basedir="$( cd -P "$( dirname "$0" )" && pwd )"
